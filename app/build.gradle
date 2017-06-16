@@ -75,7 +75,6 @@ dependencies {
     //align-text-view
     compile 'me.codeboy.android:align-text-view:2.3.0'
 
-    compile 'com.lsjwzh:materialloadingprogressbar:0.5.8-RELEASE'
     //fab
     compile 'com.getbase:floatingactionbutton:1.10.1'
     testCompile 'junit:junit:4.12'
