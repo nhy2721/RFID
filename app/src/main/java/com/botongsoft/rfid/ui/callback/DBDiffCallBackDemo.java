@@ -1,4 +1,4 @@
-package com.botongsoft.rfid.com.botongsoft.rfid.ui.callback;
+package com.botongsoft.rfid.ui.callback;
 
 /**
  * Author   :hymanme

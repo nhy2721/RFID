@@ -1,4 +1,4 @@
-package com.botongsoft.rfid.com.botongsoft.rfid.ui.adapter;
+package com.botongsoft.rfid.ui.adapter;
 
 /**
  * Author   :hymanme
