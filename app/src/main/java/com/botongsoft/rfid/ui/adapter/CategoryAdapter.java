@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.common.utils.UIUtils;
+import com.botongsoft.rfid.ui.activity.DownFLoorActivity;
 import com.botongsoft.rfid.ui.activity.UpFLoorActivity;
 
 /**
@@ -22,7 +23,9 @@ import com.botongsoft.rfid.ui.activity.UpFLoorActivity;
 public class CategoryAdapter extends RecyclerView.Adapter {
     private String[] mCategory;
     private Context mContext;
-//    public CategoryAdapter() {
+    private Intent intent;
+
+    //    public CategoryAdapter() {
 //        mCategory = UIUtils.getContext().getResources().getStringArray(R.array.book_category);
 //    }
     public CategoryAdapter(Context mContext) {
@@ -44,16 +47,20 @@ public class CategoryAdapter extends RecyclerView.Adapter {
         ((CategoryHolder) holder).ll_ceil.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch (position){
+                switch (position) {
                     case 0:
-                      Toast.makeText(UIUtils.getContext(),"上架",Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(UIUtils.getContext(),UpFLoorActivity.class);
+                        Toast.makeText(UIUtils.getContext(), "上架", Toast.LENGTH_SHORT).show();
+                        intent = new Intent(UIUtils.getContext(), UpFLoorActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
                         UIUtils.startActivity(intent);
                         break;
                     case 1:
-                        Toast.makeText(UIUtils.getContext(),"下架",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UIUtils.getContext(), "下架", Toast.LENGTH_SHORT).show();
+                        intent = new Intent(UIUtils.getContext(), DownFLoorActivity.class);
+                        intent.putExtra("index", position);
+                        intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
+                        UIUtils.startActivity(intent);
                         break;
 
 

@@ -50,6 +50,11 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:theme="@style/AppTheme.DayNight.NoActionBar"
             android:windowSoftInputMode="stateHidden|adjustResize"/>
+        <activity
+            android:name=".ui.activity.DownFLoorActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:theme="@style/AppTheme.DayNight.NoActionBar"
+            android:windowSoftInputMode="stateHidden|adjustResize"/>
     </application>
 
 </manifest>
