@@ -51,6 +51,7 @@ import static com.botongsoft.rfid.R.id.toolbar;
 public class DownFLoorActivity extends BaseActivity {
     private static final int UI_SUCCESS = 0;
     private static final int UI_SUBMITSUCCESS = 1;
+    private static final int UI_SUBMITSENDFAILUREMSG = 2;
     @BindView(toolbar)
     Toolbar mToolbar;
     //    @BindView(R.id.swipe_layout)
@@ -152,6 +153,28 @@ public class DownFLoorActivity extends BaseActivity {
         mSwipeMenuRecyclerView.setAdapter(mDownFloorAdapter);
     }
 
+    @Override
+    protected void initEvents() {
+        index = getIntent().getIntExtra("index", 0);
+        setTitle(getIntent().getStringExtra("title"));
+        mDataList = new ArrayList<>();
+
+        mProgressBar.setVisibility(View.GONE);
+        mFab.setOnClickListener(new OnSingleClickListener() {
+            @Override
+            protected void onSingleClick(View view) {
+                if (mDataList.size() > 0) {
+                    Toast.makeText(UIUtils.getContext(), "开始保存", Toast.LENGTH_SHORT).show();
+                    view.setClickable(false);
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    msg = mCheckMsgHandler.obtainMessage();
+                    msg.what = MSG_SUBMIT;
+                    mCheckMsgHandler.sendMessage(msg);
+                }
+            }
+        });
+    }
+
     private void initUiHandler() {
         mHandler = new Handler() {
             @Override
@@ -159,23 +182,10 @@ public class DownFLoorActivity extends BaseActivity {
                 super.handleMessage(msg);
                 switch (msg.what) {
                     case UI_SUCCESS:
-                        //模拟数据
-                        //                        if (mBundle != null) {
-                        //                            if (mBundle.getString("info").equals("a")) {
-                        //                                mTextView.setText("1库房1号架左面1组2层");
-                        //                            }
-                        //                            if (mBundle.getString("info").equals("b")) {
-                        //                                mTextView.setText("1库房2号架左面1组2层");
-                        //                            }
-                        //                            if (mBundle.getString("info").equals("c")) {
-                        //                                mTextView.setText("2库房10号架左面1组1层");
-                        //                            }
-                        //                        }
                         mTextInputEditText.setText("");
                         mDownFloorAdapter.notifyDataSetChanged();
                         break;
                     case UI_SUBMITSUCCESS:
-                        //                        mTextView.setText("");
                         mTextInputEditText.setText("");
                         mDataList.clear();
                         mDownFloorAdapter.notifyDataSetChanged();
@@ -183,6 +193,12 @@ public class DownFLoorActivity extends BaseActivity {
                         Toast.makeText(UIUtils.getContext(), "保存成功", Toast.LENGTH_SHORT).show();
                         size1 = 1;
                         mFab.setClickable(true);
+                        break;
+                    case UI_SUBMITSENDFAILUREMSG:
+                        Toast.makeText(UIUtils.getContext(), "更新数据失败", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
                         break;
                 }
             }
@@ -196,10 +212,13 @@ public class DownFLoorActivity extends BaseActivity {
                 Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
                 switch (msg.what) {
                     case MSG_UPDATE_INFO:
-                        checkForUpdate();
+                        checkForUpdate();//
                         break;
                     case MSG_SUBMIT:
-                        doSubmit();
+                        doSubmit();//保存数据库
+                        break;
+                    default:
+                        super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
                         break;
                 }
             }
@@ -214,18 +233,30 @@ public class DownFLoorActivity extends BaseActivity {
 
         @Override
         public void run() {
-            //保存数据库
-            for (Map map : mDataList) {
-                Mjjgda mjjgda = new Mjjgda();
-                mjjgda.setScanInfo(map.get("title").toString());//保存到档案表的扫描信息字段
-                DBDataUtils.save(mjjgda);
-            }
+            //保存数据库 根据list中的更新档案表信息
+            boolean str = saveDB(mDataList);
             //这里发送通知ui更新界面
             mHandlerMessage = mHandler.obtainMessage();
-            mHandlerMessage.what = UI_SUBMITSUCCESS;
+            if (str) {
+                mHandlerMessage.what = UI_SUBMITSUCCESS;
+            } else {
+                mHandlerMessage.what = UI_SUBMITSENDFAILUREMSG;
+            }
+
             mHandler.sendMessage(mHandlerMessage);
         }
     };
+
+    private boolean saveDB(List<Map> mDataList) {
+        boolean str = false;
+        //操作内容是根据选中的条目删除密集架档案表数据，完成下架。
+        for (Map map : mDataList) {
+            //            Mjjgda mjjgda = new Mjjgda();
+            //            mjjgda.setScanInfo(map.get("title").toString());//保存到档案表的扫描信息字段
+            str = DBDataUtils.deleteInfo(Mjjgda.class, "scanInfo", map.get("title").toString());
+        }
+        return str;
+    }
 
     /**
      * 延迟线程，看是否还有下一个字符输入
@@ -254,14 +285,32 @@ public class DownFLoorActivity extends BaseActivity {
             mHandlerMessage = mHandler.obtainMessage();
             mHandlerMessage.what = UI_SUCCESS;
             //在这里读取数据库增加list值，界面显示读取的标签信息
-            Map map = new HashMap();
-            map.put("id", size1++);
-            map.put("title", mTextInputEditText.getText());
-            map.put("local", mTextInputEditText.getText());
-            mDataList.add(map);
+            editString = mTextInputEditText.getText().toString();
+            searchDB(editString);
             mHandler.sendMessage(mHandlerMessage);
         }
     };
+
+    private void searchDB(String editString) {
+        boolean tempStr = true;
+        //防止扫描重复判断
+        if (mDataList.size() > 0) {
+            for (Map map : mDataList) {
+                if (map.get("title").toString().equals(editString)) {
+                    tempStr = false;
+                    break;
+                }
+            }
+        }
+        if (tempStr) {
+            //模拟数据
+            Map map = new HashMap();
+            map.put("id", size1++);
+            map.put("title", mTextInputEditText.getText());
+            map.put("local", "1库2架左2组2层" + size1);
+            mDataList.add(map);
+        }
+    }
 
     @Override
     protected void onResume() {
@@ -446,28 +495,6 @@ public class DownFLoorActivity extends BaseActivity {
             }
         }
     };
-
-    @Override
-    protected void initEvents() {
-        index = getIntent().getIntExtra("index", 0);
-        setTitle(getIntent().getStringExtra("title"));
-        mDataList = new ArrayList<>();
-
-        mProgressBar.setVisibility(View.GONE);
-        mFab.setOnClickListener(new OnSingleClickListener() {
-            @Override
-            protected void onSingleClick(View view) {
-                if (mDataList.size() > 0) {
-                    Toast.makeText(UIUtils.getContext(), "开始保存", Toast.LENGTH_SHORT).show();
-                    view.setClickable(false);
-                    mProgressBar.setVisibility(View.VISIBLE);
-                    msg = mCheckMsgHandler.obtainMessage();
-                    msg.what = MSG_SUBMIT;
-                    mCheckMsgHandler.sendMessage(msg);
-                }
-            }
-        });
-    }
 
     @Override
     public void onSuccess(BaseResponse baseResponse, int act) {

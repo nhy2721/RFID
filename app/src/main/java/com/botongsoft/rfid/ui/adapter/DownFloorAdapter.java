@@ -104,7 +104,7 @@ public class DownFloorAdapter extends SwipeMenuAdapter<DownFloorAdapter.DefaultV
         public void setData(Map map, int position) {
             this.tvId.setText(String.valueOf(position + 1));
             this.tvTitle.setText(String.valueOf(map.get("title")));
-            this.tvTitle.setText(String.valueOf(map.get("local")));
+            this.tvLocal.setText(String.valueOf(map.get("local")));
         }
 
         @Override

@@ -292,17 +292,29 @@ public class UpFLoorActivity extends BaseActivity {
     };
 
     private void searchDB(String editString) {
-        if (!mTextInputEditText.getText().toString().equals("a") && !mTextInputEditText.getText().toString().equals("b") && !mTextInputEditText.getText().toString().equals("c")) {
-            Map map = new HashMap();
-            map.put("id", size1++);
-            map.put("title", mTextInputEditText.getText());
-            mDataList.add(map);
-        } else {
-            mBundle = new Bundle();
-            mBundle.putString("info", mTextInputEditText.getText().toString());
-            scanInfoLocal = editString;
-            //            mHandlerMessage.obj = mTextInputEditText.getText().toString();
-            mHandlerMessage.setData(mBundle);
+        boolean tempStr = true;
+        //防止扫描重复判断
+        if (mDataList.size() > 0) {
+            for (Map map : mDataList) {
+                if (map.get("title").toString().equals(editString)) {
+                    tempStr = false;
+                    break;
+                }
+            }
+        }
+        if (tempStr) {
+            if (!mTextInputEditText.getText().toString().equals("a") && !mTextInputEditText.getText().toString().equals("b") && !mTextInputEditText.getText().toString().equals("c")) {
+                Map map = new HashMap();
+                map.put("id", size1++);
+                map.put("title", mTextInputEditText.getText());
+                mDataList.add(map);
+            } else {
+                mBundle = new Bundle();
+                mBundle.putString("info", mTextInputEditText.getText().toString());
+                scanInfoLocal = editString;
+                //            mHandlerMessage.obj = mTextInputEditText.getText().toString();
+                mHandlerMessage.setData(mBundle);
+            }
         }
     }
 
