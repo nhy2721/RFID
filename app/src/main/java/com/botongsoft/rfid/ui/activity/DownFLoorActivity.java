@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
@@ -55,7 +54,7 @@ public class DownFLoorActivity extends BaseActivity {
     @BindView(toolbar)
     Toolbar mToolbar;
     //    @BindView(R.id.swipe_layout)
-//    SwipeRefreshLayout mSwipeRefreshLayout;
+    //    SwipeRefreshLayout mSwipeRefreshLayout;
     @BindView(R.id.recycler_view)
     SwipeMenuRecyclerView mSwipeMenuRecyclerView;
     @BindView(R.id.fab)
@@ -64,8 +63,8 @@ public class DownFLoorActivity extends BaseActivity {
     TextInputLayout mTextInputLayout;
     @BindView(R.id.input_tx)
     TextInputEditText mTextInputEditText;
-    @BindView(R.id.tv_info)
-    TextView mTextView;
+    //    @BindView(R.id.tv_info)
+    //    TextView mTextView;
     @BindView(R.id.progressBar)
     ProgressBar mProgressBar;
     private int index;
@@ -97,13 +96,13 @@ public class DownFLoorActivity extends BaseActivity {
         mContext = this;
         initUiHandler();
 
-//        mSwipeRefreshLayout.setOnRefreshListener(mOnRefreshListener); //滑动布局的滑动监听
+        //        mSwipeRefreshLayout.setOnRefreshListener(mOnRefreshListener); //滑动布局的滑动监听
         LinearLayoutManager layout = new LinearLayoutManager(this);
         mSwipeMenuRecyclerView.setLayoutManager(layout);// 布局管理器。
         layout.setStackFromEnd(true);//列表再底部开始展示，反转后由上面开始展示
         layout.setReverseLayout(true);//列表翻转
         mSwipeMenuRecyclerView.setHasFixedSize(true);// 如果Item够简单，高度是确定的，打开FixSize将提高性能。
-//        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
+        //        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
         mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
         //创建后台线程
         initBackThread();
@@ -112,14 +111,14 @@ public class DownFLoorActivity extends BaseActivity {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 // 输入前的监听
-//                Log.e("输入前确认执行该方法", "开始输入");
+                //                Log.e("输入前确认执行该方法", "开始输入");
                 mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 // 输入的内容变化的监听
-//               Log.e("输入过程中执行该方法", "文字变化");
+                //               Log.e("输入过程中执行该方法", "文字变化");
                 if (mCheckMsgHandler != null) {
                     mCheckMsgHandler.removeCallbacks(delayRun);
                 }
@@ -129,7 +128,7 @@ public class DownFLoorActivity extends BaseActivity {
             @Override
             public void afterTextChanged(Editable editable) {
                 // 输入后的监听
-//                Log.e("输入结束执行该方法", "输入结束");
+                //                Log.e("输入结束执行该方法", "输入结束");
                 Log.e("Handler textChanged--->", String.valueOf(Thread.currentThread().getName()));
                 if (mTextInputEditText.length() != 0) {
                     if (mCheckMsgHandler != null) {
@@ -143,13 +142,13 @@ public class DownFLoorActivity extends BaseActivity {
             }
         });
         // 添加滚动监听。
-//        mSwipeMenuRecyclerView.addOnScrollListener(mOnScrollListener);
+        //        mSwipeMenuRecyclerView.addOnScrollListener(mOnScrollListener);
         // 设置菜单创建器。
         mSwipeMenuRecyclerView.setSwipeMenuCreator(swipeMenuCreator);
         // 设置菜单Item点击监听。
         mSwipeMenuRecyclerView.setSwipeMenuItemClickListener(menuItemClickListener);
 
-        mDownFloorAdapter = new DownFloorAdapter(mDataList);
+        mDownFloorAdapter = new DownFloorAdapter(this,mDataList);
         mDownFloorAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mDownFloorAdapter);
     }
@@ -162,22 +161,22 @@ public class DownFLoorActivity extends BaseActivity {
                 switch (msg.what) {
                     case UI_SUCCESS:
                         //模拟数据
-                        if (mBundle != null) {
-                            if (mBundle.getString("info").equals("a")) {
-                                mTextView.setText("1库房1号架左面1组2层");
-                            }
-                            if (mBundle.getString("info").equals("b")) {
-                                mTextView.setText("1库房2号架左面1组2层");
-                            }
-                            if (mBundle.getString("info").equals("c")) {
-                                mTextView.setText("2库房10号架左面1组1层");
-                            }
-                        }
+                        //                        if (mBundle != null) {
+                        //                            if (mBundle.getString("info").equals("a")) {
+                        //                                mTextView.setText("1库房1号架左面1组2层");
+                        //                            }
+                        //                            if (mBundle.getString("info").equals("b")) {
+                        //                                mTextView.setText("1库房2号架左面1组2层");
+                        //                            }
+                        //                            if (mBundle.getString("info").equals("c")) {
+                        //                                mTextView.setText("2库房10号架左面1组1层");
+                        //                            }
+                        //                        }
                         mTextInputEditText.setText("");
                         mDownFloorAdapter.notifyDataSetChanged();
                         break;
                     case UI_SUBMITSUCCESS:
-                        mTextView.setText("");
+                        //                        mTextView.setText("");
                         mTextInputEditText.setText("");
                         mDataList.clear();
                         mDownFloorAdapter.notifyDataSetChanged();
@@ -245,29 +244,24 @@ public class DownFLoorActivity extends BaseActivity {
         public void run() {
             //在这里调用服务器的接口，获取数据
             Log.e("Handler delayRun--->", String.valueOf(Thread.currentThread().getName()));
-//            mHandler.obtainMessage(UI_SUCCESS).sendToTarget();
-//            mTextView.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    Log.e("setText--->", String.valueOf(Thread.currentThread().getName()));
-//                    mTextView.setText(mTextInputEditText.getText());
-//                    mTextInputEditText.setText("");
-//                }
-//            });
+            //            mHandler.obtainMessage(UI_SUCCESS).sendToTarget();
+            //            mTextView.post(new Runnable() {
+            //                @Override
+            //                public void run() {
+            //                    Log.e("setText--->", String.valueOf(Thread.currentThread().getName()));
+            //                    mTextView.setText(mTextInputEditText.getText());
+            //                    mTextInputEditText.setText("");
+            //                }
+            //            });
             //这里定义发送通知ui更新界面
             mHandlerMessage = mHandler.obtainMessage();
             mHandlerMessage.what = UI_SUCCESS;
             //在这里读取数据库增加list值，界面显示读取的标签信息
-            if (!mTextInputEditText.getText().toString().equals("a") && !mTextInputEditText.getText().toString().equals("b") && !mTextInputEditText.getText().toString().equals("c")) {
-                Map map = new HashMap();
-                map.put("id", size1++);
-                map.put("title", mTextInputEditText.getText());
-                mDataList.add(map);
-            } else {
-                mBundle = new Bundle();
-                mBundle.putString("info", mTextInputEditText.getText().toString());
-                mHandlerMessage.setData(mBundle);
-            }
+            Map map = new HashMap();
+            map.put("id", size1++);
+            map.put("title", mTextInputEditText.getText());
+            map.put("local", mTextInputEditText.getText());
+            mDataList.add(map);
             mHandler.sendMessage(mHandlerMessage);
 
         }
@@ -304,12 +298,12 @@ public class DownFLoorActivity extends BaseActivity {
     /**
      * 刷新监听。
      */
-//    private SwipeRefreshLayout.OnRefreshListener mOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
-//        @Override
-//        public void onRefresh() {
-//            mSwipeMenuRecyclerView.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 2000);
-//        }
-//    };
+    //    private SwipeRefreshLayout.OnRefreshListener mOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+    //        @Override
+    //        public void onRefresh() {
+    //            mSwipeMenuRecyclerView.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 2000);
+    //        }
+    //    };
     /**
      * 加载更多
      */
@@ -468,12 +462,12 @@ public class DownFLoorActivity extends BaseActivity {
                 }
             }
         });
-//        for (int i = 0; i < size; i++) {
-//            Map map = new HashMap();
-//            map.put("id", i);
-//            map.put("title", "我是第" + i + "个。");
-//            mDataList.add(map);
-//        }
+        //        for (int i = 0; i < size; i++) {
+        //            Map map = new HashMap();
+        //            map.put("id", i);
+        //            map.put("title", "我是第" + i + "个。");
+        //            mDataList.add(map);
+        //        }
     }
 
     @Override

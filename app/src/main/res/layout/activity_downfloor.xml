@@ -109,7 +109,6 @@
             </android.support.design.widget.TextInputLayout>
 
             <TextView
-                android:id="@+id/tv_info"
                 android:layout_width="0dp"
                 android:layout_height="43dp"
                 android:layout_gravity="center"

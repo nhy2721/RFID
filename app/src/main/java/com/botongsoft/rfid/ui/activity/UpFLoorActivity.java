@@ -147,7 +147,7 @@ public class UpFLoorActivity extends BaseActivity {
         // 设置菜单Item点击监听。
         mSwipeMenuRecyclerView.setSwipeMenuItemClickListener(menuItemClickListener);
 
-        mUpfloorAdapter = new UpfloorAdapter(mDataList);
+        mUpfloorAdapter = new UpfloorAdapter(this,mDataList);
         mUpfloorAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mUpfloorAdapter);
     }

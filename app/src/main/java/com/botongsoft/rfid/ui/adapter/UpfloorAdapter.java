@@ -15,6 +15,7 @@
  */
 package com.botongsoft.rfid.ui.adapter;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,12 +37,14 @@ import butterknife.ButterKnife;
  * Created by YOLANDA on 2016/7/22.
  */
 public class UpfloorAdapter extends SwipeMenuAdapter<UpfloorAdapter.DefaultViewHolder> {
-
+    private Context mContext;
     private static List<Map> list;
 
     private OnItemClickListener mOnItemClickListener;
 
-    public UpfloorAdapter(List<Map> list) {
+    public UpfloorAdapter(Context context, List<Map> list) {
+        super();
+        this.mContext = context;
         this.list = list;
     }
 
@@ -68,15 +71,15 @@ public class UpfloorAdapter extends SwipeMenuAdapter<UpfloorAdapter.DefaultViewH
 
     @Override
     public void onBindViewHolder(UpfloorAdapter.DefaultViewHolder holder, int position) {
-        holder.setData(list.get(position),position);
+        holder.setData(list.get(position), position);
     }
     // 在指定位置添加一个新的Item
-//    public void addItem(Person person,int positionToAdd)
-//    {
-//        list.add(person);
-//        // 通知RecyclerView控件插入了某个Item
-//        notifyItemInserted(positionToAdd);
-//    }
+    //    public void addItem(Person person,int positionToAdd)
+    //    {
+    //        list.add(person);
+    //        // 通知RecyclerView控件插入了某个Item
+    //        notifyItemInserted(positionToAdd);
+    //    }
 
     public static class DefaultViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         @BindView(R.id.tv_title)
@@ -90,23 +93,23 @@ public class UpfloorAdapter extends SwipeMenuAdapter<UpfloorAdapter.DefaultViewH
         public DefaultViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
-//            itemView.setOnClickListener(this);
-//            tvId = (TextView) itemView.findViewById(R.id.tv_id);
-//            tvTitle = (TextView) itemView.findViewById(R.id.tv_title);
-//            imageView = (ImageView) itemView.findViewById(R.id.imageView);
+            //            itemView.setOnClickListener(this);
+            //            tvId = (TextView) itemView.findViewById(R.id.tv_id);
+            //            tvTitle = (TextView) itemView.findViewById(R.id.tv_title);
+            //            imageView = (ImageView) itemView.findViewById(R.id.imageView);
             imageView.setOnClickListener(this);
         }
 
-        public void setData(Map map,int position) {
-            this.tvId.setText(String.valueOf(position+1));
+        public void setData(Map map, int position) {
+            this.tvId.setText(String.valueOf(position + 1));
             this.tvTitle.setText(String.valueOf(map.get("title")));
         }
 
         @Override
         public void onClick(View v) {
             if (mOnItemClickListener != null) {
-                mOnItemClickListener.onItemClick(getAdapterPosition(),list.size()-1);
-//                mOnItemClickListener.onItemClick(getLayoutPosition());
+                mOnItemClickListener.onItemClick(getAdapterPosition(), list.size() - 1);
+                //                mOnItemClickListener.onItemClick(getLayoutPosition());
             }
         }
     }

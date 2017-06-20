@@ -17,15 +17,31 @@ public class CheckPlan implements java.io.Serializable {
     @Column
     private int pdid;
     @Column
-    private String kssj;
+    private int kssj;
     @Column
-    private String jssj;
+    private int jssj;
     @Column
     private String fw;
     @Column
     private String pdr;
     @Column
     private String bz;
+
+    public int getKssj() {
+        return kssj;
+    }
+
+    public void setKssj(int kssj) {
+        this.kssj = kssj;
+    }
+
+    public int getJssj() {
+        return jssj;
+    }
+
+    public void setJssj(int jssj) {
+        this.jssj = jssj;
+    }
 
     public int getLid() {
         return lid;
@@ -49,22 +65,6 @@ public class CheckPlan implements java.io.Serializable {
 
     public void setPdid(int pdid) {
         this.pdid = pdid;
-    }
-
-    public String getKssj() {
-        return kssj;
-    }
-
-    public void setKssj(String kssj) {
-        this.kssj = kssj;
-    }
-
-    public String getJssj() {
-        return jssj;
-    }
-
-    public void setJssj(String jssj) {
-        this.jssj = jssj;
     }
 
     public String getFw() {
