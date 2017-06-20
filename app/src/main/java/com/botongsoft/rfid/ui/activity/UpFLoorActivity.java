@@ -265,6 +265,7 @@ public class UpFLoorActivity extends BaseActivity {
     }
 
     private Runnable delayRun = new Runnable() {
+
         @Override
         public void run() {
             //在这里调用服务器的接口，获取数据
