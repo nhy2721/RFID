@@ -190,8 +190,6 @@ public class DownFLoorActivity extends BaseActivity {
     }
 
     private void initBackThread() {
-        mCheckMsgThread = new HandlerThread("BackThread");// 创建一个BackHandlerThread对象，它是一个线程
-        mCheckMsgThread.start();// 启动线程
         mCheckMsgHandler = new Handler(mCheckMsgThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
