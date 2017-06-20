@@ -79,7 +79,8 @@ public class DownFLoorActivity extends BaseActivity {
     private Handler mCheckMsgHandler;
     //与UI线程管理的handler
     private Handler mHandler;
-    private boolean isUpdateInfo;//是否更新intputtextview信息
+    private boolean isOnScreen;//是否在屏幕上
+    private boolean isRun;//是否在RFID读取
     private static final int MSG_UPDATE_INFO = 1;
     private static final int MSG_SUBMIT = 2;
     //传递后台运行消息队列
@@ -104,8 +105,6 @@ public class DownFLoorActivity extends BaseActivity {
         mSwipeMenuRecyclerView.setHasFixedSize(true);// 如果Item够简单，高度是确定的，打开FixSize将提高性能。
         //        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
         mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
-        //创建后台线程
-        initBackThread();
 
         mTextInputEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -148,7 +147,7 @@ public class DownFLoorActivity extends BaseActivity {
         // 设置菜单Item点击监听。
         mSwipeMenuRecyclerView.setSwipeMenuItemClickListener(menuItemClickListener);
 
-        mDownFloorAdapter = new DownFloorAdapter(this,mDataList);
+        mDownFloorAdapter = new DownFloorAdapter(this, mDataList);
         mDownFloorAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mDownFloorAdapter);
     }
@@ -270,13 +269,22 @@ public class DownFLoorActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        isOnScreen = true;
+        //        if(isOnScreen && isRun) {
+        if (isOnScreen) {
+            //开启新进程
+            mCheckMsgThread = new HandlerThread("BackThread");// 创建一个BackHandlerThread对象，它是一个线程
+            mCheckMsgThread.start();// 启动线程
+            //创建后台线程
+            initBackThread();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         //停止查询
-        isUpdateInfo = false;
+        isOnScreen = false;
         mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
 
     }
@@ -285,7 +293,7 @@ public class DownFLoorActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         //停止查询
-        isUpdateInfo = false;
+        isOnScreen = false;
         size1 = 0;
         //释放资源
         if (mCheckMsgHandler != null) {
@@ -462,12 +470,6 @@ public class DownFLoorActivity extends BaseActivity {
                 }
             }
         });
-        //        for (int i = 0; i < size; i++) {
-        //            Map map = new HashMap();
-        //            map.put("id", i);
-        //            map.put("title", "我是第" + i + "个。");
-        //            mDataList.add(map);
-        //        }
     }
 
     @Override
