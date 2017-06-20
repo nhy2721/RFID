@@ -28,8 +28,16 @@ import android.widget.CompoundButton;
 import android.widget.PopupWindow;
 
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.bean.classity.CheckError;
+import com.botongsoft.rfid.bean.classity.CheckPlan;
+import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
+import com.botongsoft.rfid.bean.classity.Kf;
+import com.botongsoft.rfid.bean.classity.Mjj;
+import com.botongsoft.rfid.bean.classity.Mjjg;
+import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
+import com.botongsoft.rfid.common.db.DataBaseCreator;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.utils.KeyBoardUtils;
 import com.botongsoft.rfid.common.utils.PermissionUtils;
@@ -39,6 +47,8 @@ import com.botongsoft.rfid.hodler.SearchViewHolder;
 import com.botongsoft.rfid.ui.fragment.BaseFragment;
 import com.botongsoft.rfid.ui.fragment.HomeFragment;
 import com.botongsoft.rfid.utils.customtabs.CustomTabActivityHelper;
+import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.exception.DbException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -58,7 +68,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     private PopupWindow mPopupWindow;
     private SearchViewHolder holder;
     private long lastTime = 0;
-
+    private Class[] tables= {CheckError.class, CheckPlan.class, CheckPlanDeatil.class, Kf.class, Mjj.class, Mjjg.class, Mjjgda.class};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,6 +135,14 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
     @Override
     protected void initEvents() {
+        DbUtils db = DataBaseCreator.create();
+        for (Class table : tables) {
+            try {
+                db.createTableIfNotExist(table);
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
