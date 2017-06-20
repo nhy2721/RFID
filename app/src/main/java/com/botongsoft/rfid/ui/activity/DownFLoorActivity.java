@@ -262,7 +262,6 @@ public class DownFLoorActivity extends BaseActivity {
             map.put("local", mTextInputEditText.getText());
             mDataList.add(map);
             mHandler.sendMessage(mHandlerMessage);
-
         }
     };
 
