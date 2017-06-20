@@ -109,7 +109,7 @@ public class UpfloorAdapter extends SwipeMenuAdapter<UpfloorAdapter.DefaultViewH
         public void onClick(View v) {
             if (mOnItemClickListener != null) {
                 mOnItemClickListener.onItemClick(getAdapterPosition(), list.size() - 1);
-                //                mOnItemClickListener.onItemClick(getLayoutPosition());
+//                                mOnItemClickListener.onItemClick(getLayoutPosition());
             }
         }
     }

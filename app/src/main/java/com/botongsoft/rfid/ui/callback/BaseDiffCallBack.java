@@ -5,10 +5,9 @@ import android.support.v7.util.DiffUtil;
 import java.util.List;
 
 /**
- * Author   :hymanme
- * Email    :hymanme@163.com
- * Create at 2016/9/29
- * Description:
+ * DiffUtil是recyclerview support library v7 24.2.0版本中新增的类，根据Google官方文档的介绍，DiffUtil的作用是比较两个数据列表并能计算出一系列将旧数据表转换成新数据表的操作。这个概念比较抽象，换一种方式理解，DiffUtil是一个工具类，当你的RecyclerView需要更新数据时，将新旧数据集传给它，它就能快速告知adapter有哪些数据需要更新。
+ * 那么相比直接调用adapter.notifyDataSetChange()方法，使用DiffUtil有什么优势呢？它能在收到数据集后，提高UI更新的效率，而且你也不需要自己对新老数据集进行比较了。
+ * 顾名思义，凡是数据集的比较DiffUtil都能做，所以用处并不止于更新RecyclerView。DiffUtil也提供了回调让你可以进行其他操作。本文只讨论使用DiffUtil更新
  */
 
 public abstract class BaseDiffCallBack<T> extends DiffUtil.Callback {
