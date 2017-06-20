@@ -153,6 +153,28 @@ public class UpFLoorActivity extends BaseActivity {
         mSwipeMenuRecyclerView.setAdapter(mUpfloorAdapter);
     }
 
+    @Override
+    protected void initEvents() {
+        index = getIntent().getIntExtra("index", 0);
+        setTitle(getIntent().getStringExtra("title"));
+        mDataList = new ArrayList<>();
+
+        mProgressBar.setVisibility(View.GONE);
+        mFab.setOnClickListener(new OnSingleClickListener() {
+            @Override
+            protected void onSingleClick(View view) {
+                if (mDataList.size() > 0) {
+                    Toast.makeText(UIUtils.getContext(), "开始保存", Toast.LENGTH_SHORT).show();
+                    view.setClickable(false);
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    msg = mCheckMsgHandler.obtainMessage();
+                    msg.what = MSG_SUBMIT;//发送消息保存界面数据
+                    mCheckMsgHandler.sendMessage(msg);
+                }
+            }
+        });
+    }
+
     private void initUiHandler() {
         mHandler = new Handler() {
             @Override
@@ -162,7 +184,6 @@ public class UpFLoorActivity extends BaseActivity {
                     case UI_SUCCESS:
                         //模拟数据
                         if (mBundle != null) {
-                            scanInfoLocal = mBundle.getString("info");
                             if (mBundle.getString("info").equals("a")) {
                                 mTextView.setText("1库房1号架左面1组2层");
                             }
@@ -186,6 +207,9 @@ public class UpFLoorActivity extends BaseActivity {
                         size1 = 1;
                         mFab.setClickable(true);
                         break;
+                    default:
+                        super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
+                        break;
                 }
             }
         };
@@ -201,7 +225,10 @@ public class UpFLoorActivity extends BaseActivity {
                         checkForUpdate();
                         break;
                     case MSG_SUBMIT:
-                        doSubmit();
+                        doSubmit();//保存数据
+                        break;
+                    default:
+                        super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
                         break;
                 }
             }
@@ -238,7 +265,6 @@ public class UpFLoorActivity extends BaseActivity {
     }
 
     private Runnable delayRun = new Runnable() {
-
         @Override
         public void run() {
             //在这里调用服务器的接口，获取数据
@@ -256,21 +282,29 @@ public class UpFLoorActivity extends BaseActivity {
             mHandlerMessage = mHandler.obtainMessage();
             mHandlerMessage.what = UI_SUCCESS;
             //在这里读取数据库增加list值，界面显示读取的标签信息
-            if (!mTextInputEditText.getText().toString().equals("a") && !mTextInputEditText.getText().toString().equals("b") && !mTextInputEditText.getText().toString().equals("c")) {
-                Map map = new HashMap();
-                map.put("id", size1++);
-                map.put("title", mTextInputEditText.getText());
-                mDataList.add(map);
-            } else {
-                mBundle = new Bundle();
-                mBundle.putString("info", mTextInputEditText.getText().toString());
-                mHandlerMessage.obj = mTextInputEditText.getText().toString();
-                mHandlerMessage.setData(mBundle);
-            }
+            editString = mTextInputEditText.getText().toString();
+            //去查询数据库。分两种 一种是输入格子id， 一种是输入档案bm+jlid，如果是格子id就要查询数据库格子表，获取到密集架id，这样才能得到库房名称；最后拼接显示在界面上mBundle。
+            searchDB(editString);
             mHandler.sendMessage(mHandlerMessage);
 
         }
     };
+
+    private void searchDB(String editString) {
+        if (!mTextInputEditText.getText().toString().equals("a") && !mTextInputEditText.getText().toString().equals("b") && !mTextInputEditText.getText().toString().equals("c")) {
+            Map map = new HashMap();
+            map.put("id", size1++);
+            map.put("title", mTextInputEditText.getText());
+            mDataList.add(map);
+        } else {
+            mBundle = new Bundle();
+            mBundle.putString("info", mTextInputEditText.getText().toString());
+            scanInfoLocal = editString;
+            //            mHandlerMessage.obj = mTextInputEditText.getText().toString();
+            mHandlerMessage.setData(mBundle);
+        }
+    }
+
 
     @Override
     protected void onResume() {
@@ -455,28 +489,6 @@ public class UpFLoorActivity extends BaseActivity {
             }
         }
     };
-
-    @Override
-    protected void initEvents() {
-        index = getIntent().getIntExtra("index", 0);
-        setTitle(getIntent().getStringExtra("title"));
-        mDataList = new ArrayList<>();
-
-        mProgressBar.setVisibility(View.GONE);
-        mFab.setOnClickListener(new OnSingleClickListener() {
-            @Override
-            protected void onSingleClick(View view) {
-                if (mDataList.size() > 0) {
-                    Toast.makeText(UIUtils.getContext(), "开始保存", Toast.LENGTH_SHORT).show();
-                    view.setClickable(false);
-                    mProgressBar.setVisibility(View.VISIBLE);
-                    msg = mCheckMsgHandler.obtainMessage();
-                    msg.what = MSG_SUBMIT;//发送消息保存界面数据
-                    mCheckMsgHandler.sendMessage(msg);
-                }
-            }
-        });
-    }
 
     @Override
     public void onSuccess(BaseResponse baseResponse, int act) {
