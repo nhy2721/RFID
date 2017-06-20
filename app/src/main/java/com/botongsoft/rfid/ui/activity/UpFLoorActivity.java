@@ -28,7 +28,7 @@ import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.listener.OnSingleClickListener;
-import com.botongsoft.rfid.ui.adapter.MenuAdapter;
+import com.botongsoft.rfid.ui.adapter.UpfloorAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
 import com.yanzhenjie.recyclerview.swipe.Closeable;
 import com.yanzhenjie.recyclerview.swipe.OnSwipeMenuItemClickListener;
@@ -69,7 +69,7 @@ public class UpFLoorActivity extends BaseActivity {
     private int index;
     private String editString;
     private List<Map> mDataList;
-    private MenuAdapter mMenuAdapter;
+    private UpfloorAdapter mUpfloorAdapter;
     private int size = 50;
     private static int size1 = 1;
     private Activity mContext;
@@ -147,9 +147,9 @@ public class UpFLoorActivity extends BaseActivity {
         // 设置菜单Item点击监听。
         mSwipeMenuRecyclerView.setSwipeMenuItemClickListener(menuItemClickListener);
 
-        mMenuAdapter = new MenuAdapter(mDataList);
-        mMenuAdapter.setOnItemClickListener(onItemClickListener);
-        mSwipeMenuRecyclerView.setAdapter(mMenuAdapter);
+        mUpfloorAdapter = new UpfloorAdapter(mDataList);
+        mUpfloorAdapter.setOnItemClickListener(onItemClickListener);
+        mSwipeMenuRecyclerView.setAdapter(mUpfloorAdapter);
     }
 
     private void initUiHandler() {
@@ -172,13 +172,13 @@ public class UpFLoorActivity extends BaseActivity {
                             }
                         }
                         mTextInputEditText.setText("");
-                        mMenuAdapter.notifyDataSetChanged();
+                        mUpfloorAdapter.notifyDataSetChanged();
                         break;
                     case UI_SUBMITSUCCESS:
                         mTextView.setText("");
                         mTextInputEditText.setText("");
                         mDataList.clear();
-                        mMenuAdapter.notifyDataSetChanged();
+                        mUpfloorAdapter.notifyDataSetChanged();
                         mProgressBar.setVisibility(View.GONE);
                         Toast.makeText(UIUtils.getContext(), "保存成功", Toast.LENGTH_SHORT).show();
                         size1 = 1;
@@ -329,7 +329,7 @@ public class UpFLoorActivity extends BaseActivity {
                     map.put("title", "我是第" + i + "个。");
                     mDataList.add(map);
                 }
-                mMenuAdapter.notifyDataSetChanged();
+                mUpfloorAdapter.notifyDataSetChanged();
             }
         }
 
@@ -410,8 +410,8 @@ public class UpFLoorActivity extends BaseActivity {
             Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
             if (position != -1) {
                 mDataList.remove(position);
-                mMenuAdapter.notifyItemRemoved(position);
-                mMenuAdapter.notifyItemRangeChanged(position, listSize);
+                mUpfloorAdapter.notifyItemRemoved(position);
+                mUpfloorAdapter.notifyItemRangeChanged(position, listSize);
             }
         }
     };
@@ -441,7 +441,7 @@ public class UpFLoorActivity extends BaseActivity {
             // TODO 推荐调用Adapter.notifyItemRemoved(position)，也可以Adapter.notifyDataSetChanged();
             if (menuPosition == 0) {// 删除按钮被点击。
                 mDataList.remove(adapterPosition);
-                mMenuAdapter.notifyItemRemoved(adapterPosition);
+                mUpfloorAdapter.notifyItemRemoved(adapterPosition);
             }
         }
     };

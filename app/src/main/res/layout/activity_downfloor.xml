@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:context="com.botongsoft.rfid.ui.activity.UpFLoorActivity"
+                                                 xmlns:app="http://schemas.android.com/apk/res-auto"
+                                                 xmlns:tools="http://schemas.android.com/tools"
+                                                 android:layout_width="match_parent"
+                                                 android:layout_height="match_parent"
+                                                 android:fitsSystemWindows="true"
+                                                 tools:context="com.botongsoft.rfid.ui.activity.UpFLoorActivity"
     >
 
 
@@ -33,6 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:padding="5dp"
             >
 
             <com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView
@@ -75,10 +76,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
-            app:titleTextColor="#ffffff"
             android:minHeight="?attr/actionBarSize"
             app:layout_scrollFlags="scroll|enterAlways"
             app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:titleTextColor="#ffffff"
             />
 
         <LinearLayout
@@ -147,6 +148,15 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="编码"
+                />
+
+            <TextView
+                android:id="@+id/tv_item"
+                style="@style/tv_black"
+                android:layout_margin="3dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="存放位置"
                 />
 
             <TextView

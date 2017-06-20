@@ -35,13 +35,13 @@ import butterknife.ButterKnife;
 /**
  * Created by YOLANDA on 2016/7/22.
  */
-public class MenuAdapter extends SwipeMenuAdapter<MenuAdapter.DefaultViewHolder> {
+public class UpfloorAdapter extends SwipeMenuAdapter<UpfloorAdapter.DefaultViewHolder> {
 
     private static List<Map> list;
 
     private OnItemClickListener mOnItemClickListener;
 
-    public MenuAdapter(List<Map> list) {
+    public UpfloorAdapter(List<Map> list) {
         this.list = list;
     }
 
@@ -60,14 +60,14 @@ public class MenuAdapter extends SwipeMenuAdapter<MenuAdapter.DefaultViewHolder>
     }
 
     @Override
-    public MenuAdapter.DefaultViewHolder onCompatCreateViewHolder(View realContentView, int viewType) {
+    public UpfloorAdapter.DefaultViewHolder onCompatCreateViewHolder(View realContentView, int viewType) {
         DefaultViewHolder viewHolder = new DefaultViewHolder(realContentView);
         viewHolder.mOnItemClickListener = mOnItemClickListener;
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(MenuAdapter.DefaultViewHolder holder, int position) {
+    public void onBindViewHolder(UpfloorAdapter.DefaultViewHolder holder, int position) {
         holder.setData(list.get(position),position);
     }
     // 在指定位置添加一个新的Item
