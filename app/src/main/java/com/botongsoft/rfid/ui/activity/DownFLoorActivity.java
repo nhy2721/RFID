@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
@@ -43,6 +44,7 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static com.botongsoft.rfid.R.id.appBarLayout;
 import static com.botongsoft.rfid.R.id.toolbar;
 
 /**
@@ -52,6 +54,8 @@ public class DownFLoorActivity extends BaseActivity {
     private static final int UI_SUCCESS = 0;
     private static final int UI_SUBMITSUCCESS = 1;
     private static final int UI_SUBMITSENDFAILUREMSG = 2;
+    @BindView(appBarLayout)
+    AppBarLayout mAppBarLayout;
     @BindView(toolbar)
     Toolbar mToolbar;
     //    @BindView(R.id.swipe_layout)
@@ -97,7 +101,18 @@ public class DownFLoorActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         mContext = this;
         initUiHandler();
-
+        mAppBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                int scrollRangle = appBarLayout.getTotalScrollRange();
+                //初始verticalOffset为0，不能参与计算。
+                if (verticalOffset == 0) {
+                    mFab.show();
+                } else {
+                    mFab.hide();
+                }
+            }
+        });
         //        mSwipeRefreshLayout.setOnRefreshListener(mOnRefreshListener); //滑动布局的滑动监听
         LinearLayoutManager layout = new LinearLayoutManager(this);
         mSwipeMenuRecyclerView.setLayoutManager(layout);// 布局管理器。
