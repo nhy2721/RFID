@@ -47,7 +47,7 @@ import butterknife.ButterKnife;
 import static com.botongsoft.rfid.R.id.appBarLayout;
 import static com.botongsoft.rfid.R.id.toolbar;
 
-/**
+/**下架
  * Created by pc on 2017/6/12.
  */
 public class DownFLoorActivity extends BaseActivity {
