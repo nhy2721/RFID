@@ -183,6 +183,7 @@ public class DownFLoorActivity extends BaseActivity {
                 switch (msg.what) {
                     case UI_SUCCESS:
                         mTextInputEditText.setText("");
+                        smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
                         mDownFloorAdapter.notifyDataSetChanged();
                         break;
                     case UI_SUBMITSUCCESS:
@@ -389,6 +390,10 @@ public class DownFLoorActivity extends BaseActivity {
         @Override
         public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
             super.onScrollStateChanged(recyclerView, newState);
+            if (mShouldScroll) {
+                mShouldScroll = false;
+                smoothMoveToPosition(mSwipeMenuRecyclerView, mToPosition);
+            }
         }
     };
     /**

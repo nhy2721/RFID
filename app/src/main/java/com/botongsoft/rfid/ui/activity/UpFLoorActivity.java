@@ -8,6 +8,7 @@ import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -83,11 +84,13 @@ public class UpFLoorActivity extends BaseActivity {
     private boolean isRun;//是否在RFID读取
     private static final int MSG_UPDATE_INFO = 1;
     private static final int MSG_SUBMIT = 2;
+    LinearLayoutManager layout;
     //传递后台运行消息队列
     Message msg;
     //传递UI前台显示消息队列
     Message mHandlerMessage;
     Bundle mBundle;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,12 +101,12 @@ public class UpFLoorActivity extends BaseActivity {
         initUiHandler();
 
         //        mSwipeRefreshLayout.setOnRefreshListener(mOnRefreshListener); //滑动布局的滑动监听
-        LinearLayoutManager layout = new LinearLayoutManager(this);
+        layout = new LinearLayoutManager(this);
         mSwipeMenuRecyclerView.setLayoutManager(layout);// 布局管理器。
         layout.setStackFromEnd(true);//列表再底部开始展示，反转后由上面开始展示
         layout.setReverseLayout(true);//列表翻转
         mSwipeMenuRecyclerView.setHasFixedSize(true);// 如果Item够简单，高度是确定的，打开FixSize将提高性能。
-        //        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
+        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
         mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
 
 
@@ -195,6 +198,7 @@ public class UpFLoorActivity extends BaseActivity {
                             }
                         }
                         mTextInputEditText.setText("");
+                        smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
                         mUpfloorAdapter.notifyDataSetChanged();
                         break;
                     case UI_SUBMITSUCCESS:
@@ -396,6 +400,10 @@ public class UpFLoorActivity extends BaseActivity {
         @Override
         public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
             super.onScrollStateChanged(recyclerView, newState);
+            if (mShouldScroll) {
+                mShouldScroll = false;
+                smoothMoveToPosition(mSwipeMenuRecyclerView, mToPosition);
+            }
         }
     };
     /**
@@ -525,5 +533,6 @@ public class UpFLoorActivity extends BaseActivity {
             mFab.hide();
         }
     }
+
 
 }
