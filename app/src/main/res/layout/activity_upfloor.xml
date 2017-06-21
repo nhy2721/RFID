@@ -62,9 +62,13 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         android:src="@mipmap/ic_submit"
+        app:fabSize="mini"
+        app:layout_behavior="com.botongsoft.rfid.ui.widget.FloatActionButton.ScrollingFABBehavior"
+
         />
 
     <android.support.design.widget.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay"
