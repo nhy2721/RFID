@@ -1,15 +1,15 @@
 package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
-import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -19,18 +19,13 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
-import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
-import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.service.http.BusinessException;
-import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
-import com.botongsoft.rfid.listener.OnSingleClickListener;
-import com.botongsoft.rfid.ui.adapter.UpfloorAdapter;
+import com.botongsoft.rfid.ui.adapter.UpGuidanceAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
 import com.yanzhenjie.recyclerview.swipe.Closeable;
 import com.yanzhenjie.recyclerview.swipe.OnSwipeMenuItemClickListener;
@@ -47,36 +42,35 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.botongsoft.rfid.R.id.appBarLayout;
+import static com.botongsoft.rfid.R.id.toolbar;
 
-/**上架引导 定位
+/**
+ * 定位 上架引导
  * Created by pc on 2017/6/12.
  */
 public class UpGuidanceActivity extends BaseActivity {
     private static final int UI_SUCCESS = 0;
-    private static final int UI_SUBMITSUCCESS = 1;
+
     @BindView(appBarLayout)
     AppBarLayout mAppBarLayout;
-    @BindView(R.id.toolbar)
+    @BindView(toolbar)
     Toolbar mToolbar;
     //    @BindView(R.id.swipe_layout)
     //    SwipeRefreshLayout mSwipeRefreshLayout;
     @BindView(R.id.recycler_view)
     SwipeMenuRecyclerView mSwipeMenuRecyclerView;
-    @BindView(R.id.fab)
-    FloatingActionButton mFab;
     @BindView(R.id.tx_layout)
     TextInputLayout mTextInputLayout;
     @BindView(R.id.input_tx)
     TextInputEditText mTextInputEditText;
-    @BindView(R.id.tv_info)
-    TextView mTextView;
-    private String scanInfoLocal;//扫描的格子位置
+    //    @BindView(R.id.tv_info)
+    //    TextView mTextView;
     @BindView(R.id.progressBar)
     ProgressBar mProgressBar;
     private int index;
     private String editString;
     private List<Map> mDataList;
-    private UpfloorAdapter mUpfloorAdapter;
+    private UpGuidanceAdapter mUpGuidanceAdapter;
     private int size = 50;
     private static int size1 = 1;
     private Activity mContext;
@@ -88,44 +82,28 @@ public class UpGuidanceActivity extends BaseActivity {
     private boolean isOnScreen;//是否在屏幕上
     private boolean isRun;//是否在RFID读取
     private static final int MSG_UPDATE_INFO = 1;
-    private static final int MSG_SUBMIT = 2;
-    LinearLayoutManager layout;
     //传递后台运行消息队列
     Message msg;
     //传递UI前台显示消息队列
     Message mHandlerMessage;
     Bundle mBundle;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setContentView(R.layout.activity_upfloor);
+        setContentView(R.layout.activity_upguidance);
         ButterKnife.bind(this);
         super.onCreate(savedInstanceState);
         mContext = this;
         initUiHandler();
-        mAppBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-            @Override
-            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-                int scrollRangle = appBarLayout.getTotalScrollRange();
-                //初始verticalOffset为0，不能参与计算。
-                if (verticalOffset == 0) {
-                    mFab.show();
-                } else {
-                    mFab.hide();
-                }
-            }
-        });
 
         //        mSwipeRefreshLayout.setOnRefreshListener(mOnRefreshListener); //滑动布局的滑动监听
-        layout = new LinearLayoutManager(this);
+        LinearLayoutManager layout = new LinearLayoutManager(this);
         mSwipeMenuRecyclerView.setLayoutManager(layout);// 布局管理器。
         layout.setStackFromEnd(true);//列表再底部开始展示，反转后由上面开始展示
         layout.setReverseLayout(true);//列表翻转
         mSwipeMenuRecyclerView.setHasFixedSize(true);// 如果Item够简单，高度是确定的，打开FixSize将提高性能。
-        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
+        //        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
         mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
-
 
         mTextInputEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -168,9 +146,9 @@ public class UpGuidanceActivity extends BaseActivity {
         // 设置菜单Item点击监听。
         mSwipeMenuRecyclerView.setSwipeMenuItemClickListener(menuItemClickListener);
 
-        mUpfloorAdapter = new UpfloorAdapter(this, mDataList);
-        mUpfloorAdapter.setOnItemClickListener(onItemClickListener);
-        mSwipeMenuRecyclerView.setAdapter(mUpfloorAdapter);
+        mUpGuidanceAdapter = new UpGuidanceAdapter(this, mDataList);
+        mUpGuidanceAdapter.setOnItemClickListener(onItemClickListener);
+        mSwipeMenuRecyclerView.setAdapter(mUpGuidanceAdapter);
     }
 
     @Override
@@ -180,19 +158,7 @@ public class UpGuidanceActivity extends BaseActivity {
         mDataList = new ArrayList<>();
 
         mProgressBar.setVisibility(View.GONE);
-        mFab.setOnClickListener(new OnSingleClickListener() {
-            @Override
-            protected void onSingleClick(View view) {
-                if (mDataList.size() > 0) {
-                    Toast.makeText(UIUtils.getContext(), "开始保存", Toast.LENGTH_SHORT).show();
-                    view.setClickable(false);
-                    mProgressBar.setVisibility(View.VISIBLE);
-                    msg = mCheckMsgHandler.obtainMessage();
-                    msg.what = MSG_SUBMIT;//发送消息保存界面数据
-                    mCheckMsgHandler.sendMessage(msg);
-                }
-            }
-        });
+
     }
 
     private void initUiHandler() {
@@ -202,31 +168,9 @@ public class UpGuidanceActivity extends BaseActivity {
                 super.handleMessage(msg);
                 switch (msg.what) {
                     case UI_SUCCESS:
-                        //模拟数据
-                        if (mBundle != null) {
-                            if (mBundle.getString("info").equals("a")) {
-                                mTextView.setText("1库房1号架左面1组2层");
-                            }
-                            if (mBundle.getString("info").equals("b")) {
-                                mTextView.setText("1库房2号架左面1组2层");
-                            }
-                            if (mBundle.getString("info").equals("c")) {
-                                mTextView.setText("2库房10号架左面1组1层");
-                            }
-                        }
                         mTextInputEditText.setText("");
                         smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
-                        mUpfloorAdapter.notifyDataSetChanged();
-                        break;
-                    case UI_SUBMITSUCCESS:
-                        mTextView.setText("");
-                        mTextInputEditText.setText("");
-                        mDataList.clear();
-                        mUpfloorAdapter.notifyDataSetChanged();
-                        mProgressBar.setVisibility(View.GONE);
-                        Toast.makeText(UIUtils.getContext(), "保存成功", Toast.LENGTH_SHORT).show();
-                        size1 = 1;
-                        mFab.setClickable(true);
+                        mUpGuidanceAdapter.notifyDataSetChanged();
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -243,10 +187,7 @@ public class UpGuidanceActivity extends BaseActivity {
                 Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
                 switch (msg.what) {
                     case MSG_UPDATE_INFO:
-                        checkForUpdate();
-                        break;
-                    case MSG_SUBMIT:
-                        doSubmit();//保存数据
+                        checkForUpdate();//
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -256,26 +197,6 @@ public class UpGuidanceActivity extends BaseActivity {
         };
     }
 
-    private void doSubmit() {
-        mCheckMsgHandler.post(submitRun);
-    }
-
-    private Runnable submitRun = new Runnable() {
-
-        @Override
-        public void run() {
-            //保存数据库
-            for (Map map : mDataList) {
-                Mjjgda mjjgda = new Mjjgda();
-                mjjgda.setScanInfo(map.get("title").toString());//保存到档案表的扫描信息字段
-                DBDataUtils.save(mjjgda);
-            }
-            //这里发送通知ui更新界面
-            mHandlerMessage = mHandler.obtainMessage();
-            mHandlerMessage.what = UI_SUBMITSUCCESS;
-            mHandler.sendMessage(mHandlerMessage);
-        }
-    };
 
     /**
      * 延迟线程，看是否还有下一个字符输入
@@ -305,10 +226,8 @@ public class UpGuidanceActivity extends BaseActivity {
             mHandlerMessage.what = UI_SUCCESS;
             //在这里读取数据库增加list值，界面显示读取的标签信息
             editString = mTextInputEditText.getText().toString();
-            //去查询数据库。分两种 一种是输入格子id， 一种是输入档案bm+jlid，如果是格子id就要查询数据库格子表，获取到密集架id，这样才能得到库房名称；最后拼接显示在界面上mBundle。
             searchDB(editString);
             mHandler.sendMessage(mHandlerMessage);
-
         }
     };
 
@@ -324,21 +243,14 @@ public class UpGuidanceActivity extends BaseActivity {
             }
         }
         if (tempStr) {
-            if (!mTextInputEditText.getText().toString().equals("a") && !mTextInputEditText.getText().toString().equals("b") && !mTextInputEditText.getText().toString().equals("c")) {
-                Map map = new HashMap();
-                map.put("id", size1++);
-                map.put("title", mTextInputEditText.getText());
-                mDataList.add(map);
-            } else {
-                mBundle = new Bundle();
-                mBundle.putString("info", mTextInputEditText.getText().toString());
-                scanInfoLocal = editString;
-                //            mHandlerMessage.obj = mTextInputEditText.getText().toString();
-                mHandlerMessage.setData(mBundle);
-            }
+            //模拟数据
+            Map map = new HashMap();
+            map.put("id", size1++);
+            map.put("title", mTextInputEditText.getText());
+            map.put("local", "1库2架左2组2层" + size1);
+            mDataList.add(map);
         }
     }
-
 
     @Override
     protected void onResume() {
@@ -398,8 +310,6 @@ public class UpGuidanceActivity extends BaseActivity {
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             if (!recyclerView.canScrollVertically(1)) {// 手指不能向上滑动了
                 // TODO 这里有个注意的地方，如果你刚进来时没有数据，但是设置了适配器，这个时候就会触发加载更多，需要开发者判断下是否有数据，如果有数据才去加载更多。
-
-                Toast.makeText(UpGuidanceActivity.this, "滑到最底部了，去加载更多吧！", Toast.LENGTH_SHORT).show();
                 size += 50;
                 for (int i = size - 50; i < size; i++) {
                     Map map = new HashMap();
@@ -407,7 +317,7 @@ public class UpGuidanceActivity extends BaseActivity {
                     map.put("title", "我是第" + i + "个。");
                     mDataList.add(map);
                 }
-                mUpfloorAdapter.notifyDataSetChanged();
+                mUpGuidanceAdapter.notifyDataSetChanged();
             }
         }
 
@@ -484,16 +394,30 @@ public class UpGuidanceActivity extends BaseActivity {
     private OnItemClickListener onItemClickListener = new OnItemClickListener() {
         @Override
         public void onItemClick(int position) {
+            //详细信息
+            StringBuilder sb = new StringBuilder();
+            sb.append("Title:").append(mDataList.get(position).get("title")).append("\n");
+            sb.append("位置:").append(mDataList.get(position).get("local")).append("\n");
+            new AlertDialog.Builder(BaseActivity.activity)
+                    .setTitle("详细信息：")
+                    .setMessage(sb)
+                    .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
 
+                        }
+                    })
+                    .create().show();
         }
 
         @Override
         public void onItemClick(int position, int listSize) {
             Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
+
             if (position != -1) {
                 mDataList.remove(position);
-                mUpfloorAdapter.notifyItemRemoved(position);
-                mUpfloorAdapter.notifyItemRangeChanged(position, listSize);
+                mUpGuidanceAdapter.notifyItemRemoved(position);
+                mUpGuidanceAdapter.notifyItemRangeChanged(position, listSize);
             }
         }
     };
@@ -523,7 +447,7 @@ public class UpGuidanceActivity extends BaseActivity {
             // TODO 推荐调用Adapter.notifyItemRemoved(position)，也可以Adapter.notifyDataSetChanged();
             if (menuPosition == 0) {// 删除按钮被点击。
                 mDataList.remove(adapterPosition);
-                mUpfloorAdapter.notifyItemRemoved(adapterPosition);
+                mUpGuidanceAdapter.notifyItemRemoved(adapterPosition);
             }
         }
     };
@@ -536,19 +460,6 @@ public class UpGuidanceActivity extends BaseActivity {
     @Override
     public void onError(BusinessException e, int act) {
 
-    }
-
-
-    public void showFloatingBar() {
-        if (mFab != null) {
-            mFab.show();
-        }
-    }
-
-    public void hideFloatingBar() {
-        if (mFab != null) {
-            mFab.hide();
-        }
     }
 
 
