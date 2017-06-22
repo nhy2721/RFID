@@ -54,6 +54,15 @@
         <item name="android:singleLine">true</item>
     </style>
 
+    <style name="news_summary_card_view">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">4dp</item>
+        <item name="android:layout_marginRight">4dp</item>
+        <item name="android:layout_marginTop">5dp</item>
+        <item name="android:foreground">?android:attr/selectableItemBackground</item>
+    </style>
+
 
     <color name="text_black">#000000</color>
 </resources>
