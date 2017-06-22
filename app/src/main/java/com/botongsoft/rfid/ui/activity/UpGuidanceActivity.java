@@ -45,7 +45,7 @@ import static com.botongsoft.rfid.R.id.appBarLayout;
 import static com.botongsoft.rfid.R.id.toolbar;
 
 /**
- * 定位 上架引导
+ * 上架引导
  * Created by pc on 2017/6/12.
  */
 public class UpGuidanceActivity extends BaseActivity {
