@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.common.utils.UIUtils;
+import com.botongsoft.rfid.ui.activity.CheckPlanActivity;
 import com.botongsoft.rfid.ui.activity.DownFLoorActivity;
 import com.botongsoft.rfid.ui.activity.UpFLoorActivity;
 import com.botongsoft.rfid.ui.activity.UpGuidanceActivity;
@@ -59,6 +60,20 @@ public class CategoryAdapter extends RecyclerView.Adapter {
                     case 1:
                         Toast.makeText(UIUtils.getContext(), "下架", Toast.LENGTH_SHORT).show();
                         intent = new Intent(UIUtils.getContext(), DownFLoorActivity.class);
+                        intent.putExtra("index", position);
+                        intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
+                        UIUtils.startActivity(intent);
+                        break;
+                    case 2:
+                        Toast.makeText(UIUtils.getContext(), "盘点", Toast.LENGTH_SHORT).show();
+                        intent = new Intent(UIUtils.getContext(), CheckPlanActivity.class);
+                        intent.putExtra("index", position);
+                        intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
+                        UIUtils.startActivity(intent);
+                        break;
+                    case 3:
+                        Toast.makeText(UIUtils.getContext(), "盘点记录", Toast.LENGTH_SHORT).show();
+                        intent = new Intent(UIUtils.getContext(), CheckPlanActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
                         UIUtils.startActivity(intent);

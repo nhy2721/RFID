@@ -6,56 +6,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.botongsoft.rfid.ui.activity.UpFLoorActivity"
+    tools:context="com.botongsoft.rfid.ui.activity.CheckPlanActivity"
     >
 
 
-    <!--<android.support.v4.widget.SwipeRefreshLayout-->
-    <!--android:id="@+id/swipe_layout"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--app:layout_behavior="@string/appbar_scrolling_view_behavior">-->
-
-    <!--<com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView-->
-    <!--android:id="@+id/recycler_view"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="wrap_content"/>-->
-
-    <!--</android.support.v4.widget.SwipeRefreshLayout>-->
-    <FrameLayout
-        android:id="@+id/container"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         >
 
-        <LinearLayout
+        <com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView
+            android:id="@+id/recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="5dp"
-            >
-
-            <com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView
-                android:id="@+id/recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="5sp"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                />
-        </LinearLayout>
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:indeterminate="false"
-            android:max="100"
-            android:progress="0"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:scrollbarStyle="outsideOverlay"
+            android:paddingBottom="16dp"
             />
-    </FrameLayout>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 
     <android.support.design.widget.AppBarLayout

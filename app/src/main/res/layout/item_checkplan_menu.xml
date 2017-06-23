@@ -6,12 +6,12 @@
     style="@style/news_summary_card_view"
     app:cardBackgroundColor="@color/item_background"
     app:cardElevation="5dp"
+    app:cardCornerRadius="4dp"
     >
     <!--app:cardCornerRadius="2dp"-->
     <!--app:contentPadding="0dp"-->
 
     <RelativeLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp"
@@ -62,7 +62,7 @@
             android:maxLines="1"
             android:textColor="@color/primary_text"
             android:textSize="@dimen/textsize_14"
-            tools:text="习近平:吹响建设科技强国号角国号角国号角"
+            tools:text="今天要盘点赶快去干活"
             />
 
         <TextView
@@ -75,15 +75,15 @@
             android:layout_marginRight="@dimen/item_margin"
             android:layout_marginTop="5dp"
             android:ellipsize="end"
-            android:singleLine="true"
+            android:maxLines="1"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textColor="@color/secondary_text"
             android:textSize="@dimen/textsize_14"
-            tools:text="科技是国之利器，中国人民生活要好，必须有强大科技。"
+            tools:text="要想马儿跑，马儿要吃饱"
             />
 
         <TextView
-            android:id="@+id/news_summary_ptime_tv"
+            android:id="@+id/checkplan_fw_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignLeft="@+id/checkplan_bz_tv"
