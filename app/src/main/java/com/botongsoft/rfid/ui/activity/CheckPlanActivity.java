@@ -1,18 +1,19 @@
 package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
-import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
@@ -20,6 +21,7 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.CheckPlan;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.service.http.BusinessException;
+import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.ui.adapter.CheckPlanAdapter;
 import com.yanzhenjie.recyclerview.swipe.Closeable;
@@ -33,6 +35,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 import static com.botongsoft.rfid.R.id.toolbar;
 
@@ -50,7 +53,8 @@ public class CheckPlanActivity extends BaseActivity {
     SwipeRefreshLayout mSwipeRefreshLayout;
     @BindView(R.id.recycler_view)
     SwipeMenuRecyclerView mSwipeMenuRecyclerView;
-
+    @BindView(R.id.fab)
+    FloatingActionButton mFab;
     private int index;
     private String editString;
     private List<CheckPlan> mDataList;
@@ -85,11 +89,11 @@ public class CheckPlanActivity extends BaseActivity {
                 R.color.recycler_color3, R.color.recycler_color4);
         LinearLayoutManager layout = new LinearLayoutManager(this);
         mSwipeMenuRecyclerView.setLayoutManager(layout);// 布局管理器。
-        layout.setStackFromEnd(true);//列表再底部开始展示，反转后由上面开始展示
-        layout.setReverseLayout(true);//列表翻转
+        //        layout.setStackFromEnd(true);//列表再底部开始展示，反转后由上面开始展示
+        //        layout.setReverseLayout(true);//列表翻转
         mSwipeMenuRecyclerView.setHasFixedSize(true);// 如果Item够简单，高度是确定的，打开FixSize将提高性能。
         mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
-//        mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
+        //        mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
 
         // 添加滚动监听。
         //        mSwipeMenuRecyclerView.addOnScrollListener(mOnScrollListener);
@@ -101,6 +105,21 @@ public class CheckPlanActivity extends BaseActivity {
         mCheckPlanAdapter = new CheckPlanAdapter(this, mDataList);
         mCheckPlanAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mCheckPlanAdapter);
+        initDatas();
+
+    }
+
+    private void initDatas() {
+        if (mCheckMsgThread == null) {
+            mCheckMsgThread = new HandlerThread("BackThread");// 创建一个BackHandlerThread对象，它是一个线程
+            mCheckMsgThread.start();// 启动线程
+            //创建后台线程
+            initBackThread();
+        }
+        mSwipeRefreshLayout.setRefreshing(true);
+        msg = mCheckMsgHandler.obtainMessage();
+        msg.what = MSG_UPDATE_INFO;
+        mCheckMsgHandler.sendMessage(msg);
     }
 
     @Override
@@ -117,6 +136,7 @@ public class CheckPlanActivity extends BaseActivity {
                 super.handleMessage(msg);
                 switch (msg.what) {
                     case UI_SUCCESS:
+                        mSwipeRefreshLayout.setRefreshing(false);
                         mCheckPlanAdapter.notifyDataSetChanged();
                         break;
                     default:
@@ -172,27 +192,22 @@ public class CheckPlanActivity extends BaseActivity {
             mHandlerMessage = mHandler.obtainMessage();
             mHandlerMessage.what = UI_SUCCESS;
             //在这里读取数据库增加list值，界面显示读取的标签信息
-
             searchDB();
             mHandler.sendMessage(mHandlerMessage);
         }
     };
 
     private void searchDB() {
-        int i  = 133451321;
-        CheckPlan cc = new CheckPlan();
-        cc.setFw("ddddddddddddddddddddd");
-        cc.setPdid(i);
-        cc.setBz("bbzbzbzbzbzb");
-        mDataList.add(cc);
-        //模拟数据
-        //        Map map = new HashMap();
-        //        map.put("id", size1++);
-        //        map.put("title", mTextInputEditText.getText());
-        //        map.put("local", "1库2架左2组2层" + size1);
-        //        mDataList.add(map);
-
+        Log.e("Handler searchDB--->", String.valueOf(Thread.currentThread().getName()));
+        for (int i = 0; i <= 1000; i++) {
+            CheckPlan cc = new CheckPlan();
+            cc.setFw(i + "范围");
+            cc.setPdid(i);
+            cc.setBz("bbzbzbzbzbzb");
+            mDataList.add(cc);
+        }
     }
+
 
     @Override
     protected void onResume() {
@@ -201,10 +216,13 @@ public class CheckPlanActivity extends BaseActivity {
         //        if(isOnScreen && isRun) {
         if (isOnScreen) {
             //开启新进程
-            mCheckMsgThread = new HandlerThread("BackThread");// 创建一个BackHandlerThread对象，它是一个线程
-            mCheckMsgThread.start();// 启动线程
-            //创建后台线程
-            initBackThread();
+            if (mCheckMsgThread == null) {
+                mCheckMsgThread = new HandlerThread("BackThread");// 创建一个BackHandlerThread对象，它是一个线程
+                mCheckMsgThread.start();// 启动线程
+                //创建后台线程
+                initBackThread();
+            }
+
         }
     }
 
@@ -213,6 +231,7 @@ public class CheckPlanActivity extends BaseActivity {
         super.onPause();
         //停止查询
         isOnScreen = false;
+        mCheckMsgThread.quit();
         mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
 
     }
@@ -239,7 +258,7 @@ public class CheckPlanActivity extends BaseActivity {
         public void onRefresh() {
             mDataList.clear();
             checkForUpdate();
-            mSwipeMenuRecyclerView.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 2000);
+            mSwipeMenuRecyclerView.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 1500);
         }
     };
     /**
@@ -273,7 +292,7 @@ public class CheckPlanActivity extends BaseActivity {
             super.onScrollStateChanged(recyclerView, newState);
             if (mShouldScroll) {
                 mShouldScroll = false;
-                smoothMoveToPosition(mSwipeMenuRecyclerView, mToPosition);
+                //                smoothMoveToPosition(mSwipeMenuRecyclerView, mToPosition);
             }
         }
     };
@@ -338,20 +357,25 @@ public class CheckPlanActivity extends BaseActivity {
     private OnItemClickListener onItemClickListener = new OnItemClickListener() {
         @Override
         public void onItemClick(int position) {
-            //详细信息
-            StringBuilder sb = new StringBuilder();
-            sb.append("Title:").append(mDataList.get(position).getPdid()).append("\n");
-            sb.append("位置:").append(mDataList.get(position).getFw()).append("\n");
-            new AlertDialog.Builder(BaseActivity.activity)
-                    .setTitle("详细信息：")
-                    .setMessage(sb)
-                    .setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
 
-                        }
-                    })
-                    .create().show();
+            Intent intent = new Intent(UIUtils.getContext(), UpFLoorActivity.class);
+            intent.putExtra("index", position);
+            intent.putExtra("title", mDataList.get(position).getFw());
+            UIUtils.startActivity(intent);
+            //            //详细信息
+            //            StringBuilder sb = new StringBuilder();
+            //            sb.append("Title:").append(mDataList.get(position).getPdid()).append("\n");
+            //            sb.append("位置:").append(mDataList.get(position).getFw()).append("\n");
+            //            new AlertDialog.Builder(BaseActivity.activity)
+            //                    .setTitle("详细信息：")
+            //                    .setMessage(sb)
+            //                    .setOnDismissListener(new DialogInterface.OnDismissListener() {
+            //                        @Override
+            //                        public void onDismiss(DialogInterface dialog) {
+            //
+            //                        }
+            //                    })
+            //                    .create().show();
         }
 
         @Override
@@ -404,6 +428,16 @@ public class CheckPlanActivity extends BaseActivity {
     @Override
     public void onError(BusinessException e, int act) {
 
+    }
+
+    @OnClick({R.id.fab})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.fab:
+                smoothMoveToPosition(mSwipeMenuRecyclerView, 0);
+                //                mSwipeMenuRecyclerView.getLayoutManager().scrollToPosition(0);
+                break;
+        }
     }
 
 
