@@ -358,9 +358,9 @@ public class CheckPlanActivity extends BaseActivity {
         @Override
         public void onItemClick(int position) {
 
-            Intent intent = new Intent(UIUtils.getContext(), UpFLoorActivity.class);
+            Intent intent = new Intent(UIUtils.getContext(), CheckPlanDetailActivity.class);
             intent.putExtra("index", position);
-            intent.putExtra("title", mDataList.get(position).getFw());
+            intent.putExtra("title", "开始盘点");
             UIUtils.startActivity(intent);
             //            //详细信息
             //            StringBuilder sb = new StringBuilder();
@@ -434,8 +434,8 @@ public class CheckPlanActivity extends BaseActivity {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.fab:
-                smoothMoveToPosition(mSwipeMenuRecyclerView, 0);
-                //                mSwipeMenuRecyclerView.getLayoutManager().scrollToPosition(0);
+                //                smoothMoveToPosition(mSwipeMenuRecyclerView, 0);
+                mSwipeMenuRecyclerView.getLayoutManager().scrollToPosition(0);
                 break;
         }
     }
