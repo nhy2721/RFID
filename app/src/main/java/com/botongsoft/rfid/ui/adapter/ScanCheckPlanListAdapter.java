@@ -84,7 +84,7 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
             if (mjj.getNoright() == 0) {
                 ((EBookListHolder) holder).tView2.setText("右");
             }
-            ((EBookListHolder) holder).tView1.setOnClickListener(new OnSingleClickListener() {
+            ((EBookListHolder) holder).tView1.setOnClickListener(new OnSingleClickListener(200) {
                 @Override
                 protected void onSingleClick(View view) {
 

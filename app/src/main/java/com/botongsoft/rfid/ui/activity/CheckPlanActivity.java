@@ -26,6 +26,7 @@ import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.ui.adapter.CheckPlanAdapter;
+import com.botongsoft.rfid.ui.widget.WrapContentLinearLayoutManager;
 import com.yanzhenjie.recyclerview.swipe.Closeable;
 import com.yanzhenjie.recyclerview.swipe.OnSwipeMenuItemClickListener;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenu;
@@ -89,7 +90,7 @@ public class CheckPlanActivity extends BaseActivity {
         mSwipeRefreshLayout.setOnRefreshListener(mOnRefreshListener); //滑动布局的滑动监听
         mSwipeRefreshLayout.setColorSchemeResources(R.color.recycler_color1, R.color.recycler_color2,
                 R.color.recycler_color3, R.color.recycler_color4);
-        LinearLayoutManager layout = new LinearLayoutManager(this);
+        LinearLayoutManager layout = new WrapContentLinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mSwipeMenuRecyclerView.setLayoutManager(layout);// 布局管理器。
         //        layout.setStackFromEnd(true);//列表再底部开始展示，反转后由上面开始展示
         //        layout.setReverseLayout(true);//列表翻转
