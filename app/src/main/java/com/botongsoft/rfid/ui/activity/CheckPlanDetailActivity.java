@@ -35,6 +35,8 @@ public class CheckPlanDetailActivity extends BaseActivity {
     @BindView(R.id.tabLayout)
     TabLayout mTabLayout;
     private int index;
+    private String fw;
+    private int pdid;
     private Activity mContext;
     private List<BaseFragment> fragments;
 
@@ -49,8 +51,8 @@ public class CheckPlanDetailActivity extends BaseActivity {
 
     private void initView() {
         fragments = new ArrayList<>();
-        fragments.add(ScanCheckPlanDetailFragment.newInstance(Constant.TYPE_HOT_RANKING));
-        fragments.add(ScanCheckPlanListFragment.newInstance(Constant.TYPE_RETAINED_RANKING));
+        fragments.add(ScanCheckPlanDetailFragment.newInstance(Constant.TYPE_HOT_RANKING,pdid,fw));
+        fragments.add(ScanCheckPlanListFragment.newInstance(Constant.TYPE_RETAINED_RANKING,pdid,fw));
         mViewPager.setAdapter(new CheckPlanFragmentAdapter(getSupportFragmentManager(), fragments));
         mViewPager.setOffscreenPageLimit(0);
         mTabLayout.setupWithViewPager(mViewPager);
@@ -83,6 +85,8 @@ public class CheckPlanDetailActivity extends BaseActivity {
     protected void initEvents() {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
+        fw = getIntent().getStringExtra("fw");
+        pdid = getIntent().getIntExtra("pdid",0);
     }
 
     @Override

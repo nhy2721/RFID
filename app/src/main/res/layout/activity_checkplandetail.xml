@@ -21,6 +21,7 @@
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
             android:minHeight="?attr/actionBarSize"
+            app:titleTextColor="#ffffff"
             app:layout_scrollFlags="scroll|enterAlways"
             app:popupTheme="@style/AppTheme.PopupOverlay"
             />
@@ -30,6 +31,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:tabIndicatorHeight="2dp"
+            app:titleTextColor="#ffffff"
+            app:tabTextColor="#ffffff"
+            app:tabTextAppearance="@style/TabLayout.TabText"
+            app:tabSelectedTextColor="#ffaa00"
             app:tabMode="fixed"
             />
 

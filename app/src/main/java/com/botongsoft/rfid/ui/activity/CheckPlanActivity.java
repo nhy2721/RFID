@@ -2,11 +2,13 @@ package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -361,7 +363,20 @@ public class CheckPlanActivity extends BaseActivity {
             Intent intent = new Intent(UIUtils.getContext(), CheckPlanDetailActivity.class);
             intent.putExtra("index", position);
             intent.putExtra("title", "开始盘点");
-            UIUtils.startActivity(intent);
+            //这里要把pdid和盘点范围传过去
+            intent.putExtra("pdid", 123456);
+            intent.putExtra("fw", "fw");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (BaseActivity.activity == null) {
+                    UIUtils.startActivity(intent);
+                    return;
+                }
+                ActivityOptionsCompat options = ActivityOptionsCompat.
+                        makeSceneTransitionAnimation(BaseActivity.activity);
+                BaseActivity.activity.startActivity(intent, options.toBundle());
+            } else {
+                UIUtils.startActivity(intent);
+            }
             //            //详细信息
             //            StringBuilder sb = new StringBuilder();
             //            sb.append("Title:").append(mDataList.get(position).getPdid()).append("\n");

@@ -9,8 +9,8 @@
         <!--<item>发现</item>-->
     </string-array>
     <string-array name="check_plandetail_type">
-        <item>扫描</item>
-        <item>网格</item>
+        <item>盘点</item>
+        <item>盘点范围</item>
     </string-array>
     <string-array name="book_category">
         <item>上架</item>
