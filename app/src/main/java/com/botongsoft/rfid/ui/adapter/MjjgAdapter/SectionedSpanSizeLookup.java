@@ -17,7 +17,7 @@ package com.botongsoft.rfid.ui.adapter.MjjgAdapter;
 
 import android.support.v7.widget.GridLayoutManager;
 
-import com.botongsoft.rfid.ui.entity.HotelEntity;
+import com.botongsoft.rfid.ui.entity.MjjgEntity;
 
 import java.util.ArrayList;
 
@@ -30,13 +30,14 @@ public class SectionedSpanSizeLookup extends GridLayoutManager.SpanSizeLookup {
 
     protected SectionedRecyclerViewAdapter<?, ?, ?> adapter = null;
     protected GridLayoutManager layoutManager = null;
-    HotelEntity entity;
+    MjjgEntity entity;
+    private  int size;
+    public ArrayList<MjjgEntity.TagsEntity.TagInfo> tagInfoList;
 
-    public ArrayList<HotelEntity.TagsEntity.TagInfo> tagInfoList;
-
-    public SectionedSpanSizeLookup(SectionedRecyclerViewAdapter<?, ?, ?> adapter, GridLayoutManager layoutManager) {
+    public SectionedSpanSizeLookup(SectionedRecyclerViewAdapter<?, ?, ?> adapter, GridLayoutManager layoutManager,int size) {
         this.adapter = adapter;
         this.layoutManager = layoutManager;
+        this.size = size;
 
     }
 
@@ -45,8 +46,8 @@ public class SectionedSpanSizeLookup extends GridLayoutManager.SpanSizeLookup {
 
         if (adapter.isSectionHeaderPosition(position) || adapter.isSectionFooterPosition(position)) {
             //            tagInfoList =    entity.allTagsList.get(position).tagInfoList;
-            //            return size;
-            return layoutManager.getSpanCount();
+                        return size;
+//            return layoutManager.getSpanCount();
         } else {
             return 1;
         }

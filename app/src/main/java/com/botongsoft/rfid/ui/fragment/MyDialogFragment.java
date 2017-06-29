@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +15,7 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.ui.adapter.MjjgAdapter.MjjgEntityAdapter;
 import com.botongsoft.rfid.ui.adapter.MjjgAdapter.SectionedSpanSizeLookup;
-import com.botongsoft.rfid.ui.entity.HotelEntity;
+import com.botongsoft.rfid.ui.entity.MjjgEntity;
 
 import java.util.ArrayList;
 
@@ -32,6 +33,9 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
     private MjjgEntityAdapter mMjjgEntityAdapter;
     private Mjj mjj;
     MyThread mthread;
+    private MjjgEntity entity = new MjjgEntity();
+    ;
+
     //写一个静态方法产生实例
     public static MyDialogFragment newInstance(int layoutId, Mjj mjj, String value) {
         MyDialogFragment fragment = new MyDialogFragment();
@@ -70,47 +74,77 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
         } else {
             searchDB(2);
         }
-        HotelEntity entity = new HotelEntity();
-        entity.allTagsList = new ArrayList<>();
-        HotelEntity.TagsEntity te = entity.new TagsEntity();
-        te.tagsName = "test";
-        te.tagInfoList = new ArrayList<>();
-        for (int i = 0; i <= 100; i++) {
-            HotelEntity.TagsEntity.TagInfo tg = te.new TagInfo();
-            tg.tagName = i + "";
-            te.tagInfoList.add(tg);
-        }
-        entity.allTagsList.add(te);
-
         mMjjgEntityAdapter = new MjjgEntityAdapter(getContext());
-        GridLayoutManager manager = new GridLayoutManager(getContext(), 8);
+        GridLayoutManager manager = new GridLayoutManager(getContext(), mjj.getZs());
         //        http://blog.csdn.net/erjizi/article/details/49797967
         //        http://www.jianshu.com/p/675883c26ef2
         //设置header
-        manager.setSpanSizeLookup(new SectionedSpanSizeLookup(mMjjgEntityAdapter, manager));
+        manager.setSpanSizeLookup(new SectionedSpanSizeLookup(mMjjgEntityAdapter, manager,mjj.getZs()));
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.setAdapter(mMjjgEntityAdapter);
-        mMjjgEntityAdapter.setData(entity.allTagsList);
+
 
     }
 
     private void searchDB(int i) {
-        mthread = new MyThread();
-        new Thread(mthread).start();
+
         if (i == 1) {//查左边
-
+            mthread = new MyThread(1);
+            new Thread(mthread).start();
         } else {//查右边
-
+            mthread = new MyThread(2);
+            new Thread(mthread).start();
         }
     }
 
     class MyThread implements Runnable {
+        int i;
+
+        public MyThread(int i) {
+            this.i = i;
+        }
 
         @Override
         public void run() {
+            if (i == 1) {
+                Log.e("i = 1 --->", String.valueOf(i));
+                Log.e("i = 1 Threads--->", String.valueOf(Thread.currentThread().getName()));
+                entity.allTagsList = new ArrayList<>();
+                MjjgEntity.TagsEntity te = entity.new TagsEntity();
+                te.tagsName = mjj.getMc()+" 左面";
+                te.tagInfoList = new ArrayList<>();
+                for (int i = 1; i <= mjj.getCs()*mjj.getZs(); i++) {
+                    MjjgEntity.TagsEntity.TagInfo tg = te.new TagInfo();
+                    tg.tagName = i + "";
+                    te.tagInfoList.add(tg);
+                }
+                entity.allTagsList.add(te);
+            } else {
+                Log.e("i = 2 --->", String.valueOf(i));
+                Log.e("i = 2 BThreads--->", String.valueOf(Thread.currentThread().getName()));
+                entity.allTagsList = new ArrayList<>();
+                MjjgEntity.TagsEntity te = entity.new TagsEntity();
+                te.tagsName = mjj.getMc() +" 右面";;
+                te.tagInfoList = new ArrayList<>();
+//                for (int i = 1; i <= mjj.getCs()*mjj.getZs(); i++) {
+//                    HotelEntity.TagsEntity.TagInfo tg = te.new TagInfo();
+//                    tg.tagName = i + "";
+//                    te.tagInfoList.add(tg);
+//                }
+                for (int i2 = 0; i2 < mjj.getCs(); i2++) {
+                    for (int j = 0; j < mjj.getZs(); j++) {
+                        MjjgEntity.TagsEntity.TagInfo tg = te.new TagInfo();
+                        tg.tagName = "第"+(i2 + 1)+"层第"+ (j + 1)+"组";
+                        te.tagInfoList.add(tg);
+                    }
 
+                }
+                entity.allTagsList.add(te);
+            }
+            mMjjgEntityAdapter.setData(entity.allTagsList);
         }
     }
+
     @Override
     public void onCreate(Bundle savedInstanceState) { //此处可以设置Dialog的style等等
         super.onCreate(savedInstanceState);

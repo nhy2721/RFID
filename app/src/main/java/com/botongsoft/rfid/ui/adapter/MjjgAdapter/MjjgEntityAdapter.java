@@ -6,7 +6,7 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import com.botongsoft.rfid.R;
-import com.botongsoft.rfid.ui.entity.HotelEntity;
+import com.botongsoft.rfid.ui.entity.MjjgEntity;
 import com.botongsoft.rfid.ui.entity.HotelUtils;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class MjjgEntityAdapter extends SectionedRecyclerViewAdapter<HeaderHolder, DescHolder, RecyclerView.ViewHolder> {
 
 
-    public ArrayList<HotelEntity.TagsEntity> allTagList;
+    public ArrayList<MjjgEntity.TagsEntity> allTagList;
     private Context mContext;
     private LayoutInflater mInflater;
 
@@ -30,7 +30,7 @@ public class MjjgEntityAdapter extends SectionedRecyclerViewAdapter<HeaderHolder
         //        mBooleanMap = new SparseBooleanArray();
     }
 
-    public void setData(ArrayList<HotelEntity.TagsEntity> allTagList) {
+    public void setData(ArrayList<MjjgEntity.TagsEntity> allTagList) {
         this.allTagList = allTagList;
         notifyDataSetChanged();
     }
@@ -99,7 +99,7 @@ public class MjjgEntityAdapter extends SectionedRecyclerViewAdapter<HeaderHolder
 
     @Override
     protected void onBindItemViewHolder(DescHolder holder, int section, int position) {
-        HotelEntity.TagsEntity.TagInfo tt = allTagList.get(section).tagInfoList.get(position);
+        MjjgEntity.TagsEntity.TagInfo tt = allTagList.get(section).tagInfoList.get(position);
         holder.descView.setText(tt.tagName);
         holder.descView.setTextColor(mContext.getResources().getColor(R.color.grass_green));
 

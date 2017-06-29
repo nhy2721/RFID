@@ -6,7 +6,7 @@ import java.util.ArrayList;
  * Created by lyd10892 on 2016/8/23.
  */
 
-public class HotelEntity {
+public class MjjgEntity {
 
     public ArrayList<TagsEntity> allTagsList;
 
