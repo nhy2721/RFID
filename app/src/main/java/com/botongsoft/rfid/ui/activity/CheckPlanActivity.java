@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.CheckPlan;
 import com.botongsoft.rfid.bean.http.BaseResponse;
+import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
@@ -60,7 +61,7 @@ public class CheckPlanActivity extends BaseActivity {
     FloatingActionButton mFab;
     private int index;
     private String editString;
-    private List<CheckPlan> mDataList;
+    private List<CheckPlan> mDataList = new ArrayList<>();
     private CheckPlanAdapter mCheckPlanAdapter;
     private int size = 50;
     private static int size1 = 1;
@@ -104,11 +105,11 @@ public class CheckPlanActivity extends BaseActivity {
         mSwipeMenuRecyclerView.setSwipeMenuCreator(swipeMenuCreator);
         // 设置菜单Item点击监听。
         mSwipeMenuRecyclerView.setSwipeMenuItemClickListener(menuItemClickListener);
-
+        initDatas();
         mCheckPlanAdapter = new CheckPlanAdapter(this, mDataList);
         mCheckPlanAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mCheckPlanAdapter);
-        initDatas();
+
 
     }
 
@@ -129,7 +130,6 @@ public class CheckPlanActivity extends BaseActivity {
     protected void initEvents() {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
-        mDataList = new ArrayList<>();
     }
 
     private void initUiHandler() {
@@ -202,13 +202,8 @@ public class CheckPlanActivity extends BaseActivity {
 
     private void searchDB() {
         Log.e("Handler searchDB--->", String.valueOf(Thread.currentThread().getName()));
-        for (int i = 0; i <= 1000; i++) {
-            CheckPlan cc = new CheckPlan();
-            cc.setFw(i + "范围");
-            cc.setPdid(i);
-            cc.setBz("bbzbzbzbzbzb");
-            mDataList.add(cc);
-        }
+        List list = (List) DBDataUtils.getInfos(CheckPlan.class);
+        mDataList.addAll(list);
     }
 
 
@@ -365,8 +360,8 @@ public class CheckPlanActivity extends BaseActivity {
             intent.putExtra("index", position);
             intent.putExtra("title", "开始盘点");
             //这里要把pdid和盘点范围传过去
-            intent.putExtra("pdid", 123456);
-            intent.putExtra("fw", "fw");
+            intent.putExtra("pdid", mDataList.get(position).getPdid());
+            intent.putExtra("fw", mDataList.get(position).getFw());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 if (BaseActivity.activity == null) {
                     UIUtils.startActivity(intent);

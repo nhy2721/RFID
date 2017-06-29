@@ -51,8 +51,8 @@ public class CheckPlanDetailActivity extends BaseActivity {
 
     private void initView() {
         fragments = new ArrayList<>();
-        fragments.add(ScanCheckPlanDetailFragment.newInstance(Constant.TYPE_HOT_RANKING,pdid,fw));
-        fragments.add(ScanCheckPlanListFragment.newInstance(Constant.TYPE_RETAINED_RANKING,pdid,fw));
+        fragments.add(ScanCheckPlanDetailFragment.newInstance(Constant.TYPE_HOT_RANKING,pdid,fw));//扫描操作
+        fragments.add(ScanCheckPlanListFragment.newInstance(Constant.TYPE_RETAINED_RANKING,pdid,fw));//显示盘点范围与格子
         mViewPager.setAdapter(new CheckPlanFragmentAdapter(getSupportFragmentManager(), fragments));
         mViewPager.setOffscreenPageLimit(0);
         mTabLayout.setupWithViewPager(mViewPager);
@@ -87,6 +87,7 @@ public class CheckPlanDetailActivity extends BaseActivity {
         setTitle(getIntent().getStringExtra("title"));
         fw = getIntent().getStringExtra("fw");
         pdid = getIntent().getIntExtra("pdid",0);
+//        mToolbar.setSubtitle(fw);//子标题
     }
 
     @Override

@@ -80,25 +80,39 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
             ((EBookListHolder) holder).tv_book_title.setText(mjj.getMc());
             if (mjj.getNoleft() == 0) {
                 ((EBookListHolder) holder).tView1.setText("左");
+            }else{
+                ((EBookListHolder) holder).mRelativeLayout1.setVisibility(View.INVISIBLE);
             }
             if (mjj.getNoright() == 0) {
                 ((EBookListHolder) holder).tView2.setText("右");
+            }else{
+                ((EBookListHolder) holder).mRelativeLayout2.setVisibility(View.INVISIBLE);
+            }
+            if(!mjj.isShowLeft()){
+                ((EBookListHolder) holder).mRelativeLayout1.setVisibility(View.INVISIBLE);
+            }
+            if(!mjj.isShowRrigh()){
+                ((EBookListHolder) holder).mRelativeLayout2.setVisibility(View.INVISIBLE);
             }
             ((EBookListHolder) holder).tView1.setOnClickListener(new OnSingleClickListener(200) {
                 @Override
                 protected void onSingleClick(View view) {
 
                     ToastUtils.showShort("textView1");
-                    MyDialogFragment mdf =   MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment);
+                    MyDialogFragment mdf =   MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment,mjj,"left");
                     FragmentTransaction ft = fm.beginTransaction();
                     ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                     mdf.show(ft,"dd");
                 }
             });
-            ((EBookListHolder) holder).tView2.setOnClickListener(new OnSingleClickListener() {
+            ((EBookListHolder) holder).tView2.setOnClickListener(new OnSingleClickListener(200) {
                 @Override
                 protected void onSingleClick(View view) {
                     ToastUtils.showShort("textView2");
+                    MyDialogFragment mdf =   MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment,mjj,"right");
+                    FragmentTransaction ft = fm.beginTransaction();
+                    ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                    mdf.show(ft,"dd");
                 }
             });
             holder.itemView.setOnClickListener(new View.OnClickListener() {

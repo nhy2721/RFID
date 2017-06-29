@@ -11,8 +11,7 @@ import com.botongsoft.rfid.ui.entity.HotelUtils;
 
 import java.util.ArrayList;
 
-/**
- * 密集架格显示Adapter
+/**密集架格显示Adapter
  * Created by pc on 2017/6/28.
  */
 
@@ -44,9 +43,9 @@ public class MjjgEntityAdapter extends SectionedRecyclerViewAdapter<HeaderHolder
     @Override
     protected int getItemCountForSection(int section) {
         int count = allTagList.get(section).tagInfoList.size();
-//        if (count >= 8) {
-//            count = 8;
-//        }
+//                if (count >= 8 ) {
+//                    count = 8;
+//                }
 
         return HotelUtils.isEmpty(allTagList.get(section).tagInfoList) ? 0 : count;
     }
