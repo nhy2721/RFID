@@ -36,6 +36,8 @@ import butterknife.ButterKnife;
 
 public class MyDialogFragment extends DialogFragment implements View.OnClickListener {
     private static final int MSG_SUBMIT = 0;
+    private static final int VALUE_LEFT = 1;
+    private static final int VALUE_RIGHT = 2;
     @BindView(R.id.recyclerView)
     RecyclerView mRecyclerView;
     protected View mRootView;
@@ -82,9 +84,9 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
         String value = getArguments().getString("value");
         pdid = getArguments().getInt("pdid");
         if (value.equals("left")) {
-            searchDB(1);
+            searchDB(VALUE_LEFT);
         } else {
-            searchDB(2);
+            searchDB(VALUE_RIGHT);
         }
         mMjjgEntityAdapter = new MjjgEntityAdapter(getContext());
         GridLayoutManager manager = new GridLayoutManager(getContext(), mjj.getZs());
@@ -100,11 +102,11 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
 
     private void searchDB(int i) {
 
-        if (i == 1) {//查左边
-            mthread = new MyThread(1);
+        if (i == VALUE_LEFT) {//查左边
+            mthread = new MyThread(VALUE_LEFT);
             new Thread(mthread).start();
         } else {//查右边
-            mthread = new MyThread(2);
+            mthread = new MyThread(VALUE_RIGHT);
             new Thread(mthread).start();
         }
     }
@@ -118,45 +120,57 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
 
         @Override
         public void run() {
-            if (i == 1) {
-                Log.e("i = 1 --->", String.valueOf(i));
+            entity.allTagsList = new ArrayList<>();
+            MjjgEntity.TagsEntity te = entity.new TagsEntity();
+            te.tagInfoList = new ArrayList<>();
+            if (i == VALUE_LEFT) {
+                Log.e("i = VALUE_LEFT --->", String.valueOf(i));
                 Log.e("i = 1 Threads--->", String.valueOf(Thread.currentThread().getName()));
-                entity.allTagsList = new ArrayList<>();
-                MjjgEntity.TagsEntity te = entity.new TagsEntity();
                 te.tagsName = mjj.getMc() + " 左面";
-                te.tagInfoList = new ArrayList<>();
-                for (int i = 1; i <= mjj.getCs() * mjj.getZs(); i++) {
-                    MjjgEntity.TagsEntity.TagInfo tg = te.new TagInfo();
-                    tg.setTagName(i + "");
-                    te.tagInfoList.add(tg);
-                }
-                entity.allTagsList.add(te);
-            } else {
-                Log.e("i = 2 --->", String.valueOf(i));
-                Log.e("i = 2 BThreads--->", String.valueOf(Thread.currentThread().getName()));
-                entity.allTagsList = new ArrayList<>();
-                MjjgEntity.TagsEntity te = entity.new TagsEntity();
-                te.tagsName = mjj.getMc() + " 右面";
-                te.tagInfoList = new ArrayList<>();
                 //根据密集架左右 id 查询出密集格显示到页面
-
                 int csLen = mjj.getCs() - 1;
                 int zsLen = mjj.getZs();
                 for (int i2 = csLen; i2 >= 0; i2--) {
                     for (int j = 0; j < zsLen; j++) {
                         MjjgEntity.TagsEntity.TagInfo tg = te.new TagInfo();
                         // tg.setTagName("第" + (i2 + 1) + "层第" + (j + 1) + "组");
-                        Mjjg mjjg = searchDBByMjjg(mjj.getId(), 2, i2 + 1, j + 1);
+                        Mjjg mjjg = searchDBByMjjg(mjj.getId(), VALUE_LEFT, i2 + 1, j + 1);
                         if (mjjg != null) {
                             tg.setTagName(mjjg.getMc());
                             tg.setTagId(mjjg.getId());
                             //这里需要查询已经扫描过checkerror的记录表来改变格子的颜色
-                            CheckError ce = searchDBByCheckError(mjjg.getId(), pdid, mjj.getKfid(), mjj.getId(), 2);
+                            CheckError ce = searchDBByCheckError(mjjg.getId(), pdid, mjj.getKfid(), mjj.getId(), VALUE_LEFT);
                             if (ce != null) {
                                 tg.setUpdateColor("old");
                             }
                         }
+                        te.tagInfoList.add(tg);
+                    }
 
+                }
+                entity.allTagsList.add(te);
+            } else {
+                Log.e("i = 2 --->", String.valueOf(i));
+                Log.e("i = 2 BThreads--->", String.valueOf(Thread.currentThread().getName()));
+                te.tagsName = mjj.getMc() + " 右面";
+
+                //根据密集架左右 id 查询出密集格显示到页面
+                int csLen = mjj.getCs() - 1;
+                int zsLen = mjj.getZs();
+                for (int i2 = csLen; i2 >= 0; i2--) {
+                    for (int j = 0; j < zsLen; j++) {
+                        MjjgEntity.TagsEntity.TagInfo tg = te.new TagInfo();
+                        // tg.setTagName("第" + (i2 + 1) + "层第" + (j + 1) + "组");
+                        Mjjg mjjg = searchDBByMjjg(mjj.getId(), VALUE_RIGHT, i2 + 1, j + 1);
+                        if (mjjg != null) {
+                            tg.setTagName(mjjg.getMc());
+                            tg.setTagId(mjjg.getId());
+                            //这里需要查询已经扫描过checkerror的记录表来改变格子的颜色
+                            CheckError ce = searchDBByCheckError(mjjg.getId(), pdid, mjj.getKfid(), mjj.getId(), VALUE_RIGHT);
+                            if (ce != null) {
+                                tg.setUpdateColor("old");
+                            }
+                        }
                         te.tagInfoList.add(tg);
                     }
 
@@ -173,7 +187,7 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
             CheckError ce = null;
             DbUtils db = DataBaseCreator.create();
             try {
-                ce = db.findFirst(Selector.from(CheckError.class).where("mjjgid", "=", mjjgid).and("pdid", "=", pdid).and("kfid", "=", kfid).and("mjjid", "=", mjjid).and("zy", "=", i));
+                ce = db.findFirst(Selector.from(CheckError.class).where("mjgid", "=", mjjgid).and("pdid", "=", pdid).and("kfid", "=", kfid).and("mjjid", "=", mjjid).and("zy", "=", i));
             } catch (DbException e) {
                 e.printStackTrace();
             }
