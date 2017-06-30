@@ -2,6 +2,7 @@ package com.botongsoft.rfid.ui.fragment;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +15,7 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
+import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanListAdapter;
 import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.db.sqlite.Selector;
@@ -43,6 +45,7 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
     private String fw;
     MyThread mthread;
     Handler myHandler;
+    private static final int MSG_SUBMIT = 0;
 
     public static ScanCheckPlanListFragment newInstance(int type, int pdid, String fw) {
         Bundle args = new Bundle();
@@ -56,6 +59,31 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
 
     @Override
     public void onRefresh() {
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        LogUtils.e("onDestroy",   "onDestroy4444444444444444");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        LogUtils.e("onStop",   "onStop33333333333333333");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mMjjList.clear();
+        LogUtils.e("onPause",   "onPause222222222222222222");
+    }
+    @Override
+    public void onResume() {
+        LogUtils.e("onResume",   "onResume111111111111111");
+        super.onResume();
 
     }
 
@@ -97,11 +125,51 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
         //设置Item增加、移除动画
         //        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         //        mRecyclerView.addOnScrollListener(new RecyclerViewScrollDetector());
-        mSwipeRefreshLayout.setOnRefreshListener(this);
+        mSwipeRefreshLayout.setOnRefreshListener(mOnRefreshListener);
+    }
+    @Override
+    public void onCreate(Bundle savedInstanceState) { //此处可以设置Dialog的style等等
+        super.onCreate(savedInstanceState);
+        //        setCancelable(false);//无法直接点击外部取消dialog
+        //        setStyle(DialogFragment.STYLE_NO_FRAME,0); //NO_FRAME就是dialog无边框，0指的是默认系统Theme
+        myHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                switch (msg.what) {
+                    case MSG_SUBMIT:
+                        hideProgress();
+                        mListAdapter.notifyDataSetChanged();
+                        break;
+
+                    default:
+                        super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
+                        break;
+                }
+            }
+        };
+
+    }
+    public void showProgress() {
+        mSwipeRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeRefreshLayout.setRefreshing(true);
+            }
+        });
     }
 
+    public void hideProgress() {
+        mSwipeRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        });
+    }
     @Override
     protected void initData(boolean isSavedNull) {
+        showProgress();
         searchDB();
     }
 
@@ -187,7 +255,9 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-
+            Message msg = myHandler.obtainMessage();
+            msg.what = MSG_SUBMIT;//发送消息保存界面数据
+            myHandler.sendMessage(msg);
             //            Message msg = new Message();
             //            Bundle b = new Bundle();// 存放数据
             //            b.putString("color", "我的");
@@ -197,5 +267,15 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
 
         }
     }
-
+    /**
+     * 刷新监听。
+     */
+        private SwipeRefreshLayout.OnRefreshListener mOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mMjjList.clear();
+                searchDB();
+//                mRecyclerView.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 2000);
+            }
+        };
 }

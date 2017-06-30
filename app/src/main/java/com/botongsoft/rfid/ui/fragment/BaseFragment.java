@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.botongsoft.rfid.common.utils.LogUtils;
+
 import butterknife.ButterKnife;
 
 /**
@@ -27,6 +29,7 @@ public abstract class BaseFragment extends Fragment {
         ButterKnife.bind(this, mRootView);
         initEvents();
         initData(savedInstanceState == null);
+        LogUtils.e("onCreateView",   "onCreateView0000000000000");
         return mRootView;
     }
 

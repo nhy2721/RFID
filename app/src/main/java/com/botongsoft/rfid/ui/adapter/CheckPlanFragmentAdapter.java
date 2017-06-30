@@ -3,14 +3,16 @@ package com.botongsoft.rfid.ui.adapter;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
 
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.ui.fragment.BaseFragment;
+import com.botongsoft.rfid.ui.fragment.ScanCheckPlanListFragment;
 
 import java.util.List;
 
-/**
+/**http://www.jianshu.com/p/043020843899
  * Created by pc on 2017/6/26.
  * FragmentStatePagerAdapter 和前面的 FragmentPagerAdapter 一样，是继承子 PagerAdapter。但是，和 FragmentPagerAdapter 不一样的是，
  * 正如其类名中的 'State' 所表明的含义一样，该 PagerAdapter 的实现将只保留当前页面，当页面离开视线后，就会被消除，释放其资源；
@@ -36,6 +38,16 @@ public class CheckPlanFragmentAdapter extends FragmentStatePagerAdapter {
         super(fm);
         this.titles = UIUtils.getContext().getResources().getStringArray(R.array.check_plandetail_type);
         mFragments = fragments;
+        notifyDataSetChanged();
+    }
+    @Override
+    public int getItemPosition(Object object) {
+        if(object instanceof ScanCheckPlanListFragment){
+            return PagerAdapter.POSITION_NONE;
+        }else{
+        return PagerAdapter.POSITION_UNCHANGED;}
+        // 系统默认返回的是     POSITION_UNCHANGED，未改变
+//         return super.getItemPosition(object);
     }
 
     @Override
@@ -52,5 +64,11 @@ public class CheckPlanFragmentAdapter extends FragmentStatePagerAdapter {
     public CharSequence getPageTitle(int position) {
         return titles[position];
     }
+//    @Override
+//    public void destroyItem(ViewGroup container, int position, Object object) {
+//        // TODO Auto-generated method stub
+//        Log.e( "-----destroyItem()-销毁->" , titles[position]+"");
+//        super.destroyItem(container, position, object);
+//    }
 }
 

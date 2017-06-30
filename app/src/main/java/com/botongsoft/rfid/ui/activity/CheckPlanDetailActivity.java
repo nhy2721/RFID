@@ -10,6 +10,7 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.service.http.BusinessException;
+import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.ui.adapter.CheckPlanFragmentAdapter;
 import com.botongsoft.rfid.ui.fragment.BaseFragment;
 import com.botongsoft.rfid.ui.fragment.ScanCheckPlanDetailFragment;
@@ -39,7 +40,7 @@ public class CheckPlanDetailActivity extends BaseActivity {
     private int pdid;
     private Activity mContext;
     private List<BaseFragment> fragments;
-
+    CheckPlanFragmentAdapter checkPlanFragmentAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_checkplandetail);
@@ -51,9 +52,12 @@ public class CheckPlanDetailActivity extends BaseActivity {
 
     private void initView() {
         fragments = new ArrayList<>();
-        fragments.add(ScanCheckPlanDetailFragment.newInstance(Constant.TYPE_HOT_RANKING,pdid,fw));//扫描操作
-        fragments.add(ScanCheckPlanListFragment.newInstance(Constant.TYPE_RETAINED_RANKING,pdid,fw));//显示盘点范围与格子
-        mViewPager.setAdapter(new CheckPlanFragmentAdapter(getSupportFragmentManager(), fragments));
+        fragments.add(ScanCheckPlanDetailFragment.newInstance(Constant.TYPE_HOT_RANKING, pdid, fw));//扫描操作
+        fragments.add(ScanCheckPlanListFragment.newInstance(Constant.TYPE_RETAINED_RANKING, pdid, fw));//显示盘点范围与格子
+          checkPlanFragmentAdapter =  new CheckPlanFragmentAdapter(getSupportFragmentManager(), fragments);
+        mViewPager.removeAllViews();
+        mViewPager.removeAllViewsInLayout();
+        mViewPager.setAdapter(checkPlanFragmentAdapter);
         mViewPager.setOffscreenPageLimit(0);
         mTabLayout.setupWithViewPager(mViewPager);
         setPageChangeListener();
@@ -70,12 +74,14 @@ public class CheckPlanDetailActivity extends BaseActivity {
 
             @Override
             public void onPageSelected(int position) {
-
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
-
+                LogUtils.e("onPageScrollStateChanged", state + "");
+                if(state==0){
+                    checkPlanFragmentAdapter.notifyDataSetChanged();
+                }
             }
         });
     }
@@ -86,8 +92,8 @@ public class CheckPlanDetailActivity extends BaseActivity {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
         fw = getIntent().getStringExtra("fw");
-        pdid = getIntent().getIntExtra("pdid",0);
-        mToolbar.setSubtitle(pdid+"");//子标题
+        pdid = getIntent().getIntExtra("pdid", 0);
+        mToolbar.setSubtitle(pdid + "");//子标题
     }
 
     @Override
