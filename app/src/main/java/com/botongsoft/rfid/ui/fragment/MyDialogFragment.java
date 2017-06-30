@@ -17,6 +17,7 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.CheckError;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
+import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
 import com.botongsoft.rfid.ui.adapter.MjjgAdapter.MjjgEntityAdapter;
 import com.botongsoft.rfid.ui.adapter.MjjgAdapter.SectionedSpanSizeLookup;
@@ -36,8 +37,7 @@ import butterknife.ButterKnife;
 
 public class MyDialogFragment extends DialogFragment implements View.OnClickListener {
     private static final int MSG_SUBMIT = 0;
-    private static final int VALUE_LEFT = 1;
-    private static final int VALUE_RIGHT = 2;
+
     @BindView(R.id.recyclerView)
     RecyclerView mRecyclerView;
     protected View mRootView;
@@ -84,9 +84,9 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
         String value = getArguments().getString("value");
         pdid = getArguments().getInt("pdid");
         if (value.equals("left")) {
-            searchDB(VALUE_LEFT);
+            searchDB(Constant.VALUE_LEFT);
         } else {
-            searchDB(VALUE_RIGHT);
+            searchDB(Constant.VALUE_RIGHT);
         }
         mMjjgEntityAdapter = new MjjgEntityAdapter(getContext());
         GridLayoutManager manager = new GridLayoutManager(getContext(), mjj.getZs());
@@ -102,11 +102,11 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
 
     private void searchDB(int i) {
 
-        if (i == VALUE_LEFT) {//查左边
-            mthread = new MyThread(VALUE_LEFT);
+        if (i == Constant.VALUE_LEFT) {//查左边
+            mthread = new MyThread(Constant.VALUE_LEFT);
             new Thread(mthread).start();
         } else {//查右边
-            mthread = new MyThread(VALUE_RIGHT);
+            mthread = new MyThread(Constant.VALUE_RIGHT);
             new Thread(mthread).start();
         }
     }
@@ -123,7 +123,7 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
             entity.allTagsList = new ArrayList<>();
             MjjgEntity.TagsEntity te = entity.new TagsEntity();
             te.tagInfoList = new ArrayList<>();
-            if (i == VALUE_LEFT) {
+            if (i == Constant.VALUE_LEFT) {
                 Log.e("i = VALUE_LEFT --->", String.valueOf(i));
                 Log.e("i = 1 Threads--->", String.valueOf(Thread.currentThread().getName()));
                 te.tagsName = mjj.getMc() + " 左面";
@@ -134,12 +134,12 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
                     for (int j = 0; j < zsLen; j++) {
                         MjjgEntity.TagsEntity.TagInfo tg = te.new TagInfo();
                         // tg.setTagName("第" + (i2 + 1) + "层第" + (j + 1) + "组");
-                        Mjjg mjjg = searchDBByMjjg(mjj.getId(), VALUE_LEFT, i2 + 1, j + 1);
+                        Mjjg mjjg = searchDBByMjjg(mjj.getId(), Constant.VALUE_LEFT, i2 + 1, j + 1);
                         if (mjjg != null) {
                             tg.setTagName(mjjg.getMc());
                             tg.setTagId(mjjg.getId());
                             //这里需要查询已经扫描过checkerror的记录表来改变格子的颜色
-                            CheckError ce = searchDBByCheckError(mjjg.getId(), pdid, mjj.getKfid(), mjj.getId(), VALUE_LEFT);
+                            CheckError ce = searchDBByCheckError(mjjg.getId(), pdid, mjj.getKfid(), mjj.getId(), Constant.VALUE_LEFT);
                             if (ce != null) {
                                 tg.setUpdateColor("old");
                             }
@@ -161,12 +161,12 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
                     for (int j = 0; j < zsLen; j++) {
                         MjjgEntity.TagsEntity.TagInfo tg = te.new TagInfo();
                         // tg.setTagName("第" + (i2 + 1) + "层第" + (j + 1) + "组");
-                        Mjjg mjjg = searchDBByMjjg(mjj.getId(), VALUE_RIGHT, i2 + 1, j + 1);
+                        Mjjg mjjg = searchDBByMjjg(mjj.getId(), Constant.VALUE_RIGHT, i2 + 1, j + 1);
                         if (mjjg != null) {
                             tg.setTagName(mjjg.getMc());
                             tg.setTagId(mjjg.getId());
                             //这里需要查询已经扫描过checkerror的记录表来改变格子的颜色
-                            CheckError ce = searchDBByCheckError(mjjg.getId(), pdid, mjj.getKfid(), mjj.getId(), VALUE_RIGHT);
+                            CheckError ce = searchDBByCheckError(mjjg.getId(), pdid, mjj.getKfid(), mjj.getId(), Constant.VALUE_RIGHT);
                             if (ce != null) {
                                 tg.setUpdateColor("old");
                             }

@@ -87,7 +87,7 @@ public class CheckPlanDetailActivity extends BaseActivity {
         setTitle(getIntent().getStringExtra("title"));
         fw = getIntent().getStringExtra("fw");
         pdid = getIntent().getIntExtra("pdid",0);
-//        mToolbar.setSubtitle(fw);//子标题
+        mToolbar.setSubtitle(pdid+"");//子标题
     }
 
     @Override

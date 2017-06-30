@@ -17,7 +17,6 @@ public class Constant {
 
     public static final String BOOK_ZONE_ID = "book_zone_id";
 
-
     /**
      * category index
      */
@@ -38,6 +37,9 @@ public class Constant {
     //rank type 排行等级
     public static final int TYPE_HOT_RANKING = 0;
     public static final int TYPE_RETAINED_RANKING = 1;
+    //左右 
+    public static final int VALUE_LEFT = 1;
+    public static final int VALUE_RIGHT = 2;
 
     @StringDef({
             Gender.MALE,
