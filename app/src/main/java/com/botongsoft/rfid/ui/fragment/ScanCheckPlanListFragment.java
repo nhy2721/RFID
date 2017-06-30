@@ -91,7 +91,7 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
         LinearLayoutManager layout = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layout);// 布局管理器。
         //设置adapter
-        mListAdapter = new ScanCheckPlanListAdapter(getActivity(), mMjjList, spanCount, getActivity().getSupportFragmentManager());
+        mListAdapter = new ScanCheckPlanListAdapter(getActivity(), mMjjList, spanCount, getActivity().getSupportFragmentManager(),pdid);
         mRecyclerView.setAdapter(mListAdapter);
 
         //设置Item增加、移除动画

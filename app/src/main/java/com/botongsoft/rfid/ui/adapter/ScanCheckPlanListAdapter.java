@@ -31,13 +31,14 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
     private Context mContext;
     private int columns;
     private  FragmentManager fm;
+    private int pdid;
 
-    public ScanCheckPlanListAdapter(Context context, List<Mjj> MjjList, int columns,FragmentManager fm) {
+    public ScanCheckPlanListAdapter(Context context, List<Mjj> MjjList, int columns,FragmentManager fm,int pdid) {
         this.mjjList = MjjList;
         this.columns = columns;
         this.mContext = context;
         this.fm = fm;
-
+        this.pdid= pdid;
     }
 
 
@@ -99,7 +100,7 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
                 protected void onSingleClick(View view) {
 
                     ToastUtils.showShort("textView1");
-                    MyDialogFragment mdf =   MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment,mjj,"left");
+                    MyDialogFragment mdf =   MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment, mjj,"left",pdid);
                     FragmentTransaction ft = fm.beginTransaction();
                     ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                     mdf.show(ft,"dd");
@@ -109,7 +110,7 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
                 @Override
                 protected void onSingleClick(View view) {
                     ToastUtils.showShort("textView2");
-                    MyDialogFragment mdf =   MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment,mjj,"right");
+                    MyDialogFragment mdf =   MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment,mjj,"right",pdid);
                     FragmentTransaction ft = fm.beginTransaction();
                     ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                     mdf.show(ft,"dd");

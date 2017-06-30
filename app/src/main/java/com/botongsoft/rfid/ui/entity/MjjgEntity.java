@@ -15,7 +15,33 @@ public class MjjgEntity {
         public ArrayList<TagInfo> tagInfoList;
 
         public class TagInfo {
-            public String tagName;
+            private String tagName;
+            private String updateColor = "";
+
+            public int getTagId() {
+                return tagId;
+            }
+
+            public void setTagId(int tagId) {
+                this.tagId = tagId;
+            }
+
+            private int  tagId;
+            public String getTagName() {
+                return tagName;
+            }
+
+            public void setTagName(String tagName) {
+                this.tagName = tagName;
+            }
+
+            public String getUpdateColor() {
+                return updateColor;
+            }
+
+            public void setUpdateColor(String updateColor) {
+                this.updateColor = updateColor;
+            }
         }
     }
 
