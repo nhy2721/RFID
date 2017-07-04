@@ -23,6 +23,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.bean.classity.Kf;
+import com.botongsoft.rfid.bean.classity.Mjj;
+import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.db.DBDataUtils;
@@ -48,12 +51,15 @@ import butterknife.ButterKnife;
 
 import static com.botongsoft.rfid.R.id.appBarLayout;
 
-/**上架
+/**
+ * 上架  缺少扫描的档案记录是否在别的位置上过架与拆分扫描的档案id存如bm和jlid字段
  * Created by pc on 2017/6/12.
  */
 public class UpFLoorActivity extends BaseActivity {
     private static final int UI_SUCCESS = 0;
     private static final int UI_SUBMITSUCCESS = 1;
+    private static final int UI_SUBMITERROR = 2;
+
     @BindView(appBarLayout)
     AppBarLayout mAppBarLayout;
     @BindView(R.id.toolbar)
@@ -70,7 +76,7 @@ public class UpFLoorActivity extends BaseActivity {
     TextInputEditText mTextInputEditText;
     @BindView(R.id.tv_info)
     TextView mTextView;
-    private String scanInfoLocal;//扫描的格子位置
+    private static String scanInfoLocal = "";//扫描的格子位置 根据“/”拆分后存入数据库
     @BindView(R.id.progressBar)
     ProgressBar mProgressBar;
     private int index;
@@ -183,13 +189,19 @@ public class UpFLoorActivity extends BaseActivity {
         mFab.setOnClickListener(new OnSingleClickListener() {
             @Override
             protected void onSingleClick(View view) {
-                if (mDataList.size() > 0) {
-                    Toast.makeText(UIUtils.getContext(), "开始保存", Toast.LENGTH_SHORT).show();
-                    view.setClickable(false);
-                    mProgressBar.setVisibility(View.VISIBLE);
-                    msg = mCheckMsgHandler.obtainMessage();
-                    msg.what = MSG_SUBMIT;//发送消息保存界面数据
-                    mCheckMsgHandler.sendMessage(msg);
+                if (scanInfoLocal.equals("") || scanInfoLocal == null) {
+                    mHandlerMessage = mHandler.obtainMessage();
+                    mHandlerMessage.what = UI_SUBMITERROR;
+                    mHandler.sendMessage(mHandlerMessage);
+                } else {
+                    if (mDataList.size() > 0) {
+                        Toast.makeText(UIUtils.getContext(), "开始保存", Toast.LENGTH_SHORT).show();
+                        view.setClickable(false);
+                        mProgressBar.setVisibility(View.VISIBLE);
+                        msg = mCheckMsgHandler.obtainMessage();
+                        msg.what = MSG_SUBMIT;//发送消息保存界面数据
+                        mCheckMsgHandler.sendMessage(msg);
+                    }
                 }
             }
         });
@@ -204,15 +216,16 @@ public class UpFLoorActivity extends BaseActivity {
                     case UI_SUCCESS:
                         //模拟数据
                         if (mBundle != null) {
-                            if (mBundle.getString("info").equals("a")) {
-                                mTextView.setText("1库房1号架左面1组2层");
-                            }
-                            if (mBundle.getString("info").equals("b")) {
-                                mTextView.setText("1库房2号架左面1组2层");
-                            }
-                            if (mBundle.getString("info").equals("c")) {
-                                mTextView.setText("2库房10号架左面1组1层");
-                            }
+                            mTextView.setText(mBundle.getString("info"));
+                            //                            if (mBundle.getString("info").equals("a")) {
+                            //                                mTextView.setText("1库房1号架左面1组2层");
+                            //                            }
+                            //                            if (mBundle.getString("info").equals("b")) {
+                            //                                mTextView.setText("1库房2号架左面1组2层");
+                            //                            }
+                            //                            if (mBundle.getString("info").equals("c")) {
+                            //                                mTextView.setText("2库房10号架左面1组1层");
+                            //                            }
                         }
                         mTextInputEditText.setText("");
                         smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
@@ -227,6 +240,9 @@ public class UpFLoorActivity extends BaseActivity {
                         Toast.makeText(UIUtils.getContext(), "保存成功", Toast.LENGTH_SHORT).show();
                         size1 = 1;
                         mFab.setClickable(true);
+                        break;
+                    case UI_SUBMITERROR:
+                        Toast.makeText(UIUtils.getContext(), "请扫描文件存储位置", Toast.LENGTH_SHORT).show();
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -248,6 +264,7 @@ public class UpFLoorActivity extends BaseActivity {
                     case MSG_SUBMIT:
                         doSubmit();//保存数据
                         break;
+
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
                         break;
@@ -264,13 +281,18 @@ public class UpFLoorActivity extends BaseActivity {
 
         @Override
         public void run() {
+            String temp[] = scanInfoLocal.split("/");
             //保存数据库
             for (Map map : mDataList) {
                 Mjjgda mjjgda = new Mjjgda();
                 mjjgda.setScanInfo(map.get("title").toString());//保存到档案表的扫描信息字段
+                mjjgda.setKfid(Integer.valueOf(temp[0]));
+                mjjgda.setMjjid(Integer.valueOf(temp[1]));
+                mjjgda.setMjgid(Integer.valueOf(temp[2]));
                 DBDataUtils.save(mjjgda);
             }
             //这里发送通知ui更新界面
+            scanInfoLocal = "";
             mHandlerMessage = mHandler.obtainMessage();
             mHandlerMessage.what = UI_SUBMITSUCCESS;
             mHandler.sendMessage(mHandlerMessage);
@@ -324,18 +346,36 @@ public class UpFLoorActivity extends BaseActivity {
             }
         }
         if (tempStr) {
-            if (!mTextInputEditText.getText().toString().equals("a") && !mTextInputEditText.getText().toString().equals("b") && !mTextInputEditText.getText().toString().equals("c")) {
+            Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mTextInputEditText.getText().toString());
+            if (mjjg != null) {
+                Mjj mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                Kf kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                String nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                String name = kf.getMc() + "/" + mjj.getMc() + "/" + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+                String temple = kf.getId() + "/" + mjj.getId() + "/" + mjjg.getId();
+                mBundle = new Bundle();
+                mBundle.putString("info", name);
+                scanInfoLocal = temple;
+                //            mHandlerMessage.obj = mTextInputEditText.getText().toString();
+                mHandlerMessage.setData(mBundle);
+            } else {
                 Map map = new HashMap();
                 map.put("id", size1++);
                 map.put("title", mTextInputEditText.getText());
                 mDataList.add(map);
-            } else {
-                mBundle = new Bundle();
-                mBundle.putString("info", mTextInputEditText.getText().toString());
-                scanInfoLocal = editString;
-                //            mHandlerMessage.obj = mTextInputEditText.getText().toString();
-                mHandlerMessage.setData(mBundle);
             }
+            //            if (!mTextInputEditText.getText().toString().equals("a") && !mTextInputEditText.getText().toString().equals("b") && !mTextInputEditText.getText().toString().equals("c")) {
+            //                Map map = new HashMap();
+            //                map.put("id", size1++);
+            //                map.put("title", mTextInputEditText.getText());
+            //                mDataList.add(map);
+            //            } else {
+            //                mBundle = new Bundle();
+            //                mBundle.putString("info", mTextInputEditText.getText().toString());
+            //                scanInfoLocal = editString;
+            //                //            mHandlerMessage.obj = mTextInputEditText.getText().toString();
+            //                mHandlerMessage.setData(mBundle);
+            //            }
         }
     }
 

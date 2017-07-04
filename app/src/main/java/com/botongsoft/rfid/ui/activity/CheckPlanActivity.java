@@ -114,7 +114,7 @@ public class CheckPlanActivity extends BaseActivity {
     }
 
     private void initDatas() {
-        if (mCheckMsgThread == null) {
+        if (mCheckMsgThread == null || !mCheckMsgThread.isAlive()) {
             mCheckMsgThread = new HandlerThread("BackThread");// 创建一个BackHandlerThread对象，它是一个线程
             mCheckMsgThread.start();// 启动线程
             //创建后台线程
@@ -255,8 +255,11 @@ public class CheckPlanActivity extends BaseActivity {
         @Override
         public void onRefresh() {
             mDataList.clear();
-            checkForUpdate();
-            mSwipeMenuRecyclerView.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 1500);
+            mCheckPlanAdapter.notifyDataSetChanged();
+            initDatas();
+            //            checkForUpdate();
+            //            mSwipeMenuRecyclerView.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 1500);
+            mSwipeRefreshLayout.setRefreshing(false);
         }
     };
     /**
