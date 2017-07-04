@@ -53,7 +53,7 @@ import butterknife.ButterKnife;
 import static com.botongsoft.rfid.R.id.appBarLayout;
 
 /**
- * 上架  缺少扫描的档案记录是否在别的位置上过架与拆分扫描的档案id存如bm和jlid字段
+ * 上架  缺少拆分扫描的档案id存如bm和jlid字段
  * Created by pc on 2017/6/12.
  */
 public class UpFLoorActivity extends BaseActivity {
