@@ -21,6 +21,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.bean.classity.Kf;
+import com.botongsoft.rfid.bean.classity.Mjj;
+import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.db.DBDataUtils;
@@ -47,7 +50,8 @@ import butterknife.ButterKnife;
 import static com.botongsoft.rfid.R.id.appBarLayout;
 import static com.botongsoft.rfid.R.id.toolbar;
 
-/**下架
+/**
+ * 下架
  * Created by pc on 2017/6/12.
  */
 public class DownFLoorActivity extends BaseActivity {
@@ -319,12 +323,25 @@ public class DownFLoorActivity extends BaseActivity {
             }
         }
         if (tempStr) {
-            //模拟数据
-            Map map = new HashMap();
-            map.put("id", size1++);
-            map.put("title", mTextInputEditText.getText());
-            map.put("local", "1库2架左2组2层" + size1);
-            mDataList.add(map);
+            Mjjgda mjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "scanInfo", mTextInputEditText.getText().toString());
+            if (mjjgda != null) {
+                Map map = new HashMap();
+                map.put("id", size1++);
+                map.put("title", mjjgda.getScanInfo());
+                Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+                Mjj mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                Kf kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                String nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                String name = kf.getMc() + "/" + mjj.getMc() + "/" + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+                map.put("local", name);
+                mDataList.add(map);
+            }
+//            //模拟数据
+//            Map map = new HashMap();
+//            map.put("id", size1++);
+//            map.put("title", mTextInputEditText.getText());
+//            map.put("local", "1库2架左2组2层" + size1);
+//            mDataList.add(map);
         }
     }
 
