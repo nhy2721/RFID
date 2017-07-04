@@ -30,6 +30,7 @@ import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.service.http.BusinessException;
+import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.listener.OnSingleClickListener;
@@ -59,6 +60,7 @@ public class UpFLoorActivity extends BaseActivity {
     private static final int UI_SUCCESS = 0;
     private static final int UI_SUBMITSUCCESS = 1;
     private static final int UI_SUBMITERROR = 2;
+    private static final int UI_ISEXIST = 3;
 
     @BindView(appBarLayout)
     AppBarLayout mAppBarLayout;
@@ -242,7 +244,12 @@ public class UpFLoorActivity extends BaseActivity {
                         mFab.setClickable(true);
                         break;
                     case UI_SUBMITERROR:
-                        Toast.makeText(UIUtils.getContext(), "请扫描文件存储位置", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showShort("请扫描文件存储位置");
+                        break;
+                    case UI_ISEXIST:
+                        mTextInputEditText.setText("");
+                        String getResult1 = (String) msg.obj;
+                        ToastUtils.showShort("该文件已在" + getResult1 + "上过架了");
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -351,6 +358,7 @@ public class UpFLoorActivity extends BaseActivity {
             String nLOrR = "";
             Mjj mjj = null;
             Kf kf = null;
+            //如果不重复先查询密集格表，判断扫描的编码是否属于密集格
             Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mTextInputEditText.getText().toString());
             if (mjjg != null) {
                 mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
@@ -367,26 +375,42 @@ public class UpFLoorActivity extends BaseActivity {
                 mBundle = new Bundle();
                 mBundle.putString("info", name);
                 scanInfoLocal = temple;
-                //            mHandlerMessage.obj = mTextInputEditText.getText().toString();
                 mHandlerMessage.setData(mBundle);
             } else {
-                Map map = new HashMap();
-                map.put("id", size1++);
-                map.put("title", mTextInputEditText.getText());
-                mDataList.add(map);
+                //不是属于密集格再查询档案是否已经上过架了
+                Mjjgda mjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "scanInfo", mTextInputEditText.getText().toString());
+                if (mjjgda == null) {
+                    //没上过架存入页面显示
+                    Map map = new HashMap();
+                    map.put("id", size1++);
+                    map.put("title", mTextInputEditText.getText());
+                    mDataList.add(map);
+                } else {
+                    //已经上过架了查询文件存放的位置页面通知用户
+                    String kfname1 = "";
+                    String mjjname1 = "";
+                    String nLOrR1 = "";
+                    Mjj mjj1 = null;
+                    Kf kf1 = null;
+                    Mjjg mjjg1 = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+                    if (mjjg1 != null) {
+                        nLOrR1 = mjjg1.getZy() == 1 ? "左" : "右";
+                        mjj1 = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg1.getMjjid() + "");
+                    }
+                    if (mjj1 != null) {
+                        mjjname1 = mjj1.getMc() + "/";
+                        kf1 = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj1.getKfid() + "");
+                    }
+
+                    if (kf1 != null) {
+                        kfname1 = kf1.getMc() + "/";
+                    }
+                    String name = kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
+                    mHandlerMessage.what = UI_ISEXIST;
+                    mHandlerMessage.obj = name;
+                }
+
             }
-            //            if (!mTextInputEditText.getText().toString().equals("a") && !mTextInputEditText.getText().toString().equals("b") && !mTextInputEditText.getText().toString().equals("c")) {
-            //                Map map = new HashMap();
-            //                map.put("id", size1++);
-            //                map.put("title", mTextInputEditText.getText());
-            //                mDataList.add(map);
-            //            } else {
-            //                mBundle = new Bundle();
-            //                mBundle.putString("info", mTextInputEditText.getText().toString());
-            //                scanInfoLocal = editString;
-            //                //            mHandlerMessage.obj = mTextInputEditText.getText().toString();
-            //                mHandlerMessage.setData(mBundle);
-            //            }
         }
     }
 
