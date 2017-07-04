@@ -75,7 +75,8 @@ dependencies {
     compile 'me.wangyuwei:ParticleView:1.0.2'
     //align-text-view
     compile 'me.codeboy.android:align-text-view:2.3.0'
-
+    //clickstyle
+    compile 'com.balysv:material-ripple:1.0.2'
     //fab
     compile 'com.getbase:floatingactionbutton:1.10.1'
     testCompile 'junit:junit:4.12'

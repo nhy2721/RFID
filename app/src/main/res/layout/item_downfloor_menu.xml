@@ -18,6 +18,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/select_white"
     android:gravity="center_vertical"
     android:orientation="horizontal"
@@ -50,7 +51,14 @@
         android:gravity="center"
         android:text="存放位置"
         />
-
+    <com.balysv.materialripple.MaterialRippleLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:mrl_rippleAlpha="0.3"
+        app:mrl_rippleColor="@color/recycler_color2"
+        app:mrl_rippleDuration="300"
+        app:mrl_rippleHover="true"
+        app:mrl_rippleOverlay="true">>
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="@dimen/item_height"
@@ -60,6 +68,6 @@
         android:gravity="center"
         android:src="@mipmap/delete"
         />
-
+    </com.balysv.materialripple.MaterialRippleLayout>
 
 </LinearLayout>
