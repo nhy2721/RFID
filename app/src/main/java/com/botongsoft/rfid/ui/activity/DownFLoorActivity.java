@@ -323,25 +323,39 @@ public class DownFLoorActivity extends BaseActivity {
             }
         }
         if (tempStr) {
+            String kfname = "";
+            String mjjname = "";
+            String nLOrR = "";
+            Mjj mjj = null;
+            Kf kf = null;
             Mjjgda mjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "scanInfo", mTextInputEditText.getText().toString());
             if (mjjgda != null) {
                 Map map = new HashMap();
                 map.put("id", size1++);
                 map.put("title", mjjgda.getScanInfo());
                 Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
-                Mjj mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
-                Kf kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                String nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-                String name = kf.getMc() + "/" + mjj.getMc() + "/" + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+                if (mjjg != null) {
+                    nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                    mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                }
+                if (mjj != null) {
+                    mjjname = mjj.getMc() + "/";
+                    kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                }
+
+                if (kf != null) {
+                    kfname = kf.getMc() + "/";
+                }
+                String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
                 map.put("local", name);
                 mDataList.add(map);
             }
-//            //模拟数据
-//            Map map = new HashMap();
-//            map.put("id", size1++);
-//            map.put("title", mTextInputEditText.getText());
-//            map.put("local", "1库2架左2组2层" + size1);
-//            mDataList.add(map);
+            //            //模拟数据
+            //            Map map = new HashMap();
+            //            map.put("id", size1++);
+            //            map.put("title", mTextInputEditText.getText());
+            //            map.put("local", "1库2架左2组2层" + size1);
+            //            mDataList.add(map);
         }
     }
 

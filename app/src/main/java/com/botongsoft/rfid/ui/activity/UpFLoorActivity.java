@@ -346,13 +346,24 @@ public class UpFLoorActivity extends BaseActivity {
             }
         }
         if (tempStr) {
+            String kfname = "";
+            String mjjname = "";
+            String nLOrR = "";
+            Mjj mjj = null;
+            Kf kf = null;
             Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mTextInputEditText.getText().toString());
             if (mjjg != null) {
-                Mjj mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
-                Kf kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                String nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-                String name = kf.getMc() + "/" + mjj.getMc() + "/" + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                String temple = kf.getId() + "/" + mjj.getId() + "/" + mjjg.getId();
+                mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                if (mjj != null) {
+                    mjjname = mjj.getMc() + "/";
+                    kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                }
+                if (kf != null) {
+                    kfname = kf.getMc() + "/";
+                }
+                nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+                String temple = kf.getId() + "/" + mjj.getId() + "/" + mjjg.getId();//这里的值用来拆分存放位置存入档案表
                 mBundle = new Bundle();
                 mBundle.putString("info", name);
                 scanInfoLocal = temple;
