@@ -212,7 +212,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Business
      * @param mRecyclerView
      * @param position
      */
-    protected void smoothMoveToPosition(RecyclerView mRecyclerView, final int position) {
+    public void smoothMoveToPosition(RecyclerView mRecyclerView, final int position) {
         // 第一个可见位置
         int firstItem = mRecyclerView.getChildLayoutPosition(mRecyclerView.getChildAt(0));
         // 最后一个可见位置

@@ -13,6 +13,7 @@ import com.botongsoft.rfid.ui.fragment.ScanCheckPlanListFragment;
 import java.util.List;
 
 /**http://www.jianshu.com/p/043020843899
+ * http://www.daozhihun.com/p/2044
  * Created by pc on 2017/6/26.
  * FragmentStatePagerAdapter 和前面的 FragmentPagerAdapter 一样，是继承子 PagerAdapter。但是，和 FragmentPagerAdapter 不一样的是，
  * 正如其类名中的 'State' 所表明的含义一样，该 PagerAdapter 的实现将只保留当前页面，当页面离开视线后，就会被消除，释放其资源；

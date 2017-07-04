@@ -95,7 +95,7 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
             if(!mjj.isShowRrigh()){
                 ((EBookListHolder) holder).mRelativeLayout2.setVisibility(View.INVISIBLE);
             }
-            ((EBookListHolder) holder).tView1.setOnClickListener(new OnSingleClickListener(200) {
+            ((EBookListHolder) holder).mRelativeLayout1.setOnClickListener(new OnSingleClickListener(200) {
                 @Override
                 protected void onSingleClick(View view) {
 
@@ -106,7 +106,7 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
                     mdf.show(ft,"dd");
                 }
             });
-            ((EBookListHolder) holder).tView2.setOnClickListener(new OnSingleClickListener(200) {
+            ((EBookListHolder) holder).mRelativeLayout2.setOnClickListener(new OnSingleClickListener(200) {
                 @Override
                 protected void onSingleClick(View view) {
                     ToastUtils.showShort("textView2");
