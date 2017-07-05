@@ -34,14 +34,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="5dp"
             >
 
             <com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView
                 android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="5sp"
+                android:padding="5dp"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 />
         </LinearLayout>
@@ -64,7 +63,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         android:src="@mipmap/ic_submit"
-        app:fabSize="mini"
+        app:fabSize="auto"
         app:layout_behavior="com.botongsoft.rfid.ui.widget.FloatActionButton.ScrollingFABBehavior"
         />
 
@@ -132,7 +131,8 @@
             android:layout_height="match_parent"
             android:background="@color/white"
             android:orientation="horizontal"
-            android:padding="5sp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             >
 
             <TextView
@@ -142,6 +142,7 @@
                 android:layout_weight="0.33"
                 android:gravity="center"
                 android:text="序号"
+                android:paddingRight="5dp"
                 />
 
             <TextView
@@ -151,6 +152,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="编码"
+
                 />
 
             <TextView
@@ -160,6 +162,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="存放位置"
+
                 />
 
             <TextView
@@ -167,6 +170,7 @@
                 android:layout_margin="3dp"
                 android:layout_weight="0.55"
                 android:gravity="center"
+                android:paddingRight="95dp"
                 android:text=""
                 />
 

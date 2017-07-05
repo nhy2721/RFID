@@ -31,6 +31,7 @@
         android:layout_margin="3dp"
         android:layout_weight="0.33"
         android:gravity="center"
+        android:layout_gravity="center"
         android:text="序号"
         />
 
@@ -40,6 +41,7 @@
         android:layout_margin="3dp"
         android:layout_weight="1"
         android:gravity="center"
+        android:layout_gravity="center"
         android:text="编码"
         />
 
@@ -48,6 +50,7 @@
         style="@style/tv_black"
         android:layout_margin="3dp"
         android:layout_weight="1"
+        android:layout_gravity="center"
         android:gravity="center"
         android:text="存放位置"
         />
@@ -55,17 +58,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:mrl_rippleAlpha="0.3"
+        android:layout_weight="0.33"
         app:mrl_rippleColor="@color/recycler_color2"
         app:mrl_rippleDuration="300"
         app:mrl_rippleHover="true"
-        app:mrl_rippleOverlay="true">>
+        app:mrl_rippleOverlay="true">
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="@dimen/item_height"
         android:layout_height="@dimen/item_height"
         android:layout_weight="0.33"
         android:contentDescription="@string/app_name"
-        android:gravity="center"
+        android:layout_gravity="center"
         android:src="@mipmap/delete"
         />
     </com.balysv.materialripple.MaterialRippleLayout>

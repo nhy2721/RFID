@@ -16,12 +16,14 @@
 -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/select_white"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="5dp">
+    android:padding="5dp"
+    >
 
     <TextView
         android:id="@+id/tv_id"
@@ -29,24 +31,39 @@
         android:layout_margin="3dp"
         android:layout_weight="0.33"
         android:gravity="center"
-        android:text="序号" />
+        android:text="序号"
+        />
 
     <TextView
         android:id="@+id/tv_title"
         style="@style/tv_black"
-        android:gravity="center"
-        android:layout_weight="1"
         android:layout_margin="3dp"
-        android:text="编码" />
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="@dimen/item_height"
+        android:layout_weight="1"
         android:gravity="center"
-        android:layout_weight="0.33"
-        android:layout_height="@dimen/item_height"
-        android:contentDescription="@string/app_name"
-        android:src="@mipmap/delete"/>
+        android:text="编码"
+        />
 
+    <com.balysv.materialripple.MaterialRippleLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.33"
+        app:mrl_rippleAlpha="0.3"
+        app:mrl_rippleColor="@color/recycler_color2"
+        app:mrl_rippleDuration="300"
+        app:mrl_rippleHover="true"
+        app:mrl_rippleOverlay="true"
+        >
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="@dimen/item_height"
+            android:layout_height="@dimen/item_height"
+            android:layout_gravity="center"
+            android:layout_weight="0.33"
+            android:contentDescription="@string/app_name"
+            android:src="@mipmap/delete"
+            />
+    </com.balysv.materialripple.MaterialRippleLayout>
 
 
 </LinearLayout>

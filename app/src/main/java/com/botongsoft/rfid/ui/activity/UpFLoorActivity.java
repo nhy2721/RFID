@@ -564,7 +564,7 @@ public class UpFLoorActivity extends BaseActivity {
 
         @Override
         public void onItemClick(int position, int listSize) {
-            Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
             if (position != -1) {
                 mDataList.remove(position);
                 mUpfloorAdapter.notifyItemRemoved(position);
