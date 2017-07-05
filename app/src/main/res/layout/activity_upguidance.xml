@@ -41,7 +41,7 @@
                 android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="5sp"
+                android:padding="5dp"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 />
         </LinearLayout>
@@ -131,6 +131,7 @@
                 android:layout_weight="0.33"
                 android:gravity="center"
                 android:text="序号"
+                android:paddingRight="5dp"
                 />
 
             <TextView
@@ -156,6 +157,7 @@
                 android:layout_margin="3dp"
                 android:layout_weight="0.55"
                 android:gravity="center"
+                android:paddingRight="95dp"
                 android:text=""
                 />
 
