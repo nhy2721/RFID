@@ -1,6 +1,5 @@
 package com.botongsoft.rfid.ui.fragment;
 
-import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,7 +8,6 @@ import android.os.Message;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -24,10 +22,10 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
+import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
 import com.botongsoft.rfid.listener.OnItemClickListener;
-import com.botongsoft.rfid.ui.activity.BaseActivity;
 import com.botongsoft.rfid.ui.activity.CheckPlanDetailActivity;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanDetailAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
@@ -67,7 +65,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     private static String scanInfoLocal = "";//扫描的格子位置 根据“/”拆分后存入数据库
     private static String scanInfoNow = "";//扫描的格子位置
     private String editString;
-    private List<Map> mDataLists = new ArrayList<>();
+    private List<Mjjgda> mDataLists = new ArrayList<Mjjgda>();
     private List<Mjj> mjjLists = new ArrayList<>();
     private List mjjgList = new ArrayList();
     private String[] srrArray;
@@ -391,17 +389,26 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                 }
             }
         }
-        //模拟数据
-        //            Map map = new HashMap();
-        //            map.put("id", size1++);
-        //            map.put("title", mTextInputEditText.getText());
-        //            map.put("local", "1库2架左2组2层" + size1);
-        //            mDataLists.add(map);
-
-
     }
 
     private void dislapView(Mjjg mjjg) {
+        mDataLists.clear();
+        displayTextLocal(mjjg);//界面显示扫描的格子位置
+        displayMjgdaLocal(mjjg);//显示该格子内的档案数据
+    }
+
+    private void displayMjgdaLocal(Mjjg mjjg) {
+        List<Mjjgda> mjjgdaList = new ArrayList<>();
+        mjjgdaList = (List<Mjjgda>) DBDataUtils.getInfos(Mjjgda.class, "mjgid", mjjg.getId() + "");
+        mDataLists.addAll(mjjgdaList);
+    }
+
+    /**
+     * 界面显示当前扫描的格子位置
+     *
+     * @param mjjg
+     */
+    private void displayTextLocal(Mjjg mjjg) {
         String kfname = "";
         String mjjname = "";
         String nLOrR = "";
@@ -514,18 +521,18 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         public void onItemClick(int position) {
             //详细信息
             StringBuilder sb = new StringBuilder();
-            sb.append("Title:").append(mDataLists.get(position).get("title")).append("\n");
-            sb.append("位置:").append(mDataLists.get(position).get("local")).append("\n");
-            new AlertDialog.Builder(BaseActivity.activity)
-                    .setTitle("详细信息：")
-                    .setMessage(sb)
-                    .setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-
-                        }
-                    })
-                    .create().show();
+            //            sb.append("Title:").append(mDataLists.get(position).get("title")).append("\n");
+            //            sb.append("位置:").append(mDataLists.get(position).get("local")).append("\n");
+            //            new AlertDialog.Builder(BaseActivity.activity)
+            //                    .setTitle("详细信息：")
+            //                    .setMessage(sb)
+            //                    .setOnDismissListener(new DialogInterface.OnDismissListener() {
+            //                        @Override
+            //                        public void onDismiss(DialogInterface dialog) {
+            //
+            //                        }
+            //                    })
+            //                    .create().show();
         }
 
         @Override

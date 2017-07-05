@@ -121,18 +121,18 @@ public class DBDataUtils {
 	 * @param value
 	 * @return
 	 */
-	public static Object getInfos(Class<?> entityType, String key, String value) {
-		DbUtils db = DataBaseCreator.create();
-		Object list = null;
-		try {
-			list = db.findAll(Selector.from(entityType).orderBy("times", true)
-					.where(key, "=", value));
-		} catch (DbException e) {
-			e.printStackTrace();
-		}
-		return list;
-
-	}
+//	public static Object getInfos(Class<?> entityType, String key, String value) {
+//		DbUtils db = DataBaseCreator.create();
+//		Object list = null;
+//		try {
+//			list = db.findAll(Selector.from(entityType).orderBy("times", true)
+//					.where(key, "=", value));
+//		} catch (DbException e) {
+//			e.printStackTrace();
+//		}
+//		return list;
+//
+//	}
 
 	/**
 	 * 获取数据
@@ -141,20 +141,20 @@ public class DBDataUtils {
 	 * @param value
 	 * @return
 	 */
-	public static Object getInfos(Class<?> entityType, String key, int value,
-			String key1, int value1) {
-		DbUtils db = DataBaseCreator.create();
-		Object list = null;
-		try {
-			list = db.findAll(Selector.from(entityType).orderBy("times", true)
-					.where(key, "=", value)
-					.and(WhereBuilder.b(key1, "=", value1)));
-		} catch (DbException e) {
-			e.printStackTrace();
-		}
-		return list;
-
-	}
+//	public static Object getInfos(Class<?> entityType, String key, int value,
+//			String key1, int value1) {
+//		DbUtils db = DataBaseCreator.create();
+//		Object list = null;
+//		try {
+//			list = db.findAll(Selector.from(entityType).orderBy("times", true)
+//					.where(key, "=", value)
+//					.and(WhereBuilder.b(key1, "=", value1)));
+//		} catch (DbException e) {
+//			e.printStackTrace();
+//		}
+//		return list;
+//
+//	}
 
 	/***
 	 * 根据账号获取聊天消息
@@ -165,14 +165,32 @@ public class DBDataUtils {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static Object getMessageLogs(Class<?> entityType, String key,
-			String value, String key1, int value1) {
+//	public static Object getMessageLogs(Class<?> entityType, String key,
+//			String value, String key1, int value1) {
+//		DbUtils db = DataBaseCreator.create();
+//		Object list = null;
+//		try {
+//			list = db.findAll(Selector.from(entityType).orderBy("times", false)
+//					.where(key, "=", value)
+//					.and(WhereBuilder.b(key1, "=", value1)));
+//		} catch (DbException e) {
+//			e.printStackTrace();
+//		}
+//		return list;
+//
+//	}
+	/**
+	 * 获取数据
+	 *
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	public static Object getInfos(Class<?> entityType, String key, String value) {
 		DbUtils db = DataBaseCreator.create();
 		Object list = null;
 		try {
-			list = db.findAll(Selector.from(entityType).orderBy("times", false)
-					.where(key, "=", value)
-					.and(WhereBuilder.b(key1, "=", value1)));
+			list = db.findAll(Selector.from(entityType).where(key, "=", value));
 		} catch (DbException e) {
 			e.printStackTrace();
 		}
