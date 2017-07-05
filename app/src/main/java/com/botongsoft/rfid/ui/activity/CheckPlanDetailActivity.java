@@ -41,6 +41,7 @@ public class CheckPlanDetailActivity extends BaseActivity {
     private Activity mContext;
     private List<BaseFragment> fragments;
     CheckPlanFragmentAdapter checkPlanFragmentAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_checkplandetail);
@@ -54,7 +55,7 @@ public class CheckPlanDetailActivity extends BaseActivity {
         fragments = new ArrayList<>();
         fragments.add(ScanCheckPlanDetailFragment.newInstance(Constant.TYPE_HOT_RANKING, pdid, fw));//扫描操作
         fragments.add(ScanCheckPlanListFragment.newInstance(Constant.TYPE_RETAINED_RANKING, pdid, fw));//显示盘点范围与格子
-          checkPlanFragmentAdapter =  new CheckPlanFragmentAdapter(getSupportFragmentManager(), fragments);
+        checkPlanFragmentAdapter = new CheckPlanFragmentAdapter(getSupportFragmentManager(), fragments);
         mViewPager.removeAllViews();
         mViewPager.removeAllViewsInLayout();
         mViewPager.setAdapter(checkPlanFragmentAdapter);
@@ -79,7 +80,7 @@ public class CheckPlanDetailActivity extends BaseActivity {
             @Override
             public void onPageScrollStateChanged(int state) {
                 LogUtils.e("onPageScrollStateChanged", state + "");
-                if(state==0){
+                if (state == 0) {
                     checkPlanFragmentAdapter.notifyDataSetChanged();
                 }
             }

@@ -13,13 +13,9 @@ import android.view.ViewGroup;
 
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.Mjj;
-import com.botongsoft.rfid.common.db.DBDataUtils;
-import com.botongsoft.rfid.common.db.DataBaseCreator;
+import com.botongsoft.rfid.common.db.SearchDb;
 import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanListAdapter;
-import com.lidroid.xutils.DbUtils;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,24 +61,25 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
     @Override
     public void onDestroy() {
         super.onDestroy();
-        LogUtils.e("onDestroy",   "onDestroy4444444444444444");
+        LogUtils.e("onDestroy", "onDestroy4444444444444444");
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        LogUtils.e("onStop",   "onStop33333333333333333");
+        LogUtils.e("onStop", "onStop33333333333333333");
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mMjjList.clear();
-        LogUtils.e("onPause",   "onPause222222222222222222");
+        LogUtils.e("onPause", "onPause222222222222222222");
     }
+
     @Override
     public void onResume() {
-        LogUtils.e("onResume",   "onResume111111111111111");
+        LogUtils.e("onResume", "onResume111111111111111");
         super.onResume();
 
     }
@@ -119,7 +116,7 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
         LinearLayoutManager layout = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layout);// 布局管理器。
         //设置adapter
-        mListAdapter = new ScanCheckPlanListAdapter(getActivity(), mMjjList, spanCount, getActivity().getSupportFragmentManager(),pdid);
+        mListAdapter = new ScanCheckPlanListAdapter(getActivity(), mMjjList, spanCount, getActivity().getSupportFragmentManager(), pdid);
         mRecyclerView.setAdapter(mListAdapter);
 
         //设置Item增加、移除动画
@@ -127,6 +124,7 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
         //        mRecyclerView.addOnScrollListener(new RecyclerViewScrollDetector());
         mSwipeRefreshLayout.setOnRefreshListener(mOnRefreshListener);
     }
+
     @Override
     public void onCreate(Bundle savedInstanceState) { //此处可以设置Dialog的style等等
         super.onCreate(savedInstanceState);
@@ -150,6 +148,7 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
         };
 
     }
+
     public void showProgress() {
         mSwipeRefreshLayout.post(new Runnable() {
             @Override
@@ -167,6 +166,7 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
             }
         });
     }
+
     @Override
     protected void initData(boolean isSavedNull) {
         showProgress();
@@ -179,76 +179,13 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
 
     }
 
-     class MyThread implements Runnable {
-        private List<Mjj> mjjList = new ArrayList<Mjj>();
+    class MyThread implements Runnable {
+        private List<Mjj> mjjList;
 
         public void run() {
             try {
                 Log.e("SearchDBThreads--->", String.valueOf(Thread.currentThread().getName()));
-                String[] srrArray = fw.split(",");
-                Integer kfid = Integer.valueOf(srrArray[0]);
-                if (kfid == 0) {
-                    //库房id为0 查询所有库房的密集架
-                    mjjList = (List) DBDataUtils.getInfos(Mjj.class);
-                    for (Mjj mjj : mjjList) {
-                        mjj.setShowLeft(true);
-                        mjj.setShowRrigh(true);
-                    }
-                } else if (kfid != 0) {
-                    Integer mjjid = Integer.valueOf(srrArray[1]);
-                    if (mjjid == 0) {
-                        //所有密集架
-                        DbUtils db = DataBaseCreator.create();
-                        try {
-                            mjjList = db.findAll(Selector.from(Mjj.class).where("kfid", "=", kfid));
-                            for (Mjj mjj : mjjList) {
-                                mjj.setShowLeft(true);
-                                mjj.setShowRrigh(true);
-                            }
-                        } catch (DbException e) {
-                            e.printStackTrace();
-                        }
-                    } else if (mjjid != 0) {
-                        // "密集架面";
-                        Integer m = Integer.valueOf(srrArray[2]);
-                        if (m == 0) {
-                            //"所有面";
-                            DbUtils db = DataBaseCreator.create();
-                            try {
-                                mjjList = db.findAll(Selector.from(Mjj.class).where("kfid", "=", kfid).and("id", "=", mjjid));
-                                for (Mjj mjj : mjjList) {
-                                    mjj.setShowLeft(true);
-                                    mjj.setShowRrigh(true);
-                                }
-                            } catch (DbException e) {
-                                e.printStackTrace();
-                            }
-                        } else if (m == 1) {
-                            // "左面";
-                            DbUtils db = DataBaseCreator.create();
-                            try {
-                                mjjList = db.findAll(Selector.from(Mjj.class).where("kfid", "=", kfid).and("id", "=", mjjid).and("noleft", "=", 0));
-                                for (Mjj mjj : mjjList) {
-                                    mjj.setShowLeft(true);
-                                }
-                            } catch (DbException e) {
-                                e.printStackTrace();
-                            }
-
-                        } else if (m == 2) {
-                            // "右面";
-                            DbUtils db = DataBaseCreator.create();
-                            try {
-                                mjjList = db.findAll(Selector.from(Mjj.class).where("kfid", "=", kfid).and("id", "=", mjjid).and("noright", "=", 0));
-                                for (Mjj mjj : mjjList) {
-                                    mjj.setShowRrigh(true);
-                                }
-                            } catch (DbException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
+                mjjList = (List<Mjj>) SearchDb.getMjjList(fw);
                 mMjjList.addAll(mjjList);
 
             } catch (Exception e) {
@@ -267,15 +204,16 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
 
         }
     }
+
     /**
      * 刷新监听。
      */
-        private SwipeRefreshLayout.OnRefreshListener mOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                mMjjList.clear();
-                searchDB();
-//                mRecyclerView.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 2000);
-            }
-        };
+    private SwipeRefreshLayout.OnRefreshListener mOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+        @Override
+        public void onRefresh() {
+            mMjjList.clear();
+            searchDB();
+            //                mRecyclerView.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 2000);
+        }
+    };
 }

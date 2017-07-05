@@ -1,6 +1,7 @@
 package com.botongsoft.rfid.ui.fragment;
 
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -16,14 +17,22 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.bean.classity.Kf;
+import com.botongsoft.rfid.bean.classity.Mjj;
+import com.botongsoft.rfid.bean.classity.Mjjg;
+import com.botongsoft.rfid.common.db.DBDataUtils;
+import com.botongsoft.rfid.common.db.DataBaseCreator;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.ui.activity.BaseActivity;
 import com.botongsoft.rfid.ui.activity.CheckPlanDetailActivity;
-import com.botongsoft.rfid.ui.adapter.UpGuidanceAdapter;
+import com.botongsoft.rfid.ui.adapter.ScanCheckPlanDetailAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
+import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.exception.DbException;
 import com.yanzhenjie.recyclerview.swipe.Closeable;
 import com.yanzhenjie.recyclerview.swipe.OnSwipeMenuItemClickListener;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenu;
@@ -43,17 +52,27 @@ import butterknife.BindView;
 
 public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener {
     private static final int UI_SUCCESS = 0;
+    private static final int UI_NOMJG_ERROR = 1;
+    private static final int UI_NOSCANFW_ERROR = 2;
+    private static final int MSG_UPDATE_INFO = 1;
     @BindView(R.id.recycler_view)
     SwipeMenuRecyclerView mSwipeMenuRecyclerView;
     @BindView(R.id.tx_layout)
     TextInputLayout mTextInputLayout;
     @BindView(R.id.input_tx)
     TextInputEditText mTextInputEditText;
+    @BindView(R.id.tv_info)
+    TextView mTextView;
     CheckPlanDetailActivity parentActivity;
+    private static String scanInfoLocal = "";//扫描的格子位置 根据“/”拆分后存入数据库
+    private static String scanInfoNow = "";//扫描的格子位置
     private String editString;
     private List<Map> mDataLists = new ArrayList<>();
-    ;
-    private UpGuidanceAdapter mUpGuidanceAdapter;
+    private List<Mjj> mjjLists = new ArrayList<>();
+    private List mjjgList = new ArrayList();
+    private String[] srrArray;
+    private Map mjjgMap = new HashMap();//用来存放扫描过的密集格
+    private ScanCheckPlanDetailAdapter scanCheckPlanDetailAdapter;
     private ScanCheckPlanDetailFragment mContext;
     private HandlerThread mCheckMsgThread;//Handler线程池
     //后台运行的handler
@@ -62,7 +81,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     private Handler mHandler;
     private boolean isOnScreen;//是否在屏幕上
     private boolean isRun;//是否在RFID读取
-    private static final int MSG_UPDATE_INFO = 1;
+
     //传递后台运行消息队列
     Message msg;
     //传递UI前台显示消息队列
@@ -95,6 +114,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             type = getArguments().getInt("type");
             pdid = getArguments().getInt("pdid");
             fw = getArguments().getString("fw");
+            srrArray = fw.split(",");
         }
     }
 
@@ -164,9 +184,9 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         // 设置菜单Item点击监听。
         mSwipeMenuRecyclerView.setSwipeMenuItemClickListener(menuItemClickListener);
 
-        mUpGuidanceAdapter = new UpGuidanceAdapter(getActivity(), mDataLists);
-        mUpGuidanceAdapter.setOnItemClickListener(onItemClickListener);
-        mSwipeMenuRecyclerView.setAdapter(mUpGuidanceAdapter);
+        scanCheckPlanDetailAdapter = new ScanCheckPlanDetailAdapter(getActivity(), mDataLists);
+        scanCheckPlanDetailAdapter.setOnItemClickListener(onItemClickListener);
+        mSwipeMenuRecyclerView.setAdapter(scanCheckPlanDetailAdapter);
     }
 
     private void initUiHandler() {
@@ -176,9 +196,20 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                 super.handleMessage(msg);
                 switch (msg.what) {
                     case UI_SUCCESS:
+                        if (mBundle != null) {
+                            mTextView.setText(mBundle.getString("info"));
+                        }
                         mTextInputEditText.setText("");
                         smoothMoveToPosition(mSwipeMenuRecyclerView, mDataLists.size() + 1);
-                        mUpGuidanceAdapter.notifyDataSetChanged();
+                        scanCheckPlanDetailAdapter.notifyDataSetChanged();
+                        break;
+                    case UI_NOMJG_ERROR:
+                        mTextInputEditText.setText("");
+                        Toast.makeText(getContext(), "请先扫描密集格后再进行操作", Toast.LENGTH_SHORT).show();
+                        break;
+                    case UI_NOSCANFW_ERROR:
+                        mTextInputEditText.setText("");
+                        Toast.makeText(getContext(), "该密集格不在盘点范围内", Toast.LENGTH_SHORT).show();
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -260,6 +291,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         };
     }
 
+
     /**
      * 延迟线程，看是否还有下一个字符输入
      */
@@ -283,10 +315,10 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             //                    mTextInputEditText.setText("");
             //                }
             //            });
+            //在这里读取数据库增加list值，界面显示读取的标签信息
             //这里定义发送通知ui更新界面
             mHandlerMessage = mHandler.obtainMessage();
             mHandlerMessage.what = UI_SUCCESS;
-            //在这里读取数据库增加list值，界面显示读取的标签信息
             editString = mTextInputEditText.getText().toString();
             searchDB(editString);
             mHandler.sendMessage(mHandlerMessage);
@@ -295,23 +327,100 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
 
     private void searchDB(String editString) {
         boolean tempStr = true;
+        boolean temp = true;
         //防止扫描重复判断
-        if (mDataLists.size() > 0) {
-            for (Map map : mDataLists) {
-                if (map.get("title").toString().equals(editString)) {
-                    tempStr = false;
-                    break;
+        //        if (mDataLists.size() > 0) {
+        //            for (Map map : mDataLists) {
+        //                if (map.get("title").toString().equals(editString)) {
+        //                    tempStr = false;
+        //                    break;
+        //                }
+        //            }
+        //        }
+
+        //先判断扫描的是否是格子标签，再判断该格子是否在盘点范围内
+        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", editString);
+
+        if (mjjg == null) {//扫描的不是密集格标签 ，通知用户
+            mHandlerMessage.what = UI_NOMJG_ERROR;
+        } else {////先判断是否在该批次的盘点范围内
+            try {
+                DbUtils db = DataBaseCreator.create();
+                String sql = "select * from com_botongsoft_rfid_bean_classity_Mjjg where mjjid = (select id from (select * from com_botongsoft_rfid_bean_classity_Mjj";
+                Integer kfid = Integer.valueOf(srrArray[0]);
+                Integer mjjid = 0;
+                Integer zy = 0;
+                if (kfid != 0) {
+                    sql += " where kfid=" + kfid;
+                    mjjid = Integer.valueOf(srrArray[1]);
+                    if (mjjid != 0) {
+                        sql += " and id=" + mjjid;
+                        zy = Integer.valueOf(srrArray[2]);
+                    }
+                }
+                sql += ") as a where a.id=" + mjjg.getMjjid() + ") and id=" + editString;
+                if (kfid != 0) {
+                    if (mjjid != 0) {
+                        if (zy != 0) {
+                            sql += " and zy =" + zy;
+                        }
+                    }
+                }
+                Cursor cursor = (Cursor) db.execQuery(sql); // 执行自定义sql
+                int s = cursor.getCount();
+                if (s == 0) {
+                    temp = false;
+                    mHandlerMessage.what = UI_NOSCANFW_ERROR;
+                }
+                db.close();
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+            if (temp) {
+                mjjgList.add(0, editString);
+                if (mjjgList.size() >= 2) {//再判断上一次是否是扫描过的格子，防止重复读取数据库;
+                    if (mjjgList.get(0).equals(mjjgList.get(1))) {//当前读取的跟上一次读取的id相同
+                        mjjgList.remove(0);
+                    } else {
+                        //读取密集格内档案数据显示在列表上
+                        dislapView(mjjg);
+                    }
+                } else if (mjjgList.size() <= 1) {//list为空或小于1 代表第一次读取
+                    //读取密集格内档案数据显示在列表上
+                    dislapView(mjjg);
                 }
             }
         }
-        if (tempStr) {
-            //模拟数据
-            Map map = new HashMap();
-            map.put("id", size1++);
-            map.put("title", mTextInputEditText.getText());
-            map.put("local", "1库2架左2组2层" + size1);
-            mDataLists.add(map);
+        //模拟数据
+        //            Map map = new HashMap();
+        //            map.put("id", size1++);
+        //            map.put("title", mTextInputEditText.getText());
+        //            map.put("local", "1库2架左2组2层" + size1);
+        //            mDataLists.add(map);
+
+
+    }
+
+    private void dislapView(Mjjg mjjg) {
+        String kfname = "";
+        String mjjname = "";
+        String nLOrR = "";
+        Kf kf = null;
+        Mjj mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+        if (mjj != null) {
+            mjjname = mjj.getMc() + "/";
+            kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
         }
+        if (kf != null) {
+            kfname = kf.getMc() + "/";
+        }
+        nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+        String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+        String temple = kf.getId() + "/" + mjj.getId() + "/" + mjjg.getId();//这里的值用来拆分存放位置存入档案表
+        mBundle = new Bundle();
+        mBundle.putString("info", name);
+        scanInfoLocal = temple;
+        mHandlerMessage.setData(mBundle);
     }
 
     /**
@@ -396,7 +505,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             // TODO 推荐调用Adapter.notifyItemRemoved(position)，也可以Adapter.notifyDataSetChanged();
             if (menuPosition == 0) {// 删除按钮被点击。
                 mDataLists.remove(adapterPosition);
-                mUpGuidanceAdapter.notifyItemRemoved(adapterPosition);
+                scanCheckPlanDetailAdapter.notifyItemRemoved(adapterPosition);
             }
         }
     };
@@ -425,8 +534,8 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
 
             if (position != -1) {
                 mDataLists.remove(position);
-                mUpGuidanceAdapter.notifyItemRemoved(position);
-                mUpGuidanceAdapter.notifyItemRangeChanged(position, listSize);
+                scanCheckPlanDetailAdapter.notifyItemRemoved(position);
+                scanCheckPlanDetailAdapter.notifyItemRangeChanged(position, listSize);
             }
         }
     };

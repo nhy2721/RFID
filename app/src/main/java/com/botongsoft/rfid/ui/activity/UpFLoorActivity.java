@@ -219,15 +219,6 @@ public class UpFLoorActivity extends BaseActivity {
                         //模拟数据
                         if (mBundle != null) {
                             mTextView.setText(mBundle.getString("info"));
-                            //                            if (mBundle.getString("info").equals("a")) {
-                            //                                mTextView.setText("1库房1号架左面1组2层");
-                            //                            }
-                            //                            if (mBundle.getString("info").equals("b")) {
-                            //                                mTextView.setText("1库房2号架左面1组2层");
-                            //                            }
-                            //                            if (mBundle.getString("info").equals("c")) {
-                            //                                mTextView.setText("2库房10号架左面1组1层");
-                            //                            }
                         }
                         mTextInputEditText.setText("");
                         smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
