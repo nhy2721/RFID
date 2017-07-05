@@ -328,6 +328,7 @@ public class DownFLoorActivity extends BaseActivity {
             String nLOrR = "";
             Mjj mjj = null;
             Kf kf = null;
+            // 查询文件存放的位置
             Mjjgda mjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "scanInfo", mTextInputEditText.getText().toString());
             if (mjjgda != null) {
                 Map map = new HashMap();
