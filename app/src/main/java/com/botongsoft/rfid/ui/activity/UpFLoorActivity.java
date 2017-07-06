@@ -218,7 +218,6 @@ public class UpFLoorActivity extends BaseActivity {
                 super.handleMessage(msg);
                 switch (msg.what) {
                     case UI_SUCCESS:
-                        //模拟数据
                         if (mBundle != null) {
                             mTextView.setText(mBundle.getString("info"));
                         }
@@ -293,7 +292,7 @@ public class UpFLoorActivity extends BaseActivity {
                 } else if (temp.length == 2) {
                     mjjgda.setMjjid(Integer.valueOf(temp[0]));
                     mjjgda.setMjgid(Integer.valueOf(temp[1]));
-                }else if (temp.length == 1){
+                } else if (temp.length == 1) {
                     mjjgda.setMjgid(Integer.valueOf(temp[0]));
                 }
                 mjjgda.setBm((map.get("bm").toString()));
@@ -409,7 +408,7 @@ public class UpFLoorActivity extends BaseActivity {
                         mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
                         if (mjj != null) {
                             mjjname = mjj.getMc() + "/";
-                            mjjid =  mjj.getId()  + "/";
+                            mjjid = mjj.getId() + "/";
                             kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
                         }
                         if (kf != null) {

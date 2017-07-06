@@ -91,10 +91,9 @@ public class SearchDb {
      * 判断该密集格是否在盘点范围
      * @param srrArray  盘点范围
      * @param mjjg       密集格
-     * @param editString  界面扫描的密集格id
      * @return
      */
-    public static int countPdfw(String[] srrArray, Mjjg mjjg, String editString) {
+    public static int countPdfw(String[] srrArray, Mjjg mjjg) {
         DbUtils db = DataBaseCreator.create();
         String sql = "select * from com_botongsoft_rfid_bean_classity_Mjjg where mjjid = (select id from (select * from com_botongsoft_rfid_bean_classity_Mjj";
         Integer kfid = Integer.valueOf(srrArray[0]);
@@ -108,7 +107,7 @@ public class SearchDb {
                 zy = Integer.valueOf(srrArray[2]);
             }
         }
-        sql += ") as a where a.id=" + mjjg.getMjjid() + ") and id=" + editString;
+        sql += ") as a where a.id=" + mjjg.getMjjid() + ") and id=" + mjjg.getId();
         if (kfid != 0) {
             if (mjjid != 0) {
                 if (zy != 0) {

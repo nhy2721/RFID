@@ -18,11 +18,8 @@ public class MjgdaSearchDb {
         return DBDataUtils.delList(entities);
     }
 
-    public static boolean delList(List<?> entities) {
-        return DBDataUtils.delList(entities);
-    }
 
     public static boolean delInfo(Class<Mjjgda> entities, String key1, String value1, String key2, String value2) {
-        return DBDataUtils.deleteInfo(entities,key1,value1,key2,value2);
+        return DBDataUtils.deleteInfo(entities, key1, value1, key2, value2);
     }
 }

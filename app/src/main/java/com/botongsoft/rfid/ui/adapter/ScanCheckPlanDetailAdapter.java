@@ -82,8 +82,8 @@ public class ScanCheckPlanDetailAdapter extends SwipeMenuAdapter<ScanCheckPlanDe
     //    }
 
     public static class DefaultViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-//        @BindView(R.id.tv_local)
-//        TextView tvLocal;
+        //        @BindView(R.id.tv_local)
+        //        TextView tvLocal;
         @BindView(R.id.tv_title)
         TextView tvTitle;
         @BindView(R.id.tv_id)
@@ -105,16 +105,29 @@ public class ScanCheckPlanDetailAdapter extends SwipeMenuAdapter<ScanCheckPlanDe
 
         public void setData(Mjjgda map, int position) {
             this.tvId.setText(String.valueOf(position + 1));
-            this.tvTitle.setText(String.valueOf(map.getScanInfo()));
-//            this.tvLocal.setText(String.valueOf(map.get("local")));
+            if(map.getFlag()==1){
+                this.tvTitle.setText(String.valueOf(map.getBm()+"-"+map.getJlid()+"  外借"));
+            }else{
+                this.tvTitle.setText(String.valueOf(map.getBm()+"-"+map.getJlid()));
+            }
+            if (map.getColor() == 2) {
+                this.imageViewStyle.setImageResource(R.drawable.yuan_true);
+            } else if (map.getColor() == 0) {
+                this.imageViewStyle.setImageResource(R.drawable.yuan_default);
+            } else if (map.getColor() == 4) {
+                this.imageViewStyle.setImageResource(R.drawable.yuan_fales);
+            }else if (map.getColor() == 3) {
+                this.imageViewStyle.setImageResource(R.drawable.yuan_waijie);
+            }
+            //            this.tvLocal.setText(String.valueOf(map.get("local")));
         }
 
         @Override
         public void onClick(View v) {
             if (mOnItemClickListener != null) {
-                if(v.getId()==R.id.imageView){
+                if (v.getId() == R.id.imageView) {
                     mOnItemClickListener.onItemClick(getAdapterPosition(), list.size() - 1);
-                }else{
+                } else {
                     mOnItemClickListener.onItemClick(getAdapterPosition());
                 }
                 //                mOnItemClickListener.onItemClick(getLayoutPosition());

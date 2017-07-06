@@ -3,6 +3,7 @@ package com.botongsoft.rfid.bean.classity;
 import com.lidroid.xutils.db.annotation.Column;
 import com.lidroid.xutils.db.annotation.Id;
 import com.lidroid.xutils.db.annotation.Table;
+import com.lidroid.xutils.db.annotation.Transient;
 
 /**
  * Created by pc on 2017/6/14.
@@ -111,4 +112,14 @@ public class Mjjgda implements java.io.Serializable {
 
     @Column
     private String scanInfo;//页面扫描的档案记录条码
+    @Transient
+    private  int color = 0;//转换颜色图片
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+    }
 }

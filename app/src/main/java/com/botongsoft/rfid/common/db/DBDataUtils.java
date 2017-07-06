@@ -126,6 +126,42 @@ public class DBDataUtils {
         }
         return info;
     }
+    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2,String key3,String value3) {
+        DbUtils db = DataBaseCreator.create();
+        Object info = null;
+        try {
+            info = db.findFirst(Selector.from(entityType)
+                    .where(key1, "=", value1).and(key2, "=", value2).and(key3, "=", value3));
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
+    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2,String key3,String value3,String key4,String value4) {
+        DbUtils db = DataBaseCreator.create();
+        Object info = null;
+        try {
+            info = db.findFirst(Selector.from(entityType)
+                    .where(key1, "=", value1).and(key2, "=", value2).and(key3, "=", value3).and(key4, "=", value4));
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
+    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2,String key3,String value3,String key4,String value4,String key5,String value5) {
+        DbUtils db = DataBaseCreator.create();
+        Object info = null;
+        try {
+            info = db.findFirst(Selector.from(entityType)
+                    .where(key1, "=", value1).and(key2, "=", value2).and(key3, "=", value3).and(key4, "=", value4).and(key5, "=", value5));
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
 
     /**
      * 获取数据
@@ -276,7 +312,7 @@ public class DBDataUtils {
      * @param
      * @return
      */
-    public static boolean deleteInfo(Class<?> entityType) {
+    public static boolean deleteInfos(Class<?> entityType) {
         DbUtils db = DataBaseCreator.create();
         boolean isSuccess = false;
         try {
@@ -287,6 +323,18 @@ public class DBDataUtils {
         }
         return isSuccess;
     }
+    public static boolean deleteInfos(Class<?> entityType,String key1,String value1,String key2,String value2) {
+        DbUtils db = DataBaseCreator.create();
+        boolean isSuccess = false;
+        try {
+            db.delete(entityType, WhereBuilder.b(key1, "=", value1).and(key2, "=", value2));
+            isSuccess = true;
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return isSuccess;
+    }
+
 
     /***
      * 删单条数据

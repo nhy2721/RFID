@@ -101,4 +101,14 @@ public class CheckPlanDeatil implements java.io.Serializable {
     private int mjjid;
     @Column
     private int zy;
+    @Column
+    private int jlid;
+
+    public int getJlid() {
+        return jlid;
+    }
+
+    public void setJlid(int jlid) {
+        this.jlid = jlid;
+    }
 }

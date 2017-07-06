@@ -1,5 +1,7 @@
 package com.botongsoft.rfid.ui.fragment;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -18,12 +20,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.bean.classity.CheckError;
+import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
+import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.db.SearchDb;
+import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.ui.activity.CheckPlanDetailActivity;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanDetailAdapter;
@@ -35,11 +41,11 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuCreator;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
+
+import static com.botongsoft.rfid.common.db.DBDataUtils.getInfo;
 
 /**
  * Created by pc on 2017/6/26.
@@ -66,7 +72,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     private List<Mjj> mjjLists = new ArrayList<>();
     private List mjjgList = new ArrayList();
     private String[] srrArray;
-    private Map mjjgMap = new HashMap();//用来存放扫描过的密集格
+    private List<String> stringList = new ArrayList<>();//用来存放扫描过的密集格档案 防止重复扫描
     private ScanCheckPlanDetailAdapter scanCheckPlanDetailAdapter;
     private ScanCheckPlanDetailFragment mContext;
     private HandlerThread mCheckMsgThread;//Handler线程池
@@ -132,8 +138,8 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     protected void initData(boolean isSavedNull) {
         LinearLayoutManager layout = new LinearLayoutManager(getContext());
         mSwipeMenuRecyclerView.setLayoutManager(layout);// 布局管理器。
-        layout.setStackFromEnd(true);//列表再底部开始展示，反转后由上面开始展示
-        layout.setReverseLayout(true);//列表翻转
+        //        layout.setStackFromEnd(true);//列表再底部开始展示，反转后由上面开始展示
+        //        layout.setReverseLayout(true);//列表翻转
         mSwipeMenuRecyclerView.setHasFixedSize(true);// 如果Item够简单，高度是确定的，打开FixSize将提高性能。
         //        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
         mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
@@ -195,8 +201,15 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                             mTextView.setText(mBundle.getString("info"));
                         }
                         mTextInputEditText.setText("");
-                        smoothMoveToPosition(mSwipeMenuRecyclerView, mDataLists.size() + 1);
-                        scanCheckPlanDetailAdapter.notifyDataSetChanged();
+                        //                        smoothMoveToPosition(mSwipeMenuRecyclerView, mDataLists.size() + 1);
+
+                        if (msg.obj != null) {
+                            int position = (int) msg.obj;
+                            scanCheckPlanDetailAdapter.notifyItemChanged(position);
+                        } else {
+                            scanCheckPlanDetailAdapter.notifyDataSetChanged();
+                        }
+                        //                        scanCheckPlanDetailAdapter.notifyDataSetChanged();
                         break;
                     case UI_NOMJG_ERROR:
                         mTextInputEditText.setText("");
@@ -319,53 +332,129 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             mHandler.sendMessage(mHandlerMessage);
         }
     };
+    private static int text = 0;
 
     private void searchDB(String editString) {
-        boolean tempStr = true;
-        boolean temp = true;
-        //防止扫描重复判断
-        //        if (mDataLists.size() > 0) {
-        //            for (Map map : mDataLists) {
-        //                if (map.get("title").toString().equals(editString)) {
-        //                    tempStr = false;
-        //                    break;
-        //                }
-        //            }
-        //        }
-        if(editString.matches("^[a-zA-Z]*$")){//正则判断扫描的是字母开头的档案还是数字开头的密集格id
-            System.out.print("da");
-        }else{
-            System.out.print("mjg");
-        }
-        //先判断扫描的是否是格子标签，再判断该格子是否在盘点范围内
-        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", editString);
+        boolean tempStr = true;//防止重复扫描状态标记
+        boolean temp = true;//是否在盘点方位标记
+        boolean scanMjjg = false;
 
-        if (mjjg == null) {//扫描的不是密集格标签 ，通知用户
-            mHandlerMessage.what = UI_NOMJG_ERROR;
-        } else if (!scanInfoLocal.equals("") && mDataLists.size() > 0) {//scanInfoLocal不为空说明已经有扫过格子了 mDataLists不为空说明有读到该格子内的档案数据
-            System.out.print("2222222");
-        } else {////先判断是否在该批次的盘点范围内
-            int s = SearchDb.countPdfw(srrArray, mjjg, editString);
-            if (s == 0) {
-                temp = false;//false为不在盘点范围
-                mHandlerMessage.what = UI_NOSCANFW_ERROR;
-            }
-            if (temp) {
-                mjjgList.add(0, editString);
-                if (mjjgList.size() >= 2) {//再判断上一次是否是扫描过的格子，防止重复读取数据库;
-                    if (mjjgList.get(0).equals(mjjgList.get(1))) {//当前读取的跟上一次读取的id相同
-                        mjjgList.remove(0);
-                    } else {
-                        //读取密集格内档案数据显示在列表上
-                        dislapView(mjjg);
+        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
+        switch (lx) {
+            case Constant.LX_MJGDA:
+                if (scanInfoLocal.equals("")) {
+                    mHandlerMessage.what = UI_NOMJG_ERROR;
+                } else {
+                    String mjgda[] = editString.split("-");
+                    //防止扫描重复判断
+                    if (stringList.size() > 0) {
+                        for (String s : stringList) {
+                            if (s.equals(editString)) {
+                                tempStr = false;
+                                break;
+                            }
+                        }
                     }
-                } else if (mjjgList.size() <= 1) {//list为空或小于1 代表第一次读取
-                    //读取密集格内档案数据显示在列表上
-                    dislapView(mjjg);
+                    if (tempStr) {
+                        for (int i = mDataLists.size() - 1; i >= 0; i--) {
+                            Mjjgda mjjgda = mDataLists.get(i);
+                            if ((mjjgda.getBm().equals(mjgda[0])) && (String.valueOf(mjjgda.getJlid()).equals(mjgda[1]))) {
+                                if (mjjgda.getFlag() == 1) {
+                                    mjjgda.setColor(3);//外借被找到
+                                } else {
+                                    mjjgda.setColor(2);//正确
+                                }
+                                mHandlerMessage.obj = i;
+                                text = 1;
+                                break;
+                            }
+                            if (i == 0) {//如果循环完毕 都没有在这个格子中找到扫描的这个档案，变量设成0，然后在下面加入mDataLists中显示出新的条目数据
+                                text = 0;
+                            }
+                        }
+                        if (text == 0) {
+                            LogUtils.e("text", "00000000000");
+                            Mjjgda mjjgda = new Mjjgda();
+                            mjjgda.setBm(mjgda[0]);
+                            mjjgda.setJlid(mjgda[1]);
+                            mjjgda.setColor(4);//多扫描或错架
+                            mDataLists.add(mjjgda);
+                        }
+                        stringList.add(editString);
+                    }
+
                 }
+                break;
+            case Constant.LX_MJJG:
+                scanMjjg = true;
+                Mjjg mjjg = (Mjjg) getInfo(Mjjg.class, "id", editString);
+                if (mjjg != null) {
+                    int s = SearchDb.countPdfw(srrArray, mjjg);//先判断是否在该批次的盘点范围内
+                    if (s == 0) {
+                        temp = false;//false为不在盘点范围
+                        mHandlerMessage.what = UI_NOSCANFW_ERROR;
+                    }
+                    if (temp) {//temp=true 在盘点范围内
+                        mjjgList.add(0, editString);
+                        if (mjjgList.size() >= 2) {//再判断上一次是否是扫描过的格子，防止重复读取数据库;
+                            if (mjjgList.get(0).equals(mjjgList.get(1))) {//当前读取的跟上一次读取的id相同
+                                mjjgList.remove(0);
+                            } else {
+                                scanMjjg = false;
+                                Mjj mjj = (Mjj) getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                                Kf kf = (Kf) getInfo(Kf.class, "id", mjj.getKfid() + "");
+                                //判断当前格子是否被扫描过(同批次)，有的话清除已扫描的错误记录表
+                                CheckError ce = (CheckError) DBDataUtils.getInfo(CheckError.class, "pdid",
+                                        String.valueOf(pdid), "mjgid", String.valueOf(mjjg.getId()), "zy",
+                                        String.valueOf(mjjg.getZy()), "mjjid", String.valueOf(mjjg.getMjjid()), "kfid", kf.getId() + "");
+                                if (ce != null) {
+                                    DBDataUtils.deleteInfos(CheckPlanDeatil.class, "pdid", pdid + "", "mjgid", mjjg.getId() + "");
+                                } else {
+                                    CheckError mCheckError = new CheckError();
+                                    mCheckError.setMjgid(mjjg.getId());
+                                    mCheckError.setPdid(pdid);
+                                    mCheckError.setZy(mjjg.getZy());
+                                    mCheckError.setMjjid(mjjg.getMjjid());
+                                    mCheckError.setKfid(mjj.getKfid());
+                                    DBDataUtils.save(mCheckError);
+                                }
+                                //保存错误记录
+                                savePdjl(mDataLists, mjj, kf, mjjg, pdid);
+                                //读取密集格内档案数据显示在列表上
+                                dislapView(mjjg);
+                            }
+                        } else if (mjjgList.size() <= 1) {//list为空或小于1 代表第一次读取
+                            scanMjjg = false;
+                            //读取密集格内档案数据显示在列表上
+                            dislapView(mjjg);
+                        }
+                    }
+                }
+                break;
+        }
+    }
+
+    private void savePdjl(List<Mjjgda> mDataLists, Mjj mjj, Kf kf, Mjjg mjjg, int pdid) {
+        for (Mjjgda mDataList : mDataLists) {
+            if (mDataList.getColor() != 2) {
+                CheckPlanDeatil mCheckPlanDeatil = new CheckPlanDeatil();
+                mCheckPlanDeatil.setBm(mDataList.getBm());
+                mCheckPlanDeatil.setJlid(Integer.valueOf(mDataList.getJlid()));
+                mCheckPlanDeatil.setMjgid(mDataList.getMjgid());
+                mCheckPlanDeatil.setKfid(mDataList.getKfid());
+                mCheckPlanDeatil.setZy(mjjg.getZy());
+                mCheckPlanDeatil.setMjjid(mjj.getId());
+                mCheckPlanDeatil.setPdid(pdid);
+                if (mDataList.getColor() == 3) {
+                    mCheckPlanDeatil.setType(3);
+                } else if (mDataList.getColor() == 0) {
+                    mCheckPlanDeatil.setType(2);
+                } else if (mDataList.getColor() == 4) {
+                    mCheckPlanDeatil.setType(4);
+                }
+                DBDataUtils.save(mCheckPlanDeatil);
             }
         }
-
     }
 
     private void dislapView(Mjjg mjjg) {
@@ -390,10 +479,10 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         String mjjname = "";
         String nLOrR = "";
         Kf kf = null;
-        Mjj mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+        Mjj mjj = (Mjj) getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
         if (mjj != null) {
             mjjname = mjj.getMc() + "/";
-            kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+            kf = (Kf) getInfo(Kf.class, "id", mjj.getKfid() + "");
         }
         if (kf != null) {
             kfname = kf.getMc() + "/";
@@ -514,13 +603,29 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
 
         @Override
         public void onItemClick(int position, int listSize) {
-            Toast.makeText(getContext(), "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(getContext(), "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
 
-            if (position != -1) {
-                mDataLists.remove(position);
-                scanCheckPlanDetailAdapter.notifyItemRemoved(position);
-                scanCheckPlanDetailAdapter.notifyItemRangeChanged(position, listSize);
-            }
+
+            new AlertDialog.Builder(getContext())
+                    .setMessage("确定要忽略这条错误吗？")
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (position != -1) {
+                                mDataLists.get(position).setColor(2);
+                                scanCheckPlanDetailAdapter.notifyItemChanged(position);
+                                //                                mDataLists.remove(position);
+                                //                                scanCheckPlanDetailAdapter.notifyItemRemoved(position);
+                                //                                scanCheckPlanDetailAdapter.notifyItemRangeChanged(position, listSize);
+                            }
+                        }
+                    })
+                    .create().show();
         }
     };
 }
