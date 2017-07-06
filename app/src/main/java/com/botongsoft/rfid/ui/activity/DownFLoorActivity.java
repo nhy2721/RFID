@@ -26,7 +26,9 @@ import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
+import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
+import com.botongsoft.rfid.common.db.MjgdaSearchDb;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
@@ -210,7 +212,7 @@ public class DownFLoorActivity extends BaseActivity {
                         mDataList.clear();
                         mDownFloorAdapter.notifyDataSetChanged();
                         mProgressBar.setVisibility(View.GONE);
-                        Toast.makeText(UIUtils.getContext(), "保存成功", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UIUtils.getContext(), "下架成功", Toast.LENGTH_SHORT).show();
                         size1 = 1;
                         mFab.setClickable(true);
                         break;
@@ -269,13 +271,15 @@ public class DownFLoorActivity extends BaseActivity {
 
     private boolean saveDB(List<Map> mDataList) {
         boolean str = false;
-        //操作内容是根据选中的条目删除密集架档案表数据，完成下架。
+        //        操作内容是根据选中的条目删除密集架档案表数据，完成下架。
         for (Map map : mDataList) {
             //            Mjjgda mjjgda = new Mjjgda();
             //            mjjgda.setScanInfo(map.get("title").toString());//保存到档案表的扫描信息字段
-            str = DBDataUtils.deleteInfo(Mjjgda.class, "scanInfo", map.get("title").toString());
+            //            str = DBDataUtils.deleteInfo(Mjjgda.class, "scanInfo", map.get("title").toString());
+            str = MjgdaSearchDb.delInfo(Mjjgda.class, "bm", map.get("bm") + "", "jlid", map.get("jlid") + "");
         }
         return str;
+
     }
 
     /**
@@ -313,6 +317,8 @@ public class DownFLoorActivity extends BaseActivity {
 
     private void searchDB(String editString) {
         boolean tempStr = true;
+        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
+        String temp[] = editString.split("-");
         //防止扫描重复判断
         if (mDataList.size() > 0) {
             for (Map map : mDataList) {
@@ -323,40 +329,41 @@ public class DownFLoorActivity extends BaseActivity {
             }
         }
         if (tempStr) {
-            String kfname = "";
-            String mjjname = "";
-            String nLOrR = "";
-            Mjj mjj = null;
-            Kf kf = null;
-            // 查询文件存放的位置
-            Mjjgda mjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "scanInfo", mTextInputEditText.getText().toString());
-            if (mjjgda != null) {
-                Map map = new HashMap();
-                map.put("id", size1++);
-                map.put("title", mjjgda.getScanInfo());
-                Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
-                if (mjjg != null) {
-                    nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-                    mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
-                }
-                if (mjj != null) {
-                    mjjname = mjj.getMc() + "/";
-                    kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                }
+            switch (lx) {
+                case Constant.LX_MJGDA:
+                    String kfname = "";
+                    String mjjname = "";
+                    String nLOrR = "";
+                    Mjj mjj = null;
+                    Kf kf = null;
+                    // 查询文件存放的位置
+                    Mjjgda mjjgda = null;
+                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+                    if (mjjgda != null) {
+                        Map map = new HashMap();
+                        map.put("id", mjjgda.getLid());
+                        map.put("title", mjjgda.getScanInfo());
+                        map.put("bm", mjjgda.getBm());
+                        map.put("jlid", mjjgda.getJlid());
+                        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+                        if (mjjg != null) {
+                            nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                            mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                        }
+                        if (mjj != null) {
+                            mjjname = mjj.getMc() + "/";
+                            kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                        }
 
-                if (kf != null) {
-                    kfname = kf.getMc() + "/";
-                }
-                String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                map.put("local", name);
-                mDataList.add(map);
+                        if (kf != null) {
+                            kfname = kf.getMc() + "/";
+                        }
+                        String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+                        map.put("local", name);
+                        mDataList.add(map);
+                    }
+                    break;
             }
-            //            //模拟数据
-            //            Map map = new HashMap();
-            //            map.put("id", size1++);
-            //            map.put("title", mTextInputEditText.getText());
-            //            map.put("local", "1库2架左2组2层" + size1);
-            //            mDataList.add(map);
         }
     }
 
