@@ -48,7 +48,9 @@ public class Constant {
      * 类型为档案
      */
     public static final int LX_MJGDA = 2;
-
+    /**
+     * 根据扫描的值返回类型
+     */
     public static int getLx(String value) {
         int lx;
         String temp[] = value.split("-");
