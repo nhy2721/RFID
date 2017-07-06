@@ -1,6 +1,5 @@
 package com.botongsoft.rfid.ui.fragment;
 
-import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -24,13 +23,11 @@ import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.common.db.DBDataUtils;
-import com.botongsoft.rfid.common.db.DataBaseCreator;
+import com.botongsoft.rfid.common.db.SearchDb;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.ui.activity.CheckPlanDetailActivity;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanDetailAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
-import com.lidroid.xutils.DbUtils;
-import com.lidroid.xutils.exception.DbException;
 import com.yanzhenjie.recyclerview.swipe.Closeable;
 import com.yanzhenjie.recyclerview.swipe.OnSwipeMenuItemClickListener;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenu;
@@ -335,44 +332,23 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         //                }
         //            }
         //        }
-
+        if(editString.matches("^[a-zA-Z]*$")){//正则判断扫描的是字母开头的档案还是数字开头的密集格id
+            System.out.print("da");
+        }else{
+            System.out.print("mjg");
+        }
         //先判断扫描的是否是格子标签，再判断该格子是否在盘点范围内
         Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", editString);
 
         if (mjjg == null) {//扫描的不是密集格标签 ，通知用户
             mHandlerMessage.what = UI_NOMJG_ERROR;
+        } else if (!scanInfoLocal.equals("") && mDataLists.size() > 0) {//scanInfoLocal不为空说明已经有扫过格子了 mDataLists不为空说明有读到该格子内的档案数据
+            System.out.print("2222222");
         } else {////先判断是否在该批次的盘点范围内
-            try {
-                DbUtils db = DataBaseCreator.create();
-                String sql = "select * from com_botongsoft_rfid_bean_classity_Mjjg where mjjid = (select id from (select * from com_botongsoft_rfid_bean_classity_Mjj";
-                Integer kfid = Integer.valueOf(srrArray[0]);
-                Integer mjjid = 0;
-                Integer zy = 0;
-                if (kfid != 0) {
-                    sql += " where kfid=" + kfid;
-                    mjjid = Integer.valueOf(srrArray[1]);
-                    if (mjjid != 0) {
-                        sql += " and id=" + mjjid;
-                        zy = Integer.valueOf(srrArray[2]);
-                    }
-                }
-                sql += ") as a where a.id=" + mjjg.getMjjid() + ") and id=" + editString;
-                if (kfid != 0) {
-                    if (mjjid != 0) {
-                        if (zy != 0) {
-                            sql += " and zy =" + zy;
-                        }
-                    }
-                }
-                Cursor cursor = (Cursor) db.execQuery(sql); // 执行自定义sql
-                int s = cursor.getCount();
-                if (s == 0) {
-                    temp = false;
-                    mHandlerMessage.what = UI_NOSCANFW_ERROR;
-                }
-                db.close();
-            } catch (DbException e) {
-                e.printStackTrace();
+            int s = SearchDb.countPdfw(srrArray, mjjg, editString);
+            if (s == 0) {
+                temp = false;//false为不在盘点范围
+                mHandlerMessage.what = UI_NOSCANFW_ERROR;
             }
             if (temp) {
                 mjjgList.add(0, editString);
@@ -389,6 +365,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                 }
             }
         }
+
     }
 
     private void dislapView(Mjjg mjjg) {

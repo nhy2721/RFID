@@ -40,6 +40,27 @@ public class Constant {
     //左右 
     public static final int VALUE_LEFT = 1;
     public static final int VALUE_RIGHT = 2;
+    /**
+     * 类型为密集架格
+     */
+    public static final int LX_MJJG = 1;
+    /**
+     * 类型为档案
+     */
+    public static final int LX_MJGDA = 2;
+
+    public static int getLx(String value) {
+        int lx;
+        String temp[] = value.split("-");
+        if (temp.length == 2) {//目前暂定密集格档案格式为 表名“bm-jlid”
+            lx = Constant.LX_MJGDA;
+        } else {
+            lx = Constant.LX_MJJG;
+        }
+        return lx;
+    }
+
+    ;
 
     @StringDef({
             Gender.MALE,

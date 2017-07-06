@@ -113,6 +113,18 @@ public class DBDataUtils {
 		}
 		return info;
 	}
+	public static Object getInfo(Class<?> entityType, String key1, String value1,String key2 ,String value2) {
+		DbUtils db = DataBaseCreator.create();
+		Object info = null;
+		try {
+			info = db.findFirst(Selector.from(entityType)
+					.where(key1, "=", value1).and(key2, "=", value2));
+
+		} catch (DbException e) {
+			e.printStackTrace();
+		}
+		return info;
+	}
 
 	/**
 	 * 获取数据

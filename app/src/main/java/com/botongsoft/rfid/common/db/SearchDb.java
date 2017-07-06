@@ -1,6 +1,9 @@
 package com.botongsoft.rfid.common.db;
 
+import android.database.Cursor;
+
 import com.botongsoft.rfid.bean.classity.Mjj;
+import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
@@ -84,5 +87,43 @@ public class SearchDb {
 
     }
 
+    /**
+     * 判断该密集格是否在盘点范围
+     * @param srrArray  盘点范围
+     * @param mjjg       密集格
+     * @param editString  界面扫描的密集格id
+     * @return
+     */
+    public static int countPdfw(String[] srrArray, Mjjg mjjg, String editString) {
+        DbUtils db = DataBaseCreator.create();
+        String sql = "select * from com_botongsoft_rfid_bean_classity_Mjjg where mjjid = (select id from (select * from com_botongsoft_rfid_bean_classity_Mjj";
+        Integer kfid = Integer.valueOf(srrArray[0]);
+        Integer mjjid = 0;
+        Integer zy = 0;
+        if (kfid != 0) {
+            sql += " where kfid=" + kfid;
+            mjjid = Integer.valueOf(srrArray[1]);
+            if (mjjid != 0) {
+                sql += " and id=" + mjjid;
+                zy = Integer.valueOf(srrArray[2]);
+            }
+        }
+        sql += ") as a where a.id=" + mjjg.getMjjid() + ") and id=" + editString;
+        if (kfid != 0) {
+            if (mjjid != 0) {
+                if (zy != 0) {
+                    sql += " and zy =" + zy;
+                }
+            }
+        }
+        Cursor cursor = null; // 执行自定义sql
+        try {
+            cursor = (Cursor) db.execQuery(sql);
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        int s = cursor.getCount();
+        return s;
+    }
 
 }

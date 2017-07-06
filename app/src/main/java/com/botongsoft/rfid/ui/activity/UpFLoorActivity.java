@@ -28,7 +28,9 @@ import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
+import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
+import com.botongsoft.rfid.common.db.MjgdaSearchDb;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.common.utils.UIUtils;
@@ -53,7 +55,7 @@ import butterknife.ButterKnife;
 import static com.botongsoft.rfid.R.id.appBarLayout;
 
 /**
- * 上架  缺少拆分扫描的档案id存如bm和jlid字段
+ * 上架
  * Created by pc on 2017/6/12.
  */
 public class UpFLoorActivity extends BaseActivity {
@@ -284,13 +286,22 @@ public class UpFLoorActivity extends BaseActivity {
             for (Map map : mDataList) {
                 Mjjgda mjjgda = new Mjjgda();
                 mjjgda.setScanInfo(map.get("title").toString());//保存到档案表的扫描信息字段
-                mjjgda.setKfid(Integer.valueOf(temp[0]));
-                mjjgda.setMjjid(Integer.valueOf(temp[1]));
-                mjjgda.setMjgid(Integer.valueOf(temp[2]));
+                if (temp.length == 3) {
+                    mjjgda.setKfid(Integer.valueOf(temp[0]));
+                    mjjgda.setMjjid(Integer.valueOf(temp[1]));
+                    mjjgda.setMjgid(Integer.valueOf(temp[2]));
+                } else if (temp.length == 2) {
+                    mjjgda.setMjjid(Integer.valueOf(temp[0]));
+                    mjjgda.setMjgid(Integer.valueOf(temp[1]));
+                }else if (temp.length == 1){
+                    mjjgda.setMjgid(Integer.valueOf(temp[0]));
+                }
+                mjjgda.setBm((map.get("bm").toString()));
+                mjjgda.setJlid((map.get("jlid").toString()));
                 DBDataUtils.save(mjjgda);
             }
             //这里发送通知ui更新界面
-            scanInfoLocal = "";
+            scanInfoLocal = "";//上过架后清空该变量
             mHandlerMessage = mHandler.obtainMessage();
             mHandlerMessage.what = UI_SUBMITSUCCESS;
             mHandler.sendMessage(mHandlerMessage);
@@ -333,6 +344,8 @@ public class UpFLoorActivity extends BaseActivity {
     };
 
     private void searchDB(String editString) {
+        int lx = Constant.getLx(editString);
+        String temp[] = editString.split("-");
         boolean tempStr = true;
         //防止扫描重复判断
         if (mDataList.size() > 0) {
@@ -344,65 +357,141 @@ public class UpFLoorActivity extends BaseActivity {
             }
         }
         if (tempStr) {
-            String kfname = "";
-            String mjjname = "";
-            String nLOrR = "";
-            Mjj mjj = null;
-            Kf kf = null;
-            //如果不重复先查询密集格表，判断扫描的编码是否属于密集格
-            Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mTextInputEditText.getText().toString());
-            if (mjjg != null) {
-                mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
-                if (mjj != null) {
-                    mjjname = mjj.getMc() + "/";
-                    kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                }
-                if (kf != null) {
-                    kfname = kf.getMc() + "/";
-                }
-                nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-                String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                String temple = kf.getId() + "/" + mjj.getId() + "/" + mjjg.getId();//这里的值用来拆分存放位置存入档案表
-                mBundle = new Bundle();
-                mBundle.putString("info", name);
-                scanInfoLocal = temple;
-                mHandlerMessage.setData(mBundle);
-            } else {
-                //不是属于密集格再查询档案是否已经上过架了
-                Mjjgda mjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "scanInfo", mTextInputEditText.getText().toString());
-                if (mjjgda == null) {
-                    //没上过架存入页面显示
-                    Map map = new HashMap();
-                    map.put("id", size1++);
-                    map.put("title", mTextInputEditText.getText());
-                    mDataList.add(map);
-                } else {
-                    //已经上过架了查询文件存放的位置页面通知用户
-                    String kfname1 = "";
-                    String mjjname1 = "";
-                    String nLOrR1 = "";
-                    Mjj mjj1 = null;
-                    Kf kf1 = null;
-                    Mjjg mjjg1 = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
-                    if (mjjg1 != null) {
-                        nLOrR1 = mjjg1.getZy() == 1 ? "左" : "右";
-                        mjj1 = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg1.getMjjid() + "");
-                    }
-                    if (mjj1 != null) {
-                        mjjname1 = mjj1.getMc() + "/";
-                        kf1 = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj1.getKfid() + "");
-                    }
+            switch (lx) {
+                case Constant.LX_MJGDA:
+                    //不是属于密集格再查询档案是否已经上过架了
+                    Mjjgda mjjgda = null;
+                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+                    if (mjjgda == null) {
+                        //没上过架存入页面显示
+                        Map map = new HashMap();
+                        map.put("id", size1++);
+                        map.put("title", mTextInputEditText.getText());
+                        map.put("bm", temp[0]);
+                        map.put("jlid", temp[1]);
+                        mDataList.add(map);
+                    } else {
+                        //已经上过架了查询文件存放的位置页面通知用户
+                        String kfname1 = "";
+                        String mjjname1 = "";
+                        String nLOrR1 = "";
+                        Mjj mjj1 = null;
+                        Kf kf1 = null;
+                        Mjjg mjjg1 = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+                        if (mjjg1 != null) {
+                            nLOrR1 = mjjg1.getZy() == 1 ? "左" : "右";
+                            mjj1 = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg1.getMjjid() + "");
+                        }
+                        if (mjj1 != null) {
+                            mjjname1 = mjj1.getMc() + "/";
+                            kf1 = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj1.getKfid() + "");
+                        }
 
-                    if (kf1 != null) {
-                        kfname1 = kf1.getMc() + "/";
+                        if (kf1 != null) {
+                            kfname1 = kf1.getMc() + "/";
+                        }
+                        String name = kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
+                        mHandlerMessage.what = UI_ISEXIST;
+                        mHandlerMessage.obj = name;
                     }
-                    String name = kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
-                    mHandlerMessage.what = UI_ISEXIST;
-                    mHandlerMessage.obj = name;
-                }
-
+                    break;
+                case Constant.LX_MJJG:
+                    String kfname = "";
+                    String mjjname = "";
+                    String nLOrR = "";
+                    Mjj mjj = null;
+                    Kf kf = null;
+                    String kfid = "";
+                    String mjjid = "";
+                    //如果不重复查询密集格表
+                    Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mTextInputEditText.getText().toString());
+                    if (mjjg != null) {
+                        mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                        if (mjj != null) {
+                            mjjname = mjj.getMc() + "/";
+                            mjjid =  mjj.getId()  + "/";
+                            kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                        }
+                        if (kf != null) {
+                            kfname = kf.getMc() + "/";
+                            kfid = kf.getId() + "/";
+                        }
+                        nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                        String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+                        String temple = kfid + mjjid + mjjg.getId();//这里的值用来拆分存放位置存入档案表
+                        mBundle = new Bundle();
+                        mBundle.putString("info", name);
+                        scanInfoLocal = temple;
+                        mHandlerMessage.setData(mBundle);
+                    }
+                    break;
             }
         }
+
+
+        //        if (tempStr) {
+        //            String kfname = "";
+        //            String mjjname = "";
+        //            String nLOrR = "";
+        //            Mjj mjj = null;
+        //            Kf kf = null;
+        //            Mjjgda mjjgda = null;
+        //            //如果不重复先查询密集格表，判断扫描的编码是否属于密集格
+        //            Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mTextInputEditText.getText().toString());
+        //            if (mjjg != null) {
+        //                mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+        //                if (mjj != null) {
+        //                    mjjname = mjj.getMc() + "/";
+        //                    kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+        //                }
+        //                if (kf != null) {
+        //                    kfname = kf.getMc() + "/";
+        //                }
+        //                nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+        //                String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+        //                String temple = kf.getId() + "/" + mjj.getId() + "/" + mjjg.getId();//这里的值用来拆分存放位置存入档案表
+        //                mBundle = new Bundle();
+        //                mBundle.putString("info", name);
+        //                scanInfoLocal = temple;
+        //                mHandlerMessage.setData(mBundle);
+        //            } else {
+        //                //不是属于密集格再查询档案是否已经上过架了
+        //                mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+        //                if (mjjgda == null) {
+        //                    //没上过架存入页面显示
+        //                    Map map = new HashMap();
+        //                    map.put("id", size1++);
+        //                    map.put("title", mTextInputEditText.getText());
+        //                    map.put("bm", temp[0]);
+        //                    map.put("jlid", temp[1]);
+        //                    mDataList.add(map);
+        //                } else {
+        //                    //已经上过架了查询文件存放的位置页面通知用户
+        //                    String kfname1 = "";
+        //                    String mjjname1 = "";
+        //                    String nLOrR1 = "";
+        //                    Mjj mjj1 = null;
+        //                    Kf kf1 = null;
+        //                    Mjjg mjjg1 = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+        //                    if (mjjg1 != null) {
+        //                        nLOrR1 = mjjg1.getZy() == 1 ? "左" : "右";
+        //                        mjj1 = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg1.getMjjid() + "");
+        //                    }
+        //                    if (mjj1 != null) {
+        //                        mjjname1 = mjj1.getMc() + "/";
+        //                        kf1 = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj1.getKfid() + "");
+        //                    }
+        //
+        //                    if (kf1 != null) {
+        //                        kfname1 = kf1.getMc() + "/";
+        //                    }
+        //                    String name = kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
+        //                    mHandlerMessage.what = UI_ISEXIST;
+        //                    mHandlerMessage.obj = name;
+        //                }
+        //
+        //            }
+        //        }
     }
 
 
@@ -555,7 +644,7 @@ public class UpFLoorActivity extends BaseActivity {
 
         @Override
         public void onItemClick(int position, int listSize) {
-//            Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
+            //            Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
             if (position != -1) {
                 mDataList.remove(position);
                 mUpfloorAdapter.notifyItemRemoved(position);
