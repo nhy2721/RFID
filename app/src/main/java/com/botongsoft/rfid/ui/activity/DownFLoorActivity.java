@@ -273,9 +273,6 @@ public class DownFLoorActivity extends BaseActivity {
         boolean str = false;
         //        操作内容是根据选中的条目删除密集架档案表数据，完成下架。
         for (Map map : mDataList) {
-            //            Mjjgda mjjgda = new Mjjgda();
-            //            mjjgda.setScanInfo(map.get("title").toString());//保存到档案表的扫描信息字段
-            //            str = DBDataUtils.deleteInfo(Mjjgda.class, "scanInfo", map.get("title").toString());
             str = MjgdaSearchDb.delInfo(Mjjgda.class, "bm", map.get("bm") + "", "jlid", map.get("jlid") + "");
         }
         return str;
@@ -342,7 +339,7 @@ public class DownFLoorActivity extends BaseActivity {
                     if (mjjgda != null) {
                         Map map = new HashMap();
                         map.put("id", mjjgda.getLid());
-                        map.put("title", mjjgda.getScanInfo());
+                        map.put("title",mjjgda.getBm()+"-"+mjjgda.getJlid());
                         map.put("bm", mjjgda.getBm());
                         map.put("jlid", mjjgda.getJlid());
                         Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
@@ -359,7 +356,7 @@ public class DownFLoorActivity extends BaseActivity {
                             kfname = kf.getMc() + "/";
                         }
                         String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                        map.put("local", name);
+                        map.put("local", name);//界面显示存放位置
                         mDataList.add(map);
                     }
                     break;

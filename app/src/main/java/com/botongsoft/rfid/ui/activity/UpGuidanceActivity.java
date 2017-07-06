@@ -27,7 +27,9 @@ import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
+import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
+import com.botongsoft.rfid.common.db.MjgdaSearchDb;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.ui.adapter.UpGuidanceAdapter;
@@ -237,6 +239,8 @@ public class UpGuidanceActivity extends BaseActivity {
     };
 
     private void searchDB(String editString) {
+        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
+        String temp[] = editString.split("-");
         boolean tempStr = true;
         //防止扫描重复判断
         if (mDataList.size() > 0) {
@@ -248,34 +252,42 @@ public class UpGuidanceActivity extends BaseActivity {
             }
         }
         if (tempStr) {
-            String kfname = "";
-            String mjjname = "";
-            String nLOrR = "";
-            Mjj mjj = null;
-            Kf kf = null;
-            // 查询文件存放的位置
-            Mjjgda mjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "scanInfo", mTextInputEditText.getText().toString());
-            if (mjjgda != null) {
-                Map map = new HashMap();
-                map.put("id", size1++);
-                map.put("title", mjjgda.getScanInfo());
-                Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
-                if (mjjg != null) {
-                    nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-                    mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
-                }
-                if (mjj != null) {
-                    mjjname = mjj.getMc() + "/";
-                    kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                }
+            switch (lx) {
+                case Constant.LX_MJGDA:
+                    String kfname = "";
+                    String mjjname = "";
+                    String nLOrR = "";
+                    Mjj mjj = null;
+                    Kf kf = null;
+                    // 查询文件存放的位置
+                    Mjjgda mjjgda = null;
+                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+                    if (mjjgda != null) {
+                        Map map = new HashMap();
+                        map.put("id", size1++);
+                        map.put("title",mjjgda.getBm()+"-"+mjjgda.getJlid());
+                        map.put("bm", mjjgda.getBm());
+                        map.put("jlid", mjjgda.getJlid());
+                        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+                        if (mjjg != null) {
+                            nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                            mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                        }
+                        if (mjj != null) {
+                            mjjname = mjj.getMc() + "/";
+                            kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                        }
 
-                if (kf != null) {
-                    kfname = kf.getMc() + "/";
-                }
-                String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                map.put("local", name);
-                mDataList.add(map);
+                        if (kf != null) {
+                            kfname = kf.getMc() + "/";
+                        }
+                        String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+                        map.put("local", name);//界面显示存放位置
+                        mDataList.add(map);
+                    }
+                    break;
             }
+
         }
     }
 
@@ -439,7 +451,7 @@ public class UpGuidanceActivity extends BaseActivity {
 
         @Override
         public void onItemClick(int position, int listSize) {
-//            Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
+            //            Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
 
             if (position != -1) {
                 mDataList.remove(position);
