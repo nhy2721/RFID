@@ -142,7 +142,7 @@ public class UpGuidanceActivity extends BaseActivity {
                     //延迟800ms，如果不再输入字符，则执行该线程的run方法 模拟扫描输入
                     msg = mCheckMsgHandler.obtainMessage();
                     msg.what = MSG_UPDATE_INFO;
-                    mCheckMsgHandler.sendMessageDelayed(msg, 800);
+                    mCheckMsgHandler.sendMessageDelayed(msg, Constant.delayRun);
                 }
             }
         });

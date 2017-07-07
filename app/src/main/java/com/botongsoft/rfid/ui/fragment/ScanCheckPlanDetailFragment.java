@@ -48,6 +48,7 @@ import butterknife.BindView;
 import static com.botongsoft.rfid.common.db.DBDataUtils.getInfo;
 
 /**    出错这里要报警，RFID读取要终止。要不读取档案记录的话还会添加进去。
+ *     出错返回activity 要有提示
  * Created by pc on 2017/6/26.
  */
 
@@ -180,7 +181,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                     //延迟800ms，如果不再输入字符，则执行该线程的run方法 模拟扫描输入
                     msg = mCheckMsgHandler.obtainMessage();
                     msg.what = MSG_UPDATE_INFO;
-                    mCheckMsgHandler.sendMessageDelayed(msg, 800);
+                    mCheckMsgHandler.sendMessageDelayed(msg, Constant.delayRun);
                 }
             }
         });

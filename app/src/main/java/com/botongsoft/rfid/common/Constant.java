@@ -62,6 +62,7 @@ public class Constant {
         return lx;
     }
 
+    public static final int delayRun = 800;
     ;
 
     @StringDef({
