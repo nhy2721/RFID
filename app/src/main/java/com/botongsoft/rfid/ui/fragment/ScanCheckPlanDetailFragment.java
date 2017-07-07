@@ -393,7 +393,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                             }
                         }
                         if (text == 0) {
-                            LogUtils.e("text", "00000000000");
+                            LogUtils.d("newErrorData", mjgda[0]+"-"+mjgda[1]);
                             Mjjgda mjjgda = new Mjjgda();
                             mjjgda.setBm(mjgda[0]);
                             mjjgda.setJlid(mjgda[1]);

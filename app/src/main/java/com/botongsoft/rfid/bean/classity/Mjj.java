@@ -34,7 +34,9 @@ public class Mjj implements java.io.Serializable {
     @Column
     private String bz;
     @Transient
-    private String struts;//是否扫描过
+    private int leftState;//是否扫描过
+    @Transient
+    private int rightState;//是否扫描过
     @Transient
     private boolean showLeft;//显示左面
 
@@ -60,7 +62,7 @@ public class Mjj implements java.io.Serializable {
     public Mjj() {
     }
 
-    public Mjj(int lid, int id, int kfid, String mc, int cs, int zs, int noleft, int noright, String zlbq, String ylbq, String bz, String struts) {
+    public Mjj(int lid, int id, int kfid, String mc, int cs, int zs, int noleft, int noright, String zlbq, String ylbq, String bz) {
         this.lid = lid;
         this.id = id;
         this.kfid = kfid;
@@ -72,15 +74,24 @@ public class Mjj implements java.io.Serializable {
         this.zlbq = zlbq;
         this.ylbq = ylbq;
         this.bz = bz;
-        this.struts = struts;
+
     }
 
-    public String getStruts() {
-        return struts;
+
+    public int getLeftState() {
+        return leftState;
     }
 
-    public void setStruts(String struts) {
-        this.struts = struts;
+    public void setLeftState(int leftState) {
+        this.leftState = leftState;
+    }
+
+    public int getRightState() {
+        return rightState;
+    }
+
+    public void setRightState(int rightState) {
+        this.rightState = rightState;
     }
 
     public int getLid() {

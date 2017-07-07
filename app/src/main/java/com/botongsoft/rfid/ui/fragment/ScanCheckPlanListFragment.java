@@ -1,5 +1,6 @@
 package com.botongsoft.rfid.ui.fragment;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -13,9 +14,12 @@ import android.view.ViewGroup;
 
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.Mjj;
+import com.botongsoft.rfid.common.db.DataBaseCreator;
 import com.botongsoft.rfid.common.db.SearchDb;
 import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanListAdapter;
+import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.exception.DbException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +45,7 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
     private String fw;
     MyThread mthread;
     Handler myHandler;
+    private String[] srrArray;
     private static final int MSG_SUBMIT = 0;
 
     public static ScanCheckPlanListFragment newInstance(int type, int pdid, String fw) {
@@ -61,31 +66,32 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
     @Override
     public void onDestroy() {
         super.onDestroy();
-        LogUtils.e("onDestroy", "onDestroy4444444444444444");
+        LogUtils.e("onDestroy", "ScanCheckPlanListFragment onDestroy4444444444444444");
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        LogUtils.e("onStop", "onStop33333333333333333");
+        LogUtils.e("onStop", "ScanCheckPlanListFragment onStop33333333333333333");
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mMjjList.clear();
-        LogUtils.e("onPause", "onPause222222222222222222");
+        LogUtils.e("onPause", "ScanCheckPlanListFragment onPause222222222222222222");
     }
 
     @Override
     public void onResume() {
-        LogUtils.e("onResume", "onResume111111111111111");
+        LogUtils.e("onResume", "ScanCheckPlanListFragment onResume111111111111111");
         super.onResume();
 
     }
 
     @Override
     public void onDestroyView() {
+        LogUtils.e("onDestroyView", "ScanCheckPlanListFragment onDestroyView111111111111111");
         super.onDestroyView();
     }
 
@@ -96,6 +102,8 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
             type = getArguments().getInt("type");
             pdid = getArguments().getInt("pdid");
             fw = getArguments().getString("fw");
+            srrArray = fw.split(",");
+
         }
     }
 
@@ -186,6 +194,37 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
             try {
                 Log.e("SearchDBThreads--->", String.valueOf(Thread.currentThread().getName()));
                 mjjList = (List<Mjj>) SearchDb.getMjjList(fw);
+                DbUtils db = DataBaseCreator.create();
+                //这条语句执行的意义为：根据pdid汇总统计扫描过的架子的面。有扫描过的给他个初始颜色 值为1.
+                String sql = "select zy,mjjid,pdid,kfid from com_botongsoft_rfid_bean_classity_CheckError where pdid = " + pdid + " group by zy,mjjid,pdid,kfid";
+                Cursor c = null; // 执行自定义sql
+                try {
+                    c = (Cursor) db.execQuery(sql);
+                    while (c.moveToNext()) {
+                        for (Mjj mjj : mjjList) {
+                            // c.getColumnIndex 取到查询语句中的字段索引位置
+                            int kfid_index = c.getColumnIndex("kfid");
+                            int mjjid_index = c.getColumnIndex("mjjid");
+                            int zy_index = c.getColumnIndex("zy");
+                            int pdid_index = c.getColumnIndex("pdid");
+                            //c.getInt(kfid) 根据索引位置的字段类型取出值
+                            if (mjj.getKfid() == c.getInt(kfid_index) && mjj.getId() == c.getInt(mjjid_index) && c.getInt(pdid_index) == pdid) {
+                                if (c.getInt(zy_index) == 1) {
+                                    mjj.setLeftState(1);
+                                }
+                                if (c.getInt(zy_index) == 2) {
+                                    mjj.setRightState(1);
+                                }
+                            }
+                        }
+                    }
+                } catch (DbException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (c != null) {
+                        c.close();
+                    }
+                }
                 mMjjList.addAll(mjjList);
 
             } catch (Exception e) {

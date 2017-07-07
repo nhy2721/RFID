@@ -7,7 +7,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -31,15 +30,15 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
     private final List<Mjj> mjjList;
     private Context mContext;
     private int columns;
-    private  FragmentManager fm;
+    private FragmentManager fm;
     private int pdid;
 
-    public ScanCheckPlanListAdapter(Context context, List<Mjj> MjjList, int columns,FragmentManager fm,int pdid) {
+    public ScanCheckPlanListAdapter(Context context, List<Mjj> MjjList, int columns, FragmentManager fm, int pdid) {
         this.mjjList = MjjList;
         this.columns = columns;
         this.mContext = context;
         this.fm = fm;
-        this.pdid= pdid;
+        this.pdid = pdid;
     }
 
 
@@ -82,39 +81,53 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
             ((EBookListHolder) holder).tv_book_title.setText(mjj.getMc());
             if (mjj.getNoleft() == 0) {
                 ((EBookListHolder) holder).tView1.setText("左");
-            }else{
+            } else {
                 ((EBookListHolder) holder).mRelativeLayout1.setVisibility(View.INVISIBLE);
             }
             if (mjj.getNoright() == 0) {
                 ((EBookListHolder) holder).tView2.setText("右");
-            }else{
-                ((EBookListHolder) holder).tView2.setVisibility(View.INVISIBLE);
+            } else {
+                ((EBookListHolder) holder).mRelativeLayout2.setVisibility(View.INVISIBLE);
             }
-            if(!mjj.isShowLeft()){
+            if (!mjj.isShowLeft()) {
                 ((EBookListHolder) holder).mRelativeLayout1.setVisibility(View.INVISIBLE);
             }
-            if(!mjj.isShowRrigh()){
-                ((EBookListHolder) holder).tView2.setVisibility(View.INVISIBLE);
+            if (!mjj.isShowRrigh()) {
+                ((EBookListHolder) holder).mRelativeLayout2.setVisibility(View.INVISIBLE);
+            }
+            if (mjj.getLeftState() == 0) {
+                ((EBookListHolder) holder).tView1.setBackgroundColor(mContext.getResources().getColor(R.color.white));
+            } else if (mjj.getLeftState() == 1) {
+                ((EBookListHolder) holder).tView1.setBackgroundColor(mContext.getResources().getColor(R.color.recycler_color1));
+            } else if (mjj.getLeftState() == 2) {
+                ((EBookListHolder) holder).tView1.setBackgroundColor(mContext.getResources().getColor(R.color.colorAccent));
+            }
+            if (mjj.getRightState() == 0) {
+                ((EBookListHolder) holder).tView2.setBackgroundColor(mContext.getResources().getColor(R.color.white));
+            } else if (mjj.getRightState() == 1) {
+                ((EBookListHolder) holder).tView2.setBackgroundColor(mContext.getResources().getColor(R.color.recycler_color1));
+            } else if (mjj.getRightState() == 2) {
+                ((EBookListHolder) holder).tView2.setBackgroundColor(mContext.getResources().getColor(R.color.colorAccent));
             }
             ((EBookListHolder) holder).mRelativeLayout1.setOnClickListener(new OnSingleClickListener(200) {
                 @Override
                 protected void onSingleClick(View view) {
 
                     ToastUtils.showShort("textView1");
-                    MyDialogFragment mdf =   MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment, mjj,"left",pdid);
+                    MyDialogFragment mdf = MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment, mjj, "left", pdid);
                     FragmentTransaction ft = fm.beginTransaction();
                     ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                    mdf.show(ft,"dd");
+                    mdf.show(ft, "dd");
                 }
             });
-            ((EBookListHolder) holder).tView2.setOnClickListener(new OnSingleClickListener(200) {
+            ((EBookListHolder) holder).mRelativeLayout2.setOnClickListener(new OnSingleClickListener(200) {
                 @Override
                 protected void onSingleClick(View view) {
                     ToastUtils.showShort("textView2");
-                    MyDialogFragment mdf =   MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment,mjj,"right",pdid);
+                    MyDialogFragment mdf = MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment, mjj, "right", pdid);
                     FragmentTransaction ft = fm.beginTransaction();
                     ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                    mdf.show(ft,"dd");
+                    mdf.show(ft, "dd");
                 }
             });
             holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -160,9 +173,9 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
 
         private final TextView tv_book_title;
         private final TextView tView1;
-        private final Button tView2;
+        private final TextView tView2;
         private final RelativeLayout mRelativeLayout1;
-//        private final RelativeLayout mRelativeLayout2;
+        private final RelativeLayout mRelativeLayout2;
 
 
         public EBookListHolder(View itemView) {
@@ -170,9 +183,9 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
 
             tv_book_title = (TextView) itemView.findViewById(R.id.tv_book_title);
             tView1 = (TextView) itemView.findViewById(textView1);
-            tView2 = (Button) itemView.findViewById(R.id.textView2);
+            tView2 = (TextView) itemView.findViewById(R.id.textView2);
             mRelativeLayout1 = (RelativeLayout) itemView.findViewById(R.id.RelativeLayout1);
-//            mRelativeLayout2 = (RelativeLayout) itemView.findViewById(R.id.RelativeLayout2);
+            mRelativeLayout2 = (RelativeLayout) itemView.findViewById(R.id.RelativeLayout2);
 
         }
 

@@ -101,9 +101,9 @@ public class MjjgEntityAdapter extends SectionedRecyclerViewAdapter<HeaderHolder
     protected void onBindItemViewHolder(DescHolder holder, int section, int position) {
         MjjgEntity.TagsEntity.TagInfo tt = allTagList.get(section).tagInfoList.get(position);
         holder.descView.setText(tt.getTagName());
-        holder.descView.setTextColor(mContext.getResources().getColor(R.color.grass_green));
+//        holder.descView.setTextColor(mContext.getResources().getColor(R.color.grass_green));
         if(tt.getUpdateColor().equals("old")){
-            holder.descView.setBackgroundColor(mContext.getResources().getColor(R.color.grass_green));
+            holder.descView.setBackgroundColor(mContext.getResources().getColor(R.color.colorAccent));
         }
     }
 }
