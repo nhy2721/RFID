@@ -47,7 +47,7 @@ import butterknife.BindView;
 
 import static com.botongsoft.rfid.common.db.DBDataUtils.getInfo;
 
-/**
+/**    出错这里要报警，RFID读取要终止。要不读取档案记录的话还会添加进去。
  * Created by pc on 2017/6/26.
  */
 
@@ -56,6 +56,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     private static final int UI_NOMJG_ERROR = 1;
     private static final int UI_NOSCANFW_ERROR = 2;
     private static final int MSG_UPDATE_INFO = 1;
+    private static final int UI_SAVE_ERROR = 3;
     @BindView(R.id.recycler_view)
     SwipeMenuRecyclerView mSwipeMenuRecyclerView;
     @BindView(R.id.tx_layout)
@@ -88,10 +89,15 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     //传递UI前台显示消息队列
     Message mHandlerMessage;
     Bundle mBundle;
+    Bundle saveErrBundele;
     private int type;
     private int pdid;
     private String fw;
     private static int size1 = 1;
+    private static int oldMjjId;
+    private static int oldMjgId;
+    private static int oldKfId;
+    private static int oldZy;
 
     public static ScanCheckPlanDetailFragment newInstance(int type, int pdid, String fw) {
         Bundle args = new Bundle();
@@ -219,6 +225,16 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                         mTextInputEditText.setText("");
                         Toast.makeText(getContext(), "该密集格不在盘点范围内", Toast.LENGTH_SHORT).show();
                         break;
+                    case UI_SAVE_ERROR:
+                        if (saveErrBundele != null) {
+                            mTextInputEditText.setText("");
+                            String bm = (saveErrBundele.getString("bm"));
+                            String jlid = (saveErrBundele.getString("jlid"));
+                            String mjg = (saveErrBundele.getString("mjg"));
+                            Toast.makeText(getContext(), "记录保存失败," + "错误记录编码 " + bm + "-" + jlid, Toast.LENGTH_SHORT).show();
+                        }
+
+                        break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
                         break;
@@ -333,11 +349,14 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         }
     };
     private static int text = 0;
+    private static int nowMjjgId = 0;
+    private static int nowMjjId = 0;
+    private static int nowKfId = 0;
+    private static int nowMjjgZy = 0;
 
     private void searchDB(String editString) {
         boolean tempStr = true;//防止重复扫描状态标记
         boolean temp = true;//是否在盘点方位标记
-        boolean scanMjjg = false;
 
         int lx = Constant.getLx(editString);//根据传入的值返回对象类型
         switch (lx) {
@@ -378,6 +397,9 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                             mjjgda.setBm(mjgda[0]);
                             mjjgda.setJlid(mjgda[1]);
                             mjjgda.setColor(4);//多扫描或错架
+                            mjjgda.setMjjid(nowMjjId);
+                            mjjgda.setKfid(nowKfId);
+                            mjjgda.setMjgid(nowMjjgId);
                             mDataLists.add(mjjgda);
                         }
                         stringList.add(editString);
@@ -386,27 +408,28 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                 }
                 break;
             case Constant.LX_MJJG:
-                scanMjjg = true;
                 Mjjg mjjg = (Mjjg) getInfo(Mjjg.class, "id", editString);
                 if (mjjg != null) {
+                    nowMjjgId = mjjg.getId();
+                    nowMjjgZy = mjjg.getZy();
                     int s = SearchDb.countPdfw(srrArray, mjjg);//先判断是否在该批次的盘点范围内
                     if (s == 0) {
                         temp = false;//false为不在盘点范围
                         mHandlerMessage.what = UI_NOSCANFW_ERROR;
                     }
                     if (temp) {//temp=true 在盘点范围内
+                        Mjj mjj = (Mjj) getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                        nowMjjId = mjj.getId();
+                        nowKfId = mjj.getKfid();
                         mjjgList.add(0, editString);
                         if (mjjgList.size() >= 2) {//再判断上一次是否是扫描过的格子，防止重复读取数据库;
                             if (mjjgList.get(0).equals(mjjgList.get(1))) {//当前读取的跟上一次读取的id相同
                                 mjjgList.remove(0);
                             } else {
-                                scanMjjg = false;
-                                Mjj mjj = (Mjj) getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
-                                Kf kf = (Kf) getInfo(Kf.class, "id", mjj.getKfid() + "");
                                 //判断当前格子是否被扫描过(同批次)，有的话清除已扫描的错误记录表
                                 CheckError ce = (CheckError) DBDataUtils.getInfo(CheckError.class, "pdid",
                                         String.valueOf(pdid), "mjgid", String.valueOf(mjjg.getId()), "zy",
-                                        String.valueOf(mjjg.getZy()), "mjjid", String.valueOf(mjjg.getMjjid()), "kfid", kf.getId() + "");
+                                        String.valueOf(mjjg.getZy()), "mjjid", String.valueOf(mjjg.getMjjid()), "kfid", mjj.getKfid() + "");
                                 if (ce != null) {
                                     DBDataUtils.deleteInfos(CheckPlanDeatil.class, "pdid", pdid + "", "mjgid", mjjg.getId() + "");
                                 } else {
@@ -419,12 +442,32 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                                     DBDataUtils.save(mCheckError);
                                 }
                                 //保存错误记录
-                                savePdjl(mDataLists, mjj, kf, mjjg, pdid);
+                                boolean save = savePdjl(mDataLists, pdid);
                                 //读取密集格内档案数据显示在列表上
-                                dislapView(mjjg);
+                                if (save == true) {
+                                    dislapView(mjjg);
+                                }else{
+                                    mjjgList.remove(0);
+                                }
+
                             }
                         } else if (mjjgList.size() <= 1) {//list为空或小于1 代表第一次读取
-                            scanMjjg = false;
+                            //判断当前格子是否被扫描过(同批次)，有的话清除已扫描的错误记录表
+                            CheckError ce = (CheckError) DBDataUtils.getInfo(CheckError.class, "pdid",
+                                    String.valueOf(pdid), "mjgid", String.valueOf(mjjg.getId()), "zy",
+                                    String.valueOf(mjjg.getZy()), "mjjid", String.valueOf(mjjg.getMjjid()), "kfid", mjj.getKfid() + "");
+                            if (ce != null) {
+                                DBDataUtils.deleteInfos(CheckPlanDeatil.class, "pdid", pdid + "", "mjgid", mjjg.getId() + "");
+                            } else {
+                                CheckError mCheckError = new CheckError();
+                                mCheckError.setMjgid(mjjg.getId());
+                                mCheckError.setPdid(pdid);
+                                mCheckError.setZy(mjjg.getZy());
+                                mCheckError.setMjjid(mjjg.getMjjid());
+                                mCheckError.setKfid(mjj.getKfid());
+                                DBDataUtils.save(mCheckError);
+                            }
+
                             //读取密集格内档案数据显示在列表上
                             dislapView(mjjg);
                         }
@@ -434,30 +477,49 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         }
     }
 
-    private void savePdjl(List<Mjjgda> mDataLists, Mjj mjj, Kf kf, Mjjg mjjg, int pdid) {
+    private boolean savePdjl(List<Mjjgda> mDataLists, int pdid) {
+        boolean save = true;
         for (Mjjgda mDataList : mDataLists) {
             if (mDataList.getColor() != 2) {
-                CheckPlanDeatil mCheckPlanDeatil = new CheckPlanDeatil();
-                mCheckPlanDeatil.setBm(mDataList.getBm());
-                mCheckPlanDeatil.setJlid(Integer.valueOf(mDataList.getJlid()));
-                mCheckPlanDeatil.setMjgid(mDataList.getMjgid());
-                mCheckPlanDeatil.setKfid(mDataList.getKfid());
-                mCheckPlanDeatil.setZy(mjjg.getZy());
-                mCheckPlanDeatil.setMjjid(mjj.getId());
-                mCheckPlanDeatil.setPdid(pdid);
-                if (mDataList.getColor() == 3) {
-                    mCheckPlanDeatil.setType(3);
-                } else if (mDataList.getColor() == 0) {
-                    mCheckPlanDeatil.setType(2);
-                } else if (mDataList.getColor() == 4) {
-                    mCheckPlanDeatil.setType(4);
+                CheckPlanDeatil mCheckPlanDeatil = null;
+                if (save) {
+                    try {
+                        mCheckPlanDeatil = new CheckPlanDeatil();
+                        mCheckPlanDeatil.setBm(mDataList.getBm());
+                        mCheckPlanDeatil.setJlid(Integer.valueOf(mDataList.getJlid()));
+                        mCheckPlanDeatil.setMjgid(mDataList.getMjgid());
+                        mCheckPlanDeatil.setKfid(mDataList.getKfid());
+                        mCheckPlanDeatil.setZy(oldZy);
+                        mCheckPlanDeatil.setMjjid(oldMjjId);
+                        mCheckPlanDeatil.setPdid(pdid);
+                        if (mDataList.getColor() == 3) {
+                            mCheckPlanDeatil.setType(3);
+                        } else if (mDataList.getColor() == 0) {
+                            mCheckPlanDeatil.setType(2);
+                        } else if (mDataList.getColor() == 4) {
+                            mCheckPlanDeatil.setType(4);
+                        }
+                        DBDataUtils.save(mCheckPlanDeatil);
+                    } catch (Exception e) {
+                        save = false;
+                        //出错这里要报警，RFID读取要终止。要不读取档案记录的话还会添加进去。
+                        mHandlerMessage.what = UI_SAVE_ERROR;
+                        saveErrBundele = new Bundle();
+                        saveErrBundele.putString("mjg", mDataList.getMjgid() + "");
+                        saveErrBundele.putString("bm", mDataList.getBm() + "");
+                        saveErrBundele.putString("jlid", mDataList.getJlid() + "");
+                        mHandlerMessage.setData(saveErrBundele);
+                        Log.e("记录保存失败", "Exception = " + e);
+                        e.printStackTrace();
+                    }
                 }
-                DBDataUtils.save(mCheckPlanDeatil);
             }
         }
+        return save;
     }
 
     private void dislapView(Mjjg mjjg) {
+        stringList.clear();
         mDataLists.clear();
         displayTextLocal(mjjg);//界面显示扫描的格子位置
         displayMjgdaLocal(mjjg);//显示该格子内的档案数据
@@ -493,7 +555,18 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         mBundle = new Bundle();
         mBundle.putString("info", name);
         scanInfoLocal = temple;
+        oldMjjId = mjj.getId();
+        oldMjgId = mjjg.getId();
+        oldKfId = kf.getId();
+        oldZy = mjjg.getZy();
         mHandlerMessage.setData(mBundle);
+    }
+
+    @Override
+    public void onDestroyView() {
+        savePdjl(mDataLists, pdid);
+        super.onDestroyView();
+        Log.e("onDestroyView", "onDestroyView- onDestroyView- --nDestroyView-onDestroyView-onDestroyView");
     }
 
     /**
