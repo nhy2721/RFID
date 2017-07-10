@@ -64,7 +64,7 @@ dependencies {
     //gson
     compile 'com.google.code.gson:gson:2.7'
     //sqlbrite
-    compile 'com.squareup.sqlbrite:sqlbrite:0.7.0'
+//    compile 'com.squareup.sqlbrite:sqlbrite:0.7.0'
     //ExpandTextView
     compile 'com.hymane.expandtextview:library:1.0.4'
     //TagFlowLayout
@@ -78,7 +78,7 @@ dependencies {
     //clickstyle
     compile 'com.balysv:material-ripple:1.0.2'
     //fab
-    compile 'com.getbase:floatingactionbutton:1.10.1'
+//    compile 'com.getbase:floatingactionbutton:1.10.1'
     testCompile 'junit:junit:4.12'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
     androidTestCompile 'com.android.support.test:runner:0.5'

@@ -47,8 +47,9 @@ import butterknife.BindView;
 
 import static com.botongsoft.rfid.common.db.DBDataUtils.getInfo;
 
-/**    出错这里要报警，RFID读取要终止。要不读取档案记录的话还会添加进去。
- *     出错返回activity 要有提示
+/**
+ * 出错这里要报警，RFID读取要终止。要不读取档案记录的话还会添加进去。
+ * 出错返回activity 要有提示
  * Created by pc on 2017/6/26.
  */
 
@@ -393,7 +394,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                             }
                         }
                         if (text == 0) {
-                            LogUtils.d("newErrorData", mjgda[0]+"-"+mjgda[1]);
+                            LogUtils.d("newErrorData", mjgda[0] + "-" + mjgda[1]);
                             Mjjgda mjjgda = new Mjjgda();
                             mjjgda.setBm(mjgda[0]);
                             mjjgda.setJlid(mjgda[1]);
@@ -432,6 +433,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                                         String.valueOf(pdid), "mjgid", String.valueOf(mjjg.getId()), "zy",
                                         String.valueOf(mjjg.getZy()), "mjjid", String.valueOf(mjjg.getMjjid()), "kfid", mjj.getKfid() + "");
                                 if (ce != null) {
+                                    //格子有记录过 先清除错误记录表。
                                     DBDataUtils.deleteInfos(CheckPlanDeatil.class, "pdid", pdid + "", "mjgid", mjjg.getId() + "");
                                 } else {
                                     CheckError mCheckError = new CheckError();
@@ -444,10 +446,10 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                                 }
                                 //保存错误记录
                                 boolean save = savePdjl(mDataLists, pdid);
-                                //读取密集格内档案数据显示在列表上
+                                //保存成功 读取新密集格内档案数据显示在列表上
                                 if (save == true) {
                                     dislapView(mjjg);
-                                }else{
+                                } else {
                                     mjjgList.remove(0);
                                 }
 
@@ -566,6 +568,8 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     @Override
     public void onDestroyView() {
         savePdjl(mDataLists, pdid);
+        stringList.clear();
+        scanInfoLocal="";
         super.onDestroyView();
         Log.e("onDestroyView", "onDestroyView- onDestroyView- --nDestroyView-onDestroyView-onDestroyView");
     }
