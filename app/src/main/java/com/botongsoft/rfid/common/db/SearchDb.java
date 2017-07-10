@@ -88,10 +88,10 @@ public class SearchDb {
     }
 
     /**
-     * 判断该密集格是否在盘点范围
+     * 判
      * @param srrArray  盘点范围
      * @param mjjg       密集格
-     * @return
+     * @return断该密集格是否在盘点范围
      */
     public static int countPdfw(String[] srrArray, Mjjg mjjg) {
         DbUtils db = DataBaseCreator.create();
