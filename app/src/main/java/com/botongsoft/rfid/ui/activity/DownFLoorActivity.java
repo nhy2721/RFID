@@ -165,7 +165,7 @@ public class DownFLoorActivity extends BaseActivity {
         // 添加滚动监听。
         //        mSwipeMenuRecyclerView.addOnScrollListener(mOnScrollListener);
         // 设置菜单创建器。
-        mSwipeMenuRecyclerView.setSwipeMenuCreator(swipeMenuCreator);
+        //        mSwipeMenuRecyclerView.setSwipeMenuCreator(swipeMenuCreator);
         // 设置菜单Item点击监听。
         mSwipeMenuRecyclerView.setSwipeMenuItemClickListener(menuItemClickListener);
 
@@ -339,7 +339,7 @@ public class DownFLoorActivity extends BaseActivity {
                     if (mjjgda != null) {
                         Map map = new HashMap();
                         map.put("id", mjjgda.getLid());
-                        map.put("title",mjjgda.getBm()+"-"+mjjgda.getJlid());
+                        map.put("title", mjjgda.getBm() + "-" + mjjgda.getJlid());
                         map.put("bm", mjjgda.getBm());
                         map.put("jlid", mjjgda.getJlid());
                         Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");

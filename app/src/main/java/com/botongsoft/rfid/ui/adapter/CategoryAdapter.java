@@ -15,6 +15,7 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.ui.activity.CheckPlanActivity;
 import com.botongsoft.rfid.ui.activity.DownFLoorActivity;
+import com.botongsoft.rfid.ui.activity.SyncActivity;
 import com.botongsoft.rfid.ui.activity.UpFLoorActivity;
 import com.botongsoft.rfid.ui.activity.UpGuidanceActivity;
 
@@ -28,8 +29,8 @@ public class CategoryAdapter extends RecyclerView.Adapter {
     private Intent intent;
 
     //    public CategoryAdapter() {
-//        mCategory = UIUtils.getContext().getResources().getStringArray(R.array.book_category);
-//    }
+    //        mCategory = UIUtils.getContext().getResources().getStringArray(R.array.book_category);
+    //    }
     public CategoryAdapter(Context mContext) {
         mCategory = UIUtils.getContext().getResources().getStringArray(R.array.book_category);
         this.mContext = mContext;
@@ -85,13 +86,20 @@ public class CategoryAdapter extends RecyclerView.Adapter {
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
                         UIUtils.startActivity(intent);
                         break;
+                    case 6:
+                        Toast.makeText(UIUtils.getContext(), "同步", Toast.LENGTH_SHORT).show();
+                        intent = new Intent(UIUtils.getContext(), SyncActivity.class);
+                        intent.putExtra("index", position);
+                        intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
+                        UIUtils.startActivity(intent);
+                        break;
 
 
                 }
-//                Intent intent = new Intent(UIUtils.getContext(), CategoryDetailActivity.class);
-//                intent.putExtra("index", position);
-//                intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
-//                UIUtils.startActivity(intent);
+                //                Intent intent = new Intent(UIUtils.getContext(), CategoryDetailActivity.class);
+                //                intent.putExtra("index", position);
+                //                intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
+                //                UIUtils.startActivity(intent);
             }
         });
     }

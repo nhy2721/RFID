@@ -4,12 +4,12 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.alibaba.fastjson.JSON;
+import com.botongsoft.rfid.common.DialogLoad;
+import com.botongsoft.rfid.common.ShareManager;
 import com.botongsoft.rfid.common.constants.Constant;
 import com.botongsoft.rfid.common.utils.JsonUtils;
 import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.common.utils.RSA;
-import com.botongsoft.rfid.common.DialogLoad;
-import com.botongsoft.rfid.common.ShareManager;
 
 
 @SuppressWarnings("rawtypes")
