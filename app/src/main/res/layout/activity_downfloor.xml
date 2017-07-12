@@ -96,7 +96,7 @@
                 android:id="@+id/tx_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.27"
+                android:layout_weight="0.21"
                 android:padding="@dimen/item_margin"
                 >
 
