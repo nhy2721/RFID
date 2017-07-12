@@ -4,6 +4,10 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Environment;
 
+import com.botongsoft.rfid.common.db.DataBaseCreator;
+import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.exception.DbException;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -160,6 +164,93 @@ public class FileUtils {
             e.printStackTrace();
         }
         return is;
+    }
+
+    /**
+     * 获取Asset下的文件内容
+     *
+     * @param context
+     * @param fileName
+     * @return 文件内容
+     */
+
+
+    public static boolean readFileFromAssetWriteDB(Context context, String fileName) {
+        boolean t = true;
+        DbUtils db = DataBaseCreator.create();
+        AssetManager am = context.getAssets();
+        InputStream is = null;
+        BufferedReader br = null;
+        StringBuilder s = new StringBuilder();
+        try {
+            is = am.open(fileName);
+            InputStreamReader in = new InputStreamReader(is, "UTF-8");
+            br = new BufferedReader(in);
+            String line;
+            String buffer = "";
+            while ((line = br.readLine()) != null) {
+                buffer += line;
+                try {
+                    db.execNonQuery(buffer.replace(";", ""));
+                    buffer = "";
+                } catch (DbException e) {
+                    t = false;
+                    e.printStackTrace();
+                }
+            }
+
+        } catch (IOException e) {
+            t = false;
+            e.printStackTrace();
+
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return t;
+    }
+
+    /**
+     * 获取Asset下的文件内容
+     *
+     * @param context
+     * @param fileName
+     * @return 文件内容
+     */
+
+
+    public static String readFileFromAsset(Context context, String fileName) {
+
+        AssetManager am = context.getAssets();
+        InputStream is = null;
+        BufferedReader br = null;
+        StringBuilder s = new StringBuilder();
+        try {
+            is = am.open(fileName);
+            InputStreamReader in = new InputStreamReader(is, "UTF-8");
+            br = new BufferedReader(in);
+            String line;
+            while ((line = br.readLine()) != null) {
+                s.append(line);
+            }
+            return s.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.botongsoft.rfid.ui.activity;
 
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,6 +41,7 @@ import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
 import com.botongsoft.rfid.common.service.http.BusinessException;
+import com.botongsoft.rfid.common.utils.FileUtils;
 import com.botongsoft.rfid.common.utils.KeyBoardUtils;
 import com.botongsoft.rfid.common.utils.PermissionUtils;
 import com.botongsoft.rfid.common.utils.SPUtils;
@@ -49,6 +52,7 @@ import com.botongsoft.rfid.ui.fragment.HomeFragment;
 import com.botongsoft.rfid.utils.customtabs.CustomTabActivityHelper;
 import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.exception.DbException;
+import com.lidroid.xutils.util.LogUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -68,7 +72,8 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     private PopupWindow mPopupWindow;
     private SearchViewHolder holder;
     private long lastTime = 0;
-    private Class[] tables= {CheckError.class, CheckPlan.class, CheckPlanDeatil.class, Kf.class, Mjj.class, Mjjg.class, Mjjgda.class};
+    private Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class, Kf.class, Mjj.class, Mjjg.class, Mjjgda.class};
+    private Activity mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,12 +99,13 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                     break;
                 case 1:
                     if (currentFragment == null) {
-//                        currentFragment = BookshelfFragment.newInstance();
+                        //                        currentFragment = BookshelfFragment.newInstance();
                     }
                     switchContent(null, currentFragment);
                     break;
             }
         }
+        mContext = this;
         initNavView();
     }
 
@@ -116,7 +122,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
             getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         }
         MenuItem item = mNavigationView.getMenu().findItem(R.id.nav_theme);
-//        mNavigationView.getMenu().findItem(R.id.nav_home).setChecked(true);
+        //        mNavigationView.getMenu().findItem(R.id.nav_home).setChecked(true);
         mThemeSwitch = (SwitchCompat) MenuItemCompat.getActionView(item).findViewById(R.id.view_switch);
         mThemeSwitch.setChecked(night);
         mThemeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -135,15 +141,43 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
     @Override
     protected void initEvents() {
-        DbUtils db = DataBaseCreator.create();
-        for (Class table : tables) {
-            try {
-                db.createTableIfNotExist(table);
-            } catch (DbException e) {
-                e.printStackTrace();
-            }
-        }
+        LogUtils.e("initEvents");
+        new Thread() {
+            @Override
+            public void run() {
+                LogUtils.e("initEvents new Thread" +Thread.currentThread().getName() + "");
+                Log.e("initEvents new Thread", String.valueOf(Thread.currentThread().getName()));
+                DbUtils db = DataBaseCreator.create();
+                for (Class table : tables) {
+                    try {
+                        db.createTableIfNotExist(table);
+                    } catch (DbException e) {
+                        e.printStackTrace();
+                    }
+                }
+                try {
+                    if (db.count(CheckPlan.class) <= 0) {
+                        boolean checkplanStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "checkplan.sql");
+                        LogUtils.e("盘点数据数据新增 " + checkplanStruts + "");
+                    }
+                    if (db.count(Kf.class) <= 0) {
+                        boolean kfStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "kf.sql");
+                        LogUtils.e("库房数据新增 " + kfStruts + "");
+                    }
+                    if (db.count(Mjj.class) <= 0) {
+                        boolean mjjStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjj.sql");
+                        LogUtils.e("密集架数据新增 " + mjjStruts + "");
+                    }
+                    if (db.count(Mjjg.class) <= 0) {
+                        boolean mjjgStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjjg.sql");
+                        LogUtils.e("密集架格数据新增 " + mjjgStruts + "");
+                    }
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
 
+            }
+        }.start();
     }
 
     @Override
@@ -154,11 +188,11 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
             if (currentFragment == null) {
                 currentFragment = HomeFragment.newInstance();
             }
-//            if (!(currentFragment instanceof HomeFragment)) {
-//                switchContent(currentFragment, HomeFragment.newInstance());
-//                mNavigationView.getMenu().findItem(R.id.nav_home).setChecked(true);
-//                return;
-//            }
+            //            if (!(currentFragment instanceof HomeFragment)) {
+            //                switchContent(currentFragment, HomeFragment.newInstance());
+            //                mNavigationView.getMenu().findItem(R.id.nav_home).setChecked(true);
+            //                return;
+            //            }
             if ((System.currentTimeMillis() - lastTime) > EXIT_APP_DELAY) {
                 Snackbar.make(drawer, getString(R.string.press_twice_exit), Snackbar.LENGTH_SHORT)
                         .setAction(R.string.exit_directly, v -> {
@@ -221,14 +255,14 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                                             .build(),
                                     Uri.parse(q.replace("@", "")));
                         } else {
-//                            Intent intent = new Intent(this, SearchResultActivity.class);
-//                            intent.putExtra("q", q);
-//                            startActivity(intent);
+                            //                            Intent intent = new Intent(this, SearchResultActivity.class);
+                            //                            intent.putExtra("q", q);
+                            //                            startActivity(intent);
                         }
                         break;
                     case SearchViewHolder.RESULT_SEARCH_GO_SCAN:
                         if (PermissionUtils.requestCameraPermission(this)) {
-//                            startActivity(new Intent(this, CaptureActivity.class));
+                            //                            startActivity(new Intent(this, CaptureActivity.class));
                         }
                         break;
                     case SearchViewHolder.RESULT_SEARCH_CANCEL:
@@ -243,7 +277,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
             mPopupWindow.setFocusable(true);
             mPopupWindow.setOutsideTouchable(true);
             // 设置popWindow的显示和消失动画
-//                mPopupWindow.setAnimationStyle(R.style.PopupWindowStyle);
+            //                mPopupWindow.setAnimationStyle(R.style.PopupWindowStyle);
             mPopupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
                 @Override
                 public void onDismiss() {
@@ -305,13 +339,13 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         // Inflate the menu; this adds items to the action bar if it is present.
         int menuId = R.menu.menu_empty;
         if (currentFragment instanceof HomeFragment) {
-//            menuId = R.menu.main;
+            //            menuId = R.menu.main;
         }
-// else if (currentFragment instanceof BookshelfFragment) {
-//            menuId = R.menu.bookshelf_main;
-//        } else if (currentFragment instanceof EBookFragment) {
-//            menuId = R.menu.ebook_main;
-//        }
+        // else if (currentFragment instanceof BookshelfFragment) {
+        //            menuId = R.menu.bookshelf_main;
+        //        } else if (currentFragment instanceof EBookFragment) {
+        //            menuId = R.menu.ebook_main;
+        //        }
         getMenuInflater().inflate(menuId, menu);
         currentFragment.onCreateOptionsMenu(menu, getMenuInflater());
         return true;
@@ -364,11 +398,11 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
         if (id == R.id.nav_home) {
             // Handle the camera action
-//            switchContent(currentFragment, HomeFragment.newInstance());
+            //            switchContent(currentFragment, HomeFragment.newInstance());
         } else if (id == R.id.nav_ebook) {
-//            switchContent(currentFragment, EBookFragment.newInstance());
+            //            switchContent(currentFragment, EBookFragment.newInstance());
         } else if (id == R.id.nav_bookshelf) {
-//            switchContent(currentFragment, BookshelfFragment.newInstance());
+            //            switchContent(currentFragment, BookshelfFragment.newInstance());
         } else if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_theme) {

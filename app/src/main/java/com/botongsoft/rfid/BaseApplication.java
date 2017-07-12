@@ -18,7 +18,7 @@ public class BaseApplication extends Application {
     public static Context context;
     public final static String TAG = "BaseApplication";
     public static String DBNAMESTRING = "kfgl.db";
-    public static int DBVERSION = 0;
+    public static int DBVERSION = 1;
     public final static boolean DEBUG = true;
     private static BaseApplication application;
     private static int mainTid;

@@ -11,8 +11,16 @@ import com.google.gson.Gson;
 
 public class JsonUtils {
 
-    public static Object analysisJsonFile(Context context, String fileName, Class<?> entity) {
+    public static Object analysisJsonFileByRaw(Context context, String fileName, Class<?> entity) {
         String content = FileUtils.readJsonFile(context, fileName);
+        Gson gson = new Gson();
+        Object info = null;
+        info = gson.fromJson(content, entity);
+        return info;
+
+    }
+    public static Object analysisJsonFileByAssets(Context context, String fileName, Class<?> entity) {
+        String content = FileUtils.readFileFromAsset(context, fileName);
         Gson gson = new Gson();
         Object info = null;
         info = gson.fromJson(content, entity);

@@ -1,6 +1,7 @@
 package com.botongsoft.rfid.common.utils;
 
 import android.content.Context;
+import android.view.KeyEvent;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
@@ -35,5 +36,21 @@ public class KeyBoardUtils {
         InputMethodManager imm = (InputMethodManager) mContext
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(mEditText.getWindowToken(), 0);
+    }
+
+    /**
+     * 实现不能回退
+     * 请重写 onKeyDown事件方法
+     *
+     * @param event
+     * @return
+     */
+    public boolean dispatchKeyEvent(android.view.KeyEvent event) {
+        switch (event.getKeyCode()) {
+            case KeyEvent.KEYCODE_BACK: {
+                return false;
+            }
+        }
+        return true;
     }
 }
