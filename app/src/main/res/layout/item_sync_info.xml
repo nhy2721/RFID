@@ -73,6 +73,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="right"
+                android:paddingRight="5dp"
                 tools:text="没有下载"
                 />
         </LinearLayout>
