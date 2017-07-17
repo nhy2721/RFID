@@ -61,7 +61,7 @@ public class RequestTask extends
 						Constant.USER_CODE);
 				String str_key = ShareManager.getValue(mContext,
 						Constant.RSA_KEY);
-				if (request.url.equals(Constant.DOMAIN)) {
+				if (request.url.equals(Constant.DOMAINTEST)) {
 					strParams = "f="
 							+ RSA.rsaEncode(strParams, business_no, str_key);
 				} else {

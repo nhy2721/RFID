@@ -1,7 +1,6 @@
 package com.botongsoft.rfid.busines;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * Created by renpingqing on 17/1/19.
@@ -9,25 +8,16 @@ import java.util.List;
 public class MyBusinessInfo implements Serializable {
 
     private String name;
-    private String icon;
+
     private int listSize;
-    private List list;
+    private int tag;//请求同步接口编号1000,1001,1002,1003...
     private Object obj;
 
-    public MyBusinessInfo(String name, String icon, Integer listSize, List list,Object obj) {
+    public MyBusinessInfo(String name, Integer tag, Integer listSize, Object obj) {
         this.name = name;
-        this.icon = icon;
+        this.tag = tag;
         this.listSize = listSize;
-        this.list = list;
         this.obj = obj;
-    }
-
-    public String getIcon() {
-        return icon;
-    }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
     }
 
     public String getName() {
@@ -44,14 +34,6 @@ public class MyBusinessInfo implements Serializable {
 
     public void setListSize(int listSize) {
         this.listSize = listSize;
-    }
-
-    public List getList() {
-        return list;
-    }
-
-    public void setList(List list) {
-        this.list = list;
     }
 
     public Object getObj() {

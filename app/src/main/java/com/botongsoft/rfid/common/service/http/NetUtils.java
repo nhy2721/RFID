@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class NetUtils {
 	 */
 	public static final int STATE_CONNECT_MOBILE = 2;
 
-	private static final int TIMEOUT = 80000;
+	private static final int TIMEOUT = 500;
 
 	private static final String TAG = "NetUtils";
 
@@ -298,5 +299,37 @@ public class NetUtils {
 	}
 
 	private NetUtils() {
+	}
+	/**
+	 * 判断网络是否可以链接
+	 * @param urlString
+	 * @return
+	 */
+	public static  boolean isConnByHttp(String urlString) {
+		boolean isConn = false;
+		disableConnectionReuseIfNecessary();
+		HttpURLConnection connection = null;
+
+		try {
+			URL   url = new URL(urlString);
+			connection = (HttpURLConnection) url.openConnection();
+			connection.setConnectTimeout(TIMEOUT);
+			//			connection.setRequestProperty("content-type", "text/html");
+			final int statusCode = connection.getResponseCode();
+			if (statusCode == HttpStatus.SC_OK) {
+				isConn = true;
+			}
+
+
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+
+		} finally {
+			connection.disconnect();
+		}
+		return isConn;
 	}
 }

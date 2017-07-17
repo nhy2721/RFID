@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.busines.MyBusinessInfo;
+import com.botongsoft.rfid.common.utils.ListUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.ui.activity.SyncActivity;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuAdapter;
@@ -34,6 +35,14 @@ public class SyncAdapter extends SwipeMenuAdapter<SyncAdapter.DefaultViewHolder>
         super();
         this.mContext = syncActivity;
         this.myBusinessInfo = syncListData;
+    }
+
+    public void setCurList(List<MyBusinessInfo> list) {
+        if (!ListUtils.isEmpty(list)) {
+            myBusinessInfo.clear();
+            myBusinessInfo.addAll(list);
+        }
+        this.notifyDataSetChanged();
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
@@ -63,8 +72,6 @@ public class SyncAdapter extends SwipeMenuAdapter<SyncAdapter.DefaultViewHolder>
     }
 
     public static class DefaultViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-//        @BindView(R.id.iv_icon)
-//        ImageView imageView;
         @BindView(R.id.tv_name)
         TextView tv_name;
         @BindView(R.id.bt_action)
@@ -86,8 +93,8 @@ public class SyncAdapter extends SwipeMenuAdapter<SyncAdapter.DefaultViewHolder>
 
         public void setData(MyBusinessInfo myBusinessInfo, int position) {
             this.tv_name.setText(myBusinessInfo.getName());
-            this.tv_oleNsize.setText(myBusinessInfo.getListSize()+"条记录需要更新");
-            if(myBusinessInfo.getListSize()>0){
+            this.tv_oleNsize.setText(myBusinessInfo.getListSize() + "条记录需要更新");
+            if (myBusinessInfo.getListSize() > 0) {
                 this.tv_status.setText("未更新");
             }
         }

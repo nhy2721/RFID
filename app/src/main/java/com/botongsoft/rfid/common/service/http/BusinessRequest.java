@@ -63,7 +63,7 @@ public class BusinessRequest {
 	/***** 请求方式 ***/
 	public String method = "POST";
 
-	public String url = Constant.DOMAIN;
+	public String url = Constant.DOMAINTEST;
 	/*** FID请求时加密随机数 **/
 	public String FID_RANDOM;
 

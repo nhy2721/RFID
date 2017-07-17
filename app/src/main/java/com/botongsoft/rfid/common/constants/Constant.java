@@ -9,10 +9,7 @@ public class Constant {
 	public static final String THEME_MODEL = "theme_model";
 	/*** 服务器地址 **/
 	public static String DOMAIN = "http://www.zzdanganguan.gov.cn/servlet/zzdajServlet";// ?clientType=0&message=
-	// public static String DOMAIN =
-	// "http://vink.v050.10000net.cn/servlet/zzdajServlet";//?clientType=0&message=
-
-	public static String http_url = "http://www.zzdanganguan.gov.cn";// ?clientType=0&message=
+	public static String DOMAINTEST = "http://192.168.0.66:8086/servlet/appServlet";// ?clientType=0&message=
 
 	/**
 	 * 数据编码
@@ -79,9 +76,9 @@ public class Constant {
 	/**** 1. 接口名称:扫码支付接口(payScan) ******/
 	public static final int ACT_PAY_SCAN = 3;
 
-	/** *获取二维吗code */
-	public static final int ACT_GET_WORDS = 1001;
-
+	/** *获取服务器表数据更新数*/
+	public static final int ACT_GET_WORDS = 9999;
+	public static final int ACT_GET_KF = 1001;
 	/** 查询集合记录 */
 	public static final int ACT_SET_CASHLOGS = 7;
 
