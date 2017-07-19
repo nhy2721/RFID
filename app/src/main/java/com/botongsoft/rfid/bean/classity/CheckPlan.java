@@ -26,6 +26,28 @@ public class CheckPlan implements java.io.Serializable {
     private String pdr;
     @Column
     private String bz;
+    @Column
+    private int status;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public int getAnchor() {
+        return anchor;
+    }
+
+    public void setAnchor(int anchor) {
+        this.anchor = anchor;
+    }
+
+    @Column
+
+    private int anchor;
 
     public int getKssj() {
         return kssj;

@@ -160,14 +160,14 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                         boolean checkplanStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "checkplan.sql");
                         LogUtils.e("盘点数据数据新增 " + checkplanStruts + "");
                     }
-                    if (db.count(Kf.class) <= 0) {
-                        boolean kfStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "kf.sql");
-                        LogUtils.e("库房数据新增 " + kfStruts + "");
-                    }
-                    if (db.count(Mjj.class) <= 0) {
-                        boolean mjjStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjj.sql");
-                        LogUtils.e("密集架数据新增 " + mjjStruts + "");
-                    }
+//                    if (db.count(Kf.class) <= 0) {
+//                        boolean kfStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "kf.sql");
+//                        LogUtils.e("库房数据新增 " + kfStruts + "");
+//                    }
+//                    if (db.count(Mjj.class) <= 0) {
+//                        boolean mjjStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjj.sql");
+//                        LogUtils.e("密集架数据新增 " + mjjStruts + "");
+//                    }
                     if (db.count(Mjjg.class) <= 0) {
                         boolean mjjgStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjjg.sql");
                         LogUtils.e("密集架格数据新增 " + mjjgStruts + "");

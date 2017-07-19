@@ -80,6 +80,8 @@ public class Constant {
 	public static final int ACT_GET_WORDS = 9999;
 	public static final int ACT_GET_KF = 1000;
 	public static final int ACT_PUT_KF = 1002;
+	public static final int ACT_GET_MJJ = 1003;
+	public static final int ACT_GET_MJJG = 1004;
 	/** 查询集合记录 */
 	public static final int ACT_SET_CASHLOGS = 7;
 

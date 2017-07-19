@@ -29,6 +29,26 @@ public class Mjjgda implements java.io.Serializable {
     private int mjjid;
     @Column
     private int kfid;
+    @Column
+    private int status;
+    @Column
+    private int anchor;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public int getAnchor() {
+        return anchor;
+    }
+
+    public void setAnchor(int anchor) {
+        this.anchor = anchor;
+    }
 
     public int getLid() {
         return lid;
@@ -113,7 +133,7 @@ public class Mjjgda implements java.io.Serializable {
     @Column
     private String scanInfo;//页面扫描的档案记录条码
     @Transient
-    private  int color = 0;//转换颜色图片
+    private int color = 0;//转换颜色图片
 
     public int getColor() {
         return color;

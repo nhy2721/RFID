@@ -24,9 +24,29 @@ public class Mjjg implements java.io.Serializable {
     private int cs;
     @Column
     private int zs;
+    @Column
+    private int status;
+    @Column
+    private int anchor;
 
     public int getLid() {
         return lid;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public int getAnchor() {
+        return anchor;
+    }
+
+    public void setAnchor(int anchor) {
+        this.anchor = anchor;
     }
 
     public void setLid(int lid) {

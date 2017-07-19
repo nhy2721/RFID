@@ -20,6 +20,8 @@ import com.botongsoft.rfid.bean.JsonBean.CountJson;
 import com.botongsoft.rfid.bean.JsonBean.KfJson;
 import com.botongsoft.rfid.bean.JsonBean.MjjJson;
 import com.botongsoft.rfid.bean.classity.Kf;
+import com.botongsoft.rfid.bean.classity.Mjj;
+import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.busines.FilesBusines;
 import com.botongsoft.rfid.busines.MyBusinessInfo;
@@ -32,6 +34,9 @@ import com.botongsoft.rfid.common.utils.JsonUtils;
 import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
+import com.botongsoft.rfid.ui.Handler.WriteKfDBThread;
+import com.botongsoft.rfid.ui.Handler.WriteMjgDBThread;
+import com.botongsoft.rfid.ui.Handler.WriteMjjDBThread;
 import com.botongsoft.rfid.ui.adapter.SyncAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
 import com.lidroid.xutils.util.LogUtils;
@@ -71,10 +76,14 @@ public class SyncActivity extends BaseActivity {
     private Handler mCheckMsgHandler;
     private static final int BackThread_GETKF = 1000;
     private static final int BackThread_PUTKF = 1001;
+    private static final int BackThread_GETMJJ = 1003;
+    private static final int BackThread_GETMJJG = 1004;
     //传递后台运行消息队列
     Message msg;
     private Thread networkThread;//网络操作相关的子线程
-    private WriteDbThread wrDbThread;//网络操作相关的子线程
+    private WriteKfDBThread wrKfDbThread;//数据库操作相关
+    private WriteMjjDBThread wrMjjDbThread;//数据库操作相关
+    private WriteMjgDBThread wrMjgDbThread;//数据库操作相关
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +127,7 @@ public class SyncActivity extends BaseActivity {
         return myBusinessInfos;
     }
 
+
     public OnItemClickListener onItemClickListener = new OnItemClickListener() {
         @Override
         public void onItemClick(int position) {
@@ -147,6 +157,10 @@ public class SyncActivity extends BaseActivity {
                     break;
                 case "密集架":
                     LogUtils.d("read MjjJson");
+                    msg = mCheckMsgHandler.obtainMessage();
+                    LogUtils.d("BackThread_GETMJJ;");
+                    msg.what = BackThread_GETMJJ;
+                    mCheckMsgHandler.sendMessage(msg);
                     //                    MjjJson mjjJson = (com.botongsoft.rfid.bean.JsonBean.MjjJson) obj;
                     //                    //                    for (int i = mjjJson.getRes().getRows().size() - 1; i >= 0; i--) {
                     //                    //
@@ -166,6 +180,13 @@ public class SyncActivity extends BaseActivity {
                     //                        mjj.setCs(Integer.valueOf(rowsBean.getCs()));
                     //                        DBDataUtils.save(mjj);
                     //                    }
+                    break;
+                case "密集格":
+                    LogUtils.d("read MjjJson");
+                    msg = mCheckMsgHandler.obtainMessage();
+                    LogUtils.d("BackThread_GETMJJG;");
+                    msg.what = BackThread_GETMJJG;
+                    mCheckMsgHandler.sendMessage(msg);
                     break;
                 default:
                     break;
@@ -208,31 +229,9 @@ public class SyncActivity extends BaseActivity {
                     try {
                         List<Kf> kfJsonList = JSON.parseArray(response.res.rows, Kf.class);
                         if (kfJsonList != null && !kfJsonList.isEmpty()) {
-                            wrDbThread = new WriteDbThread();
-                            wrDbThread.setList(kfJsonList);
-                            wrDbThread.start();
-
-                            //                            new Thread() {
-                            //                                @Override
-                            //                                public void run() {
-                            //                                    super.run();
-                            //                                    for (Kf kf : kfJsonList) {
-                            //                                        Kf kfOld = (Kf) DBDataUtils.getInfo(Kf.class, "id", kf.getId() + "");
-                            //                                        if (kfOld != null) {
-                            //                                            kfOld.setQzh(kf.getQzh());
-                            //                                            kfOld.setBz(kf.getBz());
-                            //                                            kfOld.setMc(kf.getMc());
-                            //                                            kfOld.setId(kf.getId());
-                            //                                            kfOld.setAnchor(kf.getAnchor());
-                            //                                            kfOld.setStatus(9);
-                            //                                            DBDataUtils.update(kfOld);
-                            //                                        } else {
-                            //                                            kf.setStatus(9);
-                            //                                            DBDataUtils.save(kf);
-                            //                                        }
-                            //                                    }
-                            //                                }
-                            //                            }.start();
+                            wrKfDbThread = new WriteKfDBThread();
+                            wrKfDbThread.setList(kfJsonList);
+                            wrKfDbThread.start();
                         }
                         myBusinessInfos.get(0).setListSize(0);
                         mSyncAdapter.notifyDataSetChanged();
@@ -241,9 +240,38 @@ public class SyncActivity extends BaseActivity {
                     }
                 }
 
-            } else if (act == Constant.ACT_PUT_KF) {
-
+            } else if (act == Constant.ACT_GET_MJJ) {
+                if (response.isSuccess()) {
+                    try {
+                        List<Mjj> mjjJsonList = JSON.parseArray(response.res.rows, Mjj.class);
+                        if (mjjJsonList != null && !mjjJsonList.isEmpty()) {
+                            wrMjjDbThread = new WriteMjjDBThread();
+                            wrMjjDbThread.setList(mjjJsonList);
+                            wrMjjDbThread.start();
+                        }
+                        myBusinessInfos.get(0).setListSize(0);
+                        mSyncAdapter.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else if (act == Constant.ACT_GET_MJJG) {
+                if (response.isSuccess()) {
+                    try {
+                        List<Mjjg> mjjgJsonList = JSON.parseArray(response.res.rows, Mjjg.class);
+                        if (mjjgJsonList != null && !mjjgJsonList.isEmpty()) {
+                            wrMjgDbThread = new WriteMjgDBThread();
+                            wrMjgDbThread.setList(mjjgJsonList);
+                            wrMjgDbThread.start();
+                        }
+                        myBusinessInfos.get(0).setListSize(0);
+                        mSyncAdapter.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
+
         }
     }
 
@@ -285,15 +313,37 @@ public class SyncActivity extends BaseActivity {
                 Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
                 switch (msg.what) {
                     case BackThread_GETKF:
-                        int anchor;
+                        int kfAnchor;
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
                         Kf kfInfo = (Kf) DBDataUtils.getInfoHasOp(Kf.class, "anchor", ">=", "0");
                         if (kfInfo == null) {
-                            anchor = 0;
+                            kfAnchor = 0;
                         } else {
-                            anchor = Integer.valueOf(kfInfo.getAnchor());
+                            kfAnchor = Integer.valueOf(kfInfo.getAnchor());
                         }
-                        FilesBusines.getKfState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, anchor);
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, BackThread_GETKF);
+                        break;
+                    case BackThread_GETMJJ:
+                        int mjjAnchor;
+                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                        Mjj mjjInfo = (Mjj) DBDataUtils.getInfoHasOp(Mjj.class, "anchor", ">=", "0");
+                        if (mjjInfo == null) {
+                            mjjAnchor = 0;
+                        } else {
+                            mjjAnchor = Integer.valueOf(mjjInfo.getAnchor());
+                        }
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjAnchor, BackThread_GETMJJ);
+                        break;
+                    case BackThread_GETMJJG:
+                        int mjjgAnchor;
+                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                        Mjjg mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
+                        if (mjjgInfo == null) {
+                            mjjgAnchor = 0;
+                        } else {
+                            mjjgAnchor = Integer.valueOf(mjjgInfo.getAnchor());
+                        }
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgAnchor, BackThread_GETMJJG);
                         break;
                     case BackThread_PUTKF:
                         //                        kfList = (List<Kf>) DBDataUtils.getInfos(Kf.class, "status", "<", "9");
@@ -383,37 +433,20 @@ public class SyncActivity extends BaseActivity {
             networkThread.interrupt();//中断线程的方法
             networkThread = null;
         }
-        if (wrDbThread != null) {
-            wrDbThread.interrupt();//中断线程的方法
-            wrDbThread = null;
+        if (wrKfDbThread != null) {
+            wrKfDbThread.interrupt();//中断线程的方法
+            wrKfDbThread = null;
+        }
+        if (wrMjjDbThread != null) {
+            wrMjjDbThread.interrupt();//中断线程的方法
+            wrMjjDbThread = null;
+        }
+        if (wrMjgDbThread != null) {
+            wrMjgDbThread.interrupt();//中断线程的方法
+            wrMjgDbThread = null;
         }
         finish();
     }
 
-    class WriteDbThread extends Thread {
-        private List<Kf> objList = null;
 
-        public void setList(List list) {
-            this.objList = list;
-        }
-
-        @Override
-        public void run() {
-            for (Kf kf : objList) {
-                Kf kfOld = (Kf) DBDataUtils.getInfo(Kf.class, "id", kf.getId() + "");
-                if (kfOld != null) {
-                    kfOld.setQzh(kf.getQzh());
-                    kfOld.setBz(kf.getBz());
-                    kfOld.setMc(kf.getMc());
-                    kfOld.setId(kf.getId());
-                    kfOld.setAnchor(kf.getAnchor());
-                    kfOld.setStatus(9);
-                    DBDataUtils.update(kfOld);
-                } else {
-                    kf.setStatus(9);
-                    DBDataUtils.save(kf);
-                }
-            }
-        }
-    }
 }

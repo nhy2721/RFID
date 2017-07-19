@@ -39,6 +39,26 @@ public class Mjj implements java.io.Serializable {
     private int rightState;//是否扫描过
     @Transient
     private boolean showLeft;//显示左面
+    @Column
+    private int status;
+    @Column
+    private int anchor;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public int getAnchor() {
+        return anchor;
+    }
+
+    public void setAnchor(int anchor) {
+        this.anchor = anchor;
+    }
 
     public boolean isShowLeft() {
         return showLeft;
