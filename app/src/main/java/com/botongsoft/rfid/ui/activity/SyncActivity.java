@@ -74,6 +74,9 @@ public class SyncActivity extends BaseActivity {
     private HandlerThread mCheckMsgThread;//Handler线程池
     //后台运行的handler
     private Handler mCheckMsgHandler;
+    //与UI线程管理的handler
+    private Handler mHandler;
+    private static final int BackThread_DOWORK = 9999;
     private static final int BackThread_GETKF = 1000;
     private static final int BackThread_PUTKF = 1001;
     private static final int BackThread_GETMJJ = 1003;
@@ -84,14 +87,49 @@ public class SyncActivity extends BaseActivity {
     private WriteKfDBThread wrKfDbThread;//数据库操作相关
     private WriteMjjDBThread wrMjjDbThread;//数据库操作相关
     private WriteMjgDBThread wrMjgDbThread;//数据库操作相关
-
+    static int kfAnchor;
+    static int mjjAnchor;
+    static int mjjgAnchor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_sync);
         ButterKnife.bind(this);
         super.onCreate(savedInstanceState);
         mContext = this;
+        initUiHandler();
         initDatas();
+    }
+
+    private void initUiHandler() {
+        mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                Bundle data = msg.getData();
+                switch (msg.what) {
+                    case CONN_SUCCESS:
+                        syncArry = UIUtils.getContext().getResources().getStringArray(R.array.sync_array);
+                        for (int i = 0; i < syncArry.length; i++) {
+                            myBusinessInfos.add(new MyBusinessInfo(syncArry[i], 1000 + i, 0, null));
+                        }
+                        msg = mCheckMsgHandler.obtainMessage();
+                        LogUtils.d("BackThread_DOWORK;");
+                        msg.what = BackThread_DOWORK;
+                        mCheckMsgHandler.sendMessage(msg);
+                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext,kfAnchor,mjjAnchor,mjjgAnchor);
+                        break;
+                    case CONN_UNSUCCESS:
+                        new AlertDialog.Builder(mContext)
+                                .setTitle("服务器无法访问")
+                                .setMessage("情检查网络是否畅通")
+                                .create().show();
+                        break;
+                    default:
+                        super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
+                        break;
+                }
+            }
+
+        };
     }
 
     private void initDatas() {
@@ -219,6 +257,7 @@ public class SyncActivity extends BaseActivity {
                         List<CountJson> countJsons = JSONObject.parseArray(response.res.rows, CountJson.class);
                         myBusinessInfos.get(0).setListSize(Integer.valueOf(countJsons.get(0).kf));
                         myBusinessInfos.get(1).setListSize(Integer.valueOf(countJsons.get(0).mjj));
+                        myBusinessInfos.get(2).setListSize(Integer.valueOf(countJsons.get(0).mjjg));
                         mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -249,7 +288,7 @@ public class SyncActivity extends BaseActivity {
                             wrMjjDbThread.setList(mjjJsonList);
                             wrMjjDbThread.start();
                         }
-                        myBusinessInfos.get(0).setListSize(0);
+                        myBusinessInfos.get(1).setListSize(0);
                         mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -264,7 +303,7 @@ public class SyncActivity extends BaseActivity {
                             wrMjgDbThread.setList(mjjgJsonList);
                             wrMjgDbThread.start();
                         }
-                        myBusinessInfos.get(0).setListSize(0);
+                        myBusinessInfos.get(2).setListSize(0);
                         mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -280,40 +319,13 @@ public class SyncActivity extends BaseActivity {
         ToastUtils.showLong(e.getMessage());
     }
 
-    Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            Bundle data = msg.getData();
-            switch (msg.what) {
-                case CONN_SUCCESS:
-                    syncArry = UIUtils.getContext().getResources().getStringArray(R.array.sync_array);
-                    for (int i = 0; i < syncArry.length; i++) {
-                        myBusinessInfos.add(new MyBusinessInfo(syncArry[i], 1000 + i, 0, null));
-                    }
-                    FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext);
-                    break;
-                case CONN_UNSUCCESS:
-                    new AlertDialog.Builder(mContext)
-                            .setTitle("服务器无法访问")
-                            .setMessage("情检查网络是否畅通")
-                            .create().show();
-                    break;
-                default:
-                    super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
-                    break;
-            }
-        }
-
-    };
-
     private void initBackThread() {
         mCheckMsgHandler = new Handler(mCheckMsgThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
                 switch (msg.what) {
-                    case BackThread_GETKF:
-                        int kfAnchor;
+                    case BackThread_DOWORK:
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
                         Kf kfInfo = (Kf) DBDataUtils.getInfoHasOp(Kf.class, "anchor", ">=", "0");
                         if (kfInfo == null) {
@@ -321,10 +333,6 @@ public class SyncActivity extends BaseActivity {
                         } else {
                             kfAnchor = Integer.valueOf(kfInfo.getAnchor());
                         }
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, BackThread_GETKF);
-                        break;
-                    case BackThread_GETMJJ:
-                        int mjjAnchor;
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
                         Mjj mjjInfo = (Mjj) DBDataUtils.getInfoHasOp(Mjj.class, "anchor", ">=", "0");
                         if (mjjInfo == null) {
@@ -332,10 +340,7 @@ public class SyncActivity extends BaseActivity {
                         } else {
                             mjjAnchor = Integer.valueOf(mjjInfo.getAnchor());
                         }
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjAnchor, BackThread_GETMJJ);
-                        break;
-                    case BackThread_GETMJJG:
-                        int mjjgAnchor;
+
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
                         Mjjg mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
                         if (mjjgInfo == null) {
@@ -343,6 +348,39 @@ public class SyncActivity extends BaseActivity {
                         } else {
                             mjjgAnchor = Integer.valueOf(mjjgInfo.getAnchor());
                         }
+
+                        break;
+                    case BackThread_GETKF:
+
+                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                        //                        Kf kfInfo = (Kf) DBDataUtils.getInfoHasOp(Kf.class, "anchor", ">=", "0");
+                        //                        if (kfInfo == null) {
+                        //                            kfAnchor = 0;
+                        //                        } else {
+                        //                            kfAnchor = Integer.valueOf(kfInfo.getAnchor());
+                        //                        }
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, BackThread_GETKF);
+                        break;
+                    case BackThread_GETMJJ:
+
+//                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+//                        Mjj mjjInfo = (Mjj) DBDataUtils.getInfoHasOp(Mjj.class, "anchor", ">=", "0");
+//                        if (mjjInfo == null) {
+//                            mjjAnchor = 0;
+//                        } else {
+//                            mjjAnchor = Integer.valueOf(mjjInfo.getAnchor());
+//                        }
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjAnchor, BackThread_GETMJJ);
+                        break;
+                    case BackThread_GETMJJG:
+//                        int mjjgAnchor;
+//                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+//                        Mjjg mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
+//                        if (mjjgInfo == null) {
+//                            mjjgAnchor = 0;
+//                        } else {
+//                            mjjgAnchor = Integer.valueOf(mjjgInfo.getAnchor());
+//                        }
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgAnchor, BackThread_GETMJJG);
                         break;
                     case BackThread_PUTKF:
@@ -377,16 +415,16 @@ public class SyncActivity extends BaseActivity {
         public void run() {
             // TODO
             // 在这里进行 http request.网络请求相关操作
-            Message msg = handler.obtainMessage();
+            Message msg = mHandler.obtainMessage();
             Bundle data = new Bundle();
 
             boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
             if (st) {
                 msg.what = CONN_SUCCESS;
-                handler.sendMessage(msg);
+                mHandler.sendMessage(msg);
             } else {
                 msg.what = CONN_UNSUCCESS;
-                handler.sendMessage(msg);
+                mHandler.sendMessage(msg);
             }
 
         }

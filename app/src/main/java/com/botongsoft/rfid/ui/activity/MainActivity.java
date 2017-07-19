@@ -168,10 +168,10 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 //                        boolean mjjStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjj.sql");
 //                        LogUtils.e("密集架数据新增 " + mjjStruts + "");
 //                    }
-                    if (db.count(Mjjg.class) <= 0) {
-                        boolean mjjgStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjjg.sql");
-                        LogUtils.e("密集架格数据新增 " + mjjgStruts + "");
-                    }
+//                    if (db.count(Mjjg.class) <= 0) {
+//                        boolean mjjgStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjjg.sql");
+//                        LogUtils.e("密集架格数据新增 " + mjjgStruts + "");
+//                    }
                 } catch (DbException e) {
                     e.printStackTrace();
                 }

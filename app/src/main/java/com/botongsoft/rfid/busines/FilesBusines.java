@@ -22,7 +22,7 @@ public class FilesBusines {
      * @return
      */
     public static RequestTask getWorkState(Context context,
-                                           BusinessResolver.BusinessCallback<BaseResponse> callback) {
+                                           BusinessResolver.BusinessCallback<BaseResponse> callback, int kf, int mjj, int mjg) {
         final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
@@ -31,6 +31,9 @@ public class FilesBusines {
         JSONObject str_json = new JSONObject();
         JSONObject req = new JSONObject();
         req.put("reqType", "9999");
+        req.put("kfanchor", kf);
+        req.put("mjjanchor", mjj);
+        req.put("mjganchor", mjg);
         JSONArray str_jsons = new JSONArray();
         str_jsons.add(req);
         str_json.put("req", str_jsons);
@@ -81,7 +84,7 @@ public class FilesBusines {
      * @return
      */
     public static RequestTask getState(Context context,
-                                         BusinessResolver.BusinessCallback<BaseResponse> callback, int anchor, int reqType) {
+                                       BusinessResolver.BusinessCallback<BaseResponse> callback, int anchor, int reqType) {
         final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
