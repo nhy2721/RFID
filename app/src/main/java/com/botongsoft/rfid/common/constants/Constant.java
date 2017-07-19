@@ -78,7 +78,8 @@ public class Constant {
 
 	/** *获取服务器表数据更新数*/
 	public static final int ACT_GET_WORDS = 9999;
-	public static final int ACT_GET_KF = 1001;
+	public static final int ACT_GET_KF = 1000;
+	public static final int ACT_PUT_KF = 1002;
 	/** 查询集合记录 */
 	public static final int ACT_SET_CASHLOGS = 7;
 

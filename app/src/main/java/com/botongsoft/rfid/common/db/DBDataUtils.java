@@ -97,6 +97,43 @@ public class DBDataUtils {
     /**
      * 获取数据
      *
+     * @param entityType
+     * @return
+     */
+    public static Object getInfos(Class<?> entityType, String key, String op, String value) {
+        DbUtils db = DataBaseCreator.create();
+        Object list = null;
+        try {
+            list = db.findAll(Selector.from(entityType).where(key, op, value));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * 获取数据
+     *
+     * @param key
+     * @param value
+     * @return
+     */
+    public static Object getInfoHasOp(Class<?> entityType, String key, String op, String value) {
+        DbUtils db = DataBaseCreator.create();
+        Object info = null;
+        try {
+            info = db.findFirst(Selector.from(entityType)
+                    .where(key, op, value).orderBy(key, true));
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
+
+    /**
+     * 获取数据
+     *
      * @param key
      * @param value
      * @return
@@ -126,7 +163,8 @@ public class DBDataUtils {
         }
         return info;
     }
-    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2,String key3,String value3) {
+
+    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2, String key3, String value3) {
         DbUtils db = DataBaseCreator.create();
         Object info = null;
         try {
@@ -138,7 +176,8 @@ public class DBDataUtils {
         }
         return info;
     }
-    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2,String key3,String value3,String key4,String value4) {
+
+    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2, String key3, String value3, String key4, String value4) {
         DbUtils db = DataBaseCreator.create();
         Object info = null;
         try {
@@ -150,7 +189,8 @@ public class DBDataUtils {
         }
         return info;
     }
-    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2,String key3,String value3,String key4,String value4,String key5,String value5) {
+
+    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2, String key3, String value3, String key4, String value4, String key5, String value5) {
         DbUtils db = DataBaseCreator.create();
         Object info = null;
         try {
@@ -323,7 +363,8 @@ public class DBDataUtils {
         }
         return isSuccess;
     }
-    public static boolean deleteInfos(Class<?> entityType,String key1,String value1,String key2,String value2) {
+
+    public static boolean deleteInfos(Class<?> entityType, String key1, String value1, String key2, String value2) {
         DbUtils db = DataBaseCreator.create();
         boolean isSuccess = false;
         try {
@@ -382,6 +423,21 @@ public class DBDataUtils {
             e.printStackTrace();
         }
 
+    }
+
+    /***
+     * 更新
+     *
+     * @param
+     */
+    public static void update(Object obj) {
+        try {
+            DbUtils dbUtils = DataBaseCreator.create();
+            dbUtils.update(obj);
+        } catch (DbException e)
+        {
+            e.printStackTrace();
+        }
     }
 
 

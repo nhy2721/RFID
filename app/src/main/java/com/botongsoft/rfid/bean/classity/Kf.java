@@ -62,4 +62,24 @@ public class Kf implements java.io.Serializable {
     @Column
 
     private String bz;
+    @Column
+    private int status;
+    @Column
+    private int anchor;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public int getAnchor() {
+        return anchor;
+    }
+
+    public void setAnchor(int anchor) {
+        this.anchor = anchor;
+    }
 }
