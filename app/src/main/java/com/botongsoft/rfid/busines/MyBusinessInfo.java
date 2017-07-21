@@ -7,9 +7,8 @@ import java.io.Serializable;
  */
 public class MyBusinessInfo implements Serializable {
 
-    private String name;
-
-    private int listSize;
+    private String name;//界面显示名称
+    private int listSize;//需要更新条目数
     private int tag;//请求同步接口编号1000,1001,1002,1003...
     private Object obj;
 
