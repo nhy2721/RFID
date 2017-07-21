@@ -9,7 +9,7 @@ import com.lidroid.xutils.db.annotation.Transient;
  * Created by pc on 2017/6/14.
  */
 @Table
-public class Mjjgda implements java.io.Serializable {
+public class MjjgdaDelInfos implements java.io.Serializable {
 
     @Id
     private int lid;//安卓端主键
@@ -33,20 +33,6 @@ public class Mjjgda implements java.io.Serializable {
     private int status;
     @Column
     private int anchor;
-    @Column
-    private String scanInfo;//页面扫描的档案记录条码
-    @Transient
-    private int color = 0;//转换颜色图片
-    @Transient
-    private String title;//页面拼接的扫描标签
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
 
     public int getStatus() {
         return status;
@@ -143,6 +129,11 @@ public class Mjjgda implements java.io.Serializable {
     public void setScanInfo(String scanInfo) {
         this.scanInfo = scanInfo;
     }
+
+    @Column
+    private String scanInfo;//页面扫描的档案记录条码
+    @Transient
+    private int color = 0;//转换颜色图片
 
     public int getColor() {
         return color;

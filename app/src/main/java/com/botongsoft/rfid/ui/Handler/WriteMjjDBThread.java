@@ -3,6 +3,7 @@ package com.botongsoft.rfid.ui.Handler;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,6 +12,8 @@ import java.util.List;
 
 public class WriteMjjDBThread extends Thread {
     private List<Mjj> objList = null;
+    private List<Mjj> saveList = new ArrayList<Mjj>();
+    private List<Mjj> newList = new ArrayList<Mjj>();
 
     public void setList(List list) {
         this.objList = list;
@@ -33,11 +36,17 @@ public class WriteMjjDBThread extends Thread {
                 mjjOld.setKfid(mjj.getKfid());
                 mjjOld.setBz(mjj.getBz());
                 mjjOld.setStatus(9);
-                DBDataUtils.update(mjjOld);
+                saveList.add(mjjOld);
             } else {
                 mjj.setStatus(9);
-                DBDataUtils.save(mjj);
+                newList.add(mjj);
             }
+        }
+        if (newList != null && !newList.isEmpty()) {
+            DBDataUtils.saveAll(newList);
+        }
+        if (saveList != null && !saveList.isEmpty()) {
+            DBDataUtils.updateAll(saveList);
         }
     }
 }

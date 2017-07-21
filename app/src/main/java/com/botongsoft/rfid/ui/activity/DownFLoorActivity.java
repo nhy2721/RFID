@@ -25,6 +25,7 @@ import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
+import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
@@ -42,9 +43,7 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuCreator;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -80,7 +79,7 @@ public class DownFLoorActivity extends BaseActivity {
     ProgressBar mProgressBar;
     private int index;
     private String editString;
-    private List<Map> mDataList;
+    private List<Mjjgda> mDataList;
     private DownFloorAdapter mDownFloorAdapter;
     private int size = 50;
     private static int size1 = 1;
@@ -269,12 +268,15 @@ public class DownFLoorActivity extends BaseActivity {
         }
     };
 
-    private boolean saveDB(List<Map> mDataList) {
+    private boolean saveDB(List<Mjjgda> mDataList) {
         boolean str = false;
         //        操作内容是根据选中的条目删除密集架档案表数据，完成下架。
-        for (Map map : mDataList) {
-            str = MjgdaSearchDb.delInfo(Mjjgda.class, "bm", map.get("bm") + "", "jlid", map.get("jlid") + "");
+        for (Mjjgda mjjgda : mDataList) {
+            MjjgdaDelInfos mjjgdaDelInfos = new MjjgdaDelInfos();
+
+            //            str = MjgdaSearchDb.delInfo(Mjjgda.class, "bm", map.get("bm") + "", "jlid", map.get("jlid") + "");
         }
+        str = MjgdaSearchDb.delInfo(mDataList);
         return str;
 
     }
@@ -318,8 +320,9 @@ public class DownFLoorActivity extends BaseActivity {
         String temp[] = editString.split("-");
         //防止扫描重复判断
         if (mDataList.size() > 0) {
-            for (Map map : mDataList) {
-                if (map.get("title").toString().equals(editString)) {
+            for (Mjjgda mjjgda : mDataList) {
+                //                if (map.get("title").toString().equals(editString)) {
+                if (mjjgda.getTitle().equals(editString)) {
                     tempStr = false;
                     break;
                 }
@@ -337,11 +340,12 @@ public class DownFLoorActivity extends BaseActivity {
                     Mjjgda mjjgda = null;
                     mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
                     if (mjjgda != null) {
-                        Map map = new HashMap();
-                        map.put("id", mjjgda.getLid());
-                        map.put("title", mjjgda.getBm() + "-" + mjjgda.getJlid());
-                        map.put("bm", mjjgda.getBm());
-                        map.put("jlid", mjjgda.getJlid());
+                        mjjgda.setTitle(mjjgda.getBm() + "-" + mjjgda.getJlid());
+                        //                        Map map = new HashMap();
+                        //                        map.put("id", mjjgda.getLid());
+                        //                        map.put("title", mjjgda.getBm() + "-" + mjjgda.getJlid());
+                        //                        map.put("bm", mjjgda.getBm());
+                        //                        map.put("jlid", mjjgda.getJlid());
                         Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
                         if (mjjg != null) {
                             nLOrR = mjjg.getZy() == 1 ? "左" : "右";
@@ -356,8 +360,9 @@ public class DownFLoorActivity extends BaseActivity {
                             kfname = kf.getMc() + "/";
                         }
                         String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                        map.put("local", name);//界面显示存放位置
-                        mDataList.add(map);
+                        //                        map.put("local", name);//界面显示存放位置
+                        mjjgda.setScanInfo(name);
+                        mDataList.add(mjjgda);
                     }
                     break;
             }
@@ -424,14 +429,14 @@ public class DownFLoorActivity extends BaseActivity {
                 // TODO 这里有个注意的地方，如果你刚进来时没有数据，但是设置了适配器，这个时候就会触发加载更多，需要开发者判断下是否有数据，如果有数据才去加载更多。
 
                 Toast.makeText(DownFLoorActivity.this, "滑到最底部了，去加载更多吧！", Toast.LENGTH_SHORT).show();
-                size += 50;
-                for (int i = size - 50; i < size; i++) {
-                    Map map = new HashMap();
-                    map.put("id", i);
-                    map.put("title", "我是第" + i + "个。");
-                    mDataList.add(map);
-                }
-                mDownFloorAdapter.notifyDataSetChanged();
+//                size += 50;
+                //                for (int i = size - 50; i < size; i++) {
+                //                    Map map = new HashMap();
+                //                    map.put("id", i);
+                //                    map.put("title", "我是第" + i + "个。");
+                //                    mDataList.add(map);
+                //                }
+                //                mDownFloorAdapter.notifyDataSetChanged();
             }
         }
 

@@ -413,6 +413,15 @@ public class DBDataUtils {
             e.printStackTrace();
         }
     }
+    public static void saveAll(List list) {
+        try {
+            //			DbUtils dbUtils = DbUtils.create(ApplicationApp.context);
+            DbUtils dbUtils = DataBaseCreator.create();
+            dbUtils.saveAll(list);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void saveOrupdate(Object obj) {
         DbUtils dbUtils = DataBaseCreator.create();
@@ -424,7 +433,20 @@ public class DBDataUtils {
         }
 
     }
-
+    /***
+     * 更新
+     *
+     * @param
+     */
+    public static void updateAll(List list) {
+        try {
+            DbUtils dbUtils = DataBaseCreator.create();
+            dbUtils.updateAll(list);
+        } catch (DbException e)
+        {
+            e.printStackTrace();
+        }
+    }
     /***
      * 更新
      *

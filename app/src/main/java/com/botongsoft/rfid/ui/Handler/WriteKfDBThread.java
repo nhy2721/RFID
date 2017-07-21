@@ -3,6 +3,7 @@ package com.botongsoft.rfid.ui.Handler;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,6 +12,8 @@ import java.util.List;
 
 public class WriteKfDBThread extends Thread {
     private List<Kf> objList = null;
+    private List<Kf> saveList = new ArrayList<Kf>();
+    private List<Kf> newList = new ArrayList<Kf>();
 
     public void setList(List list) {
         this.objList = list;
@@ -27,11 +30,17 @@ public class WriteKfDBThread extends Thread {
                 kfOld.setId(kf.getId());
                 kfOld.setAnchor(kf.getAnchor());
                 kfOld.setStatus(9);
-                DBDataUtils.update(kfOld);
+                saveList.add(kfOld);
             } else {
                 kf.setStatus(9);
-                DBDataUtils.save(kf);
+                newList.add(kf);
             }
+        }
+        if (newList != null && !newList.isEmpty()) {
+            DBDataUtils.saveAll(newList);
+        }
+        if (saveList != null && !saveList.isEmpty()) {
+            DBDataUtils.updateAll(saveList);
         }
     }
 }

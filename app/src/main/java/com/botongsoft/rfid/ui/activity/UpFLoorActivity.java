@@ -280,7 +280,7 @@ public class UpFLoorActivity extends BaseActivity {
 
         @Override
         public void run() {
-            String temp[] = scanInfoLocal.split("/");
+            String temp[] = scanInfoLocal.split("/");//拆分上架的位置
             //保存数据库
             for (Map map : mDataList) {
                 Mjjgda mjjgda = new Mjjgda();
@@ -297,6 +297,8 @@ public class UpFLoorActivity extends BaseActivity {
                 }
                 mjjgda.setBm((map.get("bm").toString()));
                 mjjgda.setJlid((map.get("jlid").toString()));
+                mjjgda.setStatus(0);//数据库新增
+                mjjgda.setAnchor(0);//数据新增默认版本号为0，等同步完获得服务器的版本号更新本地
                 DBDataUtils.save(mjjgda);
             }
             //这里发送通知ui更新界面

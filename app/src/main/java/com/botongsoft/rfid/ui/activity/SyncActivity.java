@@ -68,6 +68,7 @@ public class SyncActivity extends BaseActivity {
     private String[] syncArry;
     private static final int CONN_SUCCESS = 0;
     private static final int CONN_UNSUCCESS = 1;
+    private static final int INIT_DOWORK = 2;
     private static final int PUT_WROK_KF = 1002;
     List<Kf> kfList;
     private boolean isOnScreen;//是否在屏幕上
@@ -82,7 +83,8 @@ public class SyncActivity extends BaseActivity {
     private static final int BackThread_GETMJJ = 1003;
     private static final int BackThread_GETMJJG = 1004;
     //传递后台运行消息队列
-    Message msg;
+    Message backThreadmsg;
+    Message uiMsg;
     private Thread networkThread;//网络操作相关的子线程
     private WriteKfDBThread wrKfDbThread;//数据库操作相关
     private WriteMjjDBThread wrMjjDbThread;//数据库操作相关
@@ -90,6 +92,8 @@ public class SyncActivity extends BaseActivity {
     static int kfAnchor;
     static int mjjAnchor;
     static int mjjgAnchor;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_sync);
@@ -111,11 +115,14 @@ public class SyncActivity extends BaseActivity {
                         for (int i = 0; i < syncArry.length; i++) {
                             myBusinessInfos.add(new MyBusinessInfo(syncArry[i], 1000 + i, 0, null));
                         }
-                        msg = mCheckMsgHandler.obtainMessage();
+                        backThreadmsg = mCheckMsgHandler.obtainMessage();
                         LogUtils.d("BackThread_DOWORK;");
-                        msg.what = BackThread_DOWORK;
-                        mCheckMsgHandler.sendMessage(msg);
-                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext,kfAnchor,mjjAnchor,mjjgAnchor);
+                        backThreadmsg.what = BackThread_DOWORK;
+                        mCheckMsgHandler.sendMessage(backThreadmsg);
+                        //                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext,kfAnchor,mjjAnchor,mjjgAnchor);
+                        break;
+                    case INIT_DOWORK:
+                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, mjjAnchor, mjjgAnchor);
                         break;
                     case CONN_UNSUCCESS:
                         new AlertDialog.Builder(mContext)
@@ -178,10 +185,10 @@ public class SyncActivity extends BaseActivity {
             switch (myBusinessInfos.get(position).getName()) {
                 case "库房":
                     LogUtils.d("read KfJson " + myBusinessInfos.get(position).getListSize());
-                    msg = mCheckMsgHandler.obtainMessage();
+                    backThreadmsg = mCheckMsgHandler.obtainMessage();
                     LogUtils.d("BackThread_GETKF;");
-                    msg.what = BackThread_GETKF;
-                    mCheckMsgHandler.sendMessage(msg);
+                    backThreadmsg.what = BackThread_GETKF;
+                    mCheckMsgHandler.sendMessage(backThreadmsg);
 
                     //                    KfJson kj = (com.botongsoft.rfid.bean.JsonBean.KfJson) obj;
                     //                    for (KfJson.ResBean.RowsBean rowsBean : kj.getRes().getRows()) {
@@ -195,10 +202,10 @@ public class SyncActivity extends BaseActivity {
                     break;
                 case "密集架":
                     LogUtils.d("read MjjJson");
-                    msg = mCheckMsgHandler.obtainMessage();
+                    backThreadmsg = mCheckMsgHandler.obtainMessage();
                     LogUtils.d("BackThread_GETMJJ;");
-                    msg.what = BackThread_GETMJJ;
-                    mCheckMsgHandler.sendMessage(msg);
+                    backThreadmsg.what = BackThread_GETMJJ;
+                    mCheckMsgHandler.sendMessage(backThreadmsg);
                     //                    MjjJson mjjJson = (com.botongsoft.rfid.bean.JsonBean.MjjJson) obj;
                     //                    //                    for (int i = mjjJson.getRes().getRows().size() - 1; i >= 0; i--) {
                     //                    //
@@ -221,10 +228,10 @@ public class SyncActivity extends BaseActivity {
                     break;
                 case "密集格":
                     LogUtils.d("read MjjJson");
-                    msg = mCheckMsgHandler.obtainMessage();
+                    backThreadmsg = mCheckMsgHandler.obtainMessage();
                     LogUtils.d("BackThread_GETMJJG;");
-                    msg.what = BackThread_GETMJJG;
-                    mCheckMsgHandler.sendMessage(msg);
+                    backThreadmsg.what = BackThread_GETMJJG;
+                    mCheckMsgHandler.sendMessage(backThreadmsg);
                     break;
                 default:
                     break;
@@ -348,7 +355,9 @@ public class SyncActivity extends BaseActivity {
                         } else {
                             mjjgAnchor = Integer.valueOf(mjjgInfo.getAnchor());
                         }
-
+                        uiMsg = mHandler.obtainMessage();
+                        uiMsg.what = INIT_DOWORK;
+                        mHandler.sendMessage(uiMsg);
                         break;
                     case BackThread_GETKF:
 
@@ -363,24 +372,24 @@ public class SyncActivity extends BaseActivity {
                         break;
                     case BackThread_GETMJJ:
 
-//                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-//                        Mjj mjjInfo = (Mjj) DBDataUtils.getInfoHasOp(Mjj.class, "anchor", ">=", "0");
-//                        if (mjjInfo == null) {
-//                            mjjAnchor = 0;
-//                        } else {
-//                            mjjAnchor = Integer.valueOf(mjjInfo.getAnchor());
-//                        }
+                        //                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                        //                        Mjj mjjInfo = (Mjj) DBDataUtils.getInfoHasOp(Mjj.class, "anchor", ">=", "0");
+                        //                        if (mjjInfo == null) {
+                        //                            mjjAnchor = 0;
+                        //                        } else {
+                        //                            mjjAnchor = Integer.valueOf(mjjInfo.getAnchor());
+                        //                        }
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjAnchor, BackThread_GETMJJ);
                         break;
                     case BackThread_GETMJJG:
-//                        int mjjgAnchor;
-//                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-//                        Mjjg mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
-//                        if (mjjgInfo == null) {
-//                            mjjgAnchor = 0;
-//                        } else {
-//                            mjjgAnchor = Integer.valueOf(mjjgInfo.getAnchor());
-//                        }
+                        //                        int mjjgAnchor;
+                        //                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                        //                        Mjjg mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
+                        //                        if (mjjgInfo == null) {
+                        //                            mjjgAnchor = 0;
+                        //                        } else {
+                        //                            mjjgAnchor = Integer.valueOf(mjjgInfo.getAnchor());
+                        //                        }
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgAnchor, BackThread_GETMJJG);
                         break;
                     case BackThread_PUTKF:
@@ -415,16 +424,16 @@ public class SyncActivity extends BaseActivity {
         public void run() {
             // TODO
             // 在这里进行 http request.网络请求相关操作
-            Message msg = mHandler.obtainMessage();
+            uiMsg = mHandler.obtainMessage();
             Bundle data = new Bundle();
 
             boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
             if (st) {
-                msg.what = CONN_SUCCESS;
-                mHandler.sendMessage(msg);
+                uiMsg.what = CONN_SUCCESS;
+                mHandler.sendMessage(uiMsg);
             } else {
-                msg.what = CONN_UNSUCCESS;
-                mHandler.sendMessage(msg);
+                uiMsg.what = CONN_UNSUCCESS;
+                mHandler.sendMessage(uiMsg);
             }
 
         }

@@ -3,6 +3,7 @@ package com.botongsoft.rfid.ui.Handler;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,6 +12,9 @@ import java.util.List;
 
 public class WriteMjgDBThread extends Thread {
     private List<Mjjg> objList = null;
+    private List<Mjjg> saveList = new ArrayList<Mjjg>();
+    private List<Mjjg> newList = new ArrayList<Mjjg>();
+    private Mjjg mjjgOld;
 
     public void setList(List list) {
         this.objList = list;
@@ -19,7 +23,7 @@ public class WriteMjgDBThread extends Thread {
     @Override
     public void run() {
         for (Mjjg mjjg : objList) {
-            Mjjg mjjgOld = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjg.getId() + "");
+            mjjgOld = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjg.getId() + "");
             if (mjjgOld != null) {
                 mjjgOld.setAnchor(mjjg.getAnchor());
                 mjjgOld.setId(mjjg.getId());
@@ -30,11 +34,18 @@ public class WriteMjgDBThread extends Thread {
                 mjjgOld.setMjjid(mjjg.getMjjid());
                 mjjgOld.setZy(mjjg.getZy());
                 mjjgOld.setStatus(9);
-                DBDataUtils.update(mjjgOld);
+                saveList.add(mjjgOld);
             } else {
                 mjjg.setStatus(9);
-                DBDataUtils.save(mjjg);
+                newList.add(mjjg);
             }
         }
+        if (newList != null && !newList.isEmpty()) {
+            DBDataUtils.saveAll(newList);
+        }
+        if (saveList != null && !saveList.isEmpty()) {
+            DBDataUtils.updateAll(saveList);
+        }
+
     }
 }
