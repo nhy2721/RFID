@@ -37,11 +37,11 @@ public class DBDataUtils {
         return count;
     }
 
-    public static int getCount(Class<?> entityType, String key, String value) {
+    public static int getCount(Class<?> entityType, String key, String op, String value) {
         DbUtils db = DataBaseCreator.create();
         int count = 0;
         try {
-            List list = db.findAll(Selector.from(entityType).where(key, "=",
+            List list = db.findAll(Selector.from(entityType).where(key, op,
                     value));
             if (list != null) {
                 count = list.size();
@@ -109,6 +109,11 @@ public class DBDataUtils {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public static long count(Class<?> entityType, String key, String op, String value) throws DbException {
+        DbUtils db = DataBaseCreator.create();
+        return db.count(Selector.from(entityType).where(key, op, value));
     }
 
     /**
@@ -352,7 +357,7 @@ public class DBDataUtils {
      * @param value1
      * @return
      */
-    public static boolean deleteInfo(Class<?> entityType, String key1, String value1, String key2, String value2, String key3, String op3 ,String value3) {
+    public static boolean deleteInfo(Class<?> entityType, String key1, String value1, String key2, String value2, String key3, String op3, String value3) {
         DbUtils db = DataBaseCreator.create();
         boolean isSuccess = false;
         try {

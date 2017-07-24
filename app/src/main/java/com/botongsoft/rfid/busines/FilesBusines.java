@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.constants.Constant;
 import com.botongsoft.rfid.common.service.http.BusinessRequest;
@@ -15,14 +16,14 @@ import com.botongsoft.rfid.common.service.http.RequestTask;
 public class FilesBusines {
 
     /****
-     * 获取工作动态接口
+     * 提交本地版本号到服务器获取服务器更新数量接口
      *
      * @param context
      *
      * @return
      */
     public static RequestTask getWorkState(Context context,
-                                           BusinessResolver.BusinessCallback<BaseResponse> callback, int kf, int mjj, int mjg,int mjgda) {
+                                           BusinessResolver.BusinessCallback<BaseResponse> callback, int kf, int mjj, int mjg, int mjgda) {
         final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
@@ -51,11 +52,11 @@ public class FilesBusines {
      *
      * @param context
      *
-     * @param kf
+     * @param
      * @return
      */
-    public static RequestTask putKfState(Context context,
-                                         BusinessResolver.BusinessCallback<BaseResponse> callback, Object kf) {
+    public static RequestTask putDa(Context context,
+                                    BusinessResolver.BusinessCallback<BaseResponse> callback, int reqType, Mjjgda mjgda) {
         final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
@@ -63,16 +64,17 @@ public class FilesBusines {
         request.proDialogMsgId = R.string.request_hint_register;
         JSONObject str_json = new JSONObject();
         JSONObject req = new JSONObject();
-        req.put("reqType", "1002");
-        req.put("kf", kf);
+        req.put("reqType", reqType);
+        req.put("mjgda", mjgda);
         JSONArray str_jsons = new JSONArray();
         str_jsons.add(req);
         str_json.put("req", str_jsons);
         request.paramsJSON = str_json.toJSONString();
         request.cls = BaseResponse.class;
-        request.RESULT_ACT = Constant.ACT_PUT_KF;
+        request.RESULT_ACT = reqType;
         task.showDialog(request);
-        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, request);
+        task.execute(request);
+        //        task.executeOnExecutor(Executors.newFixedThreadPool(20), request);//背压问题
         return task;
     }
 

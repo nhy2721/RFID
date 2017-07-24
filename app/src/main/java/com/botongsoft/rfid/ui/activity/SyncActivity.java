@@ -41,6 +41,7 @@ import com.botongsoft.rfid.ui.Thread.WriteMjgDaDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjjDBThread;
 import com.botongsoft.rfid.ui.adapter.SyncAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
+import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.util.LogUtils;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
@@ -52,6 +53,7 @@ import butterknife.ButterKnife;
 
 import static com.botongsoft.rfid.R.id.appBarLayout;
 import static com.botongsoft.rfid.R.id.toolbar;
+import static com.botongsoft.rfid.common.constants.Constant.BackThread_GETDA_SUCCESS;
 
 /**
  * Created by pc on 2017/7/10.
@@ -99,7 +101,7 @@ public class SyncActivity extends BaseActivity {
     static int mjjAnchor;
     static int mjjgAnchor;
     static int mjjgdaAnchor;
-
+    static long mDaLocalCount;//档案本地提交服务器数量
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,9 +143,12 @@ public class SyncActivity extends BaseActivity {
                         ToastUtils.showLong("通知界面保存完毕");
                         mSyncAdapter.notifyDataSetChanged();
                         break;
-                    case Constant.BackThread_GETDA_SUCCESS:
+                    case BackThread_GETDA_SUCCESS:
                         ToastUtils.showLong("通知界面保存完毕");
                         mSyncAdapter.notifyDataSetChanged();
+                        if (mDaLocalCount > 0) {//服务器更新完数据后如果本地有数据需提交更新就发消息到后台线程去执行
+                            mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+                        }
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -221,25 +226,6 @@ public class SyncActivity extends BaseActivity {
                     LogUtils.d("BackThread_GETMJJ;");
                     backThreadmsg.what = BackThread_GETMJJ;
                     mCheckMsgHandler.sendMessage(backThreadmsg);
-                    //                    MjjJson mjjJson = (com.botongsoft.rfid.bean.JsonBean.MjjJson) obj;
-                    //                    //                    for (int i = mjjJson.getRes().getRows().size() - 1; i >= 0; i--) {
-                    //                    //
-                    //                    //                    }
-                    //                    //根据下载的json文件保存数据库 （要根据下载的数据状态 增 删 改 来增加数据库）
-                    //                    for (MjjJson.ResBean.RowsBean rowsBean : mjjJson.getRes().getRows()) {
-                    //                        Mjj mjj = new Mjj();
-                    //                        mjj.setId(Integer.valueOf(rowsBean.getId()));
-                    //                        mjj.setNoleft(Integer.valueOf(rowsBean.getNoleft()));
-                    //                        mjj.setZlbq(rowsBean.getZlbq());
-                    //                        mjj.setZs(Integer.valueOf(rowsBean.getZs()));
-                    //                        mjj.setNoright(Integer.valueOf(rowsBean.getNoright()));
-                    //                        mjj.setMc(rowsBean.getMc());
-                    //                        mjj.setBz(rowsBean.getBz());
-                    //                        mjj.setKfid(Integer.valueOf(rowsBean.getKfid()));
-                    //                        mjj.setYlbq(rowsBean.getYlbq());
-                    //                        mjj.setCs(Integer.valueOf(rowsBean.getCs()));
-                    //                        DBDataUtils.save(mjj);
-                    //                    }
                     break;
                 case "密集格":
                     LogUtils.d("read MjjJson");
@@ -253,6 +239,8 @@ public class SyncActivity extends BaseActivity {
                         backThreadmsg = mCheckMsgHandler.obtainMessage();
                         backThreadmsg.what = BackThread_GETMJJGDA;
                         mCheckMsgHandler.sendMessage(backThreadmsg);
+                    } else if (mDaLocalCount > 0) {
+                        mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
                     }
 
                     break;
@@ -302,9 +290,18 @@ public class SyncActivity extends BaseActivity {
                             myBusinessInfos.get(2).setListSize("无数据");
                         }
 
-                        if (Integer.valueOf(countJsons.get(0).mjgda) > 0) {
+                        if (Integer.valueOf(countJsons.get(0).mjgda) > 0 && mDaLocalCount > 0) {
                             temple = Integer.valueOf(countJsons.get(0).mjgda);
-                            myBusinessInfos.get(3).setListSize("/服务器新数据：" + countJsons.get(0).mjgda + "条记录");
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("本地有").append(mDaLocalCount).append("条数据需要提交").append("\n");
+                            sb.append("服务器新数据：").append(countJsons.get(0).mjgda).append("条记录");
+                            myBusinessInfos.get(3).setListSize(sb.toString());
+                            //                            myBusinessInfos.get(3).setListSize("本地有" + mDaLocalCount + "条数据需要提交/服务器新数据：" + countJsons.get(0).mjgda + "条记录");
+                        } else if (Integer.valueOf(countJsons.get(0).mjgda) > 0 && mDaLocalCount == 0) {
+                            temple = Integer.valueOf(countJsons.get(0).mjgda);
+                            myBusinessInfos.get(3).setListSize("服务器新数据：" + countJsons.get(0).mjgda + "条记录");
+                        } else if (Integer.valueOf(countJsons.get(0).mjgda) == 0 && mDaLocalCount > 0) {
+                            myBusinessInfos.get(3).setListSize("本地有" + mDaLocalCount + "条数据需要提交");
                         } else {
                             myBusinessInfos.get(3).setListSize("无数据");
                         }
@@ -323,8 +320,8 @@ public class SyncActivity extends BaseActivity {
                             wrKfDbThread.setList(kfJsonList);
                             wrKfDbThread.start();
                         }
-//                        myBusinessInfos.get(0).setListSize("" + 0);
-//                        mSyncAdapter.notifyDataSetChanged();
+                        //                        myBusinessInfos.get(0).setListSize("" + 0);
+                        //                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -339,8 +336,8 @@ public class SyncActivity extends BaseActivity {
                             wrMjjDbThread.setList(mjjJsonList);
                             wrMjjDbThread.start();
                         }
-//                        myBusinessInfos.get(1).setListSize("" + 0);
-//                        mSyncAdapter.notifyDataSetChanged();
+                        //                        myBusinessInfos.get(1).setListSize("" + 0);
+                        //                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -350,12 +347,12 @@ public class SyncActivity extends BaseActivity {
                     try {
                         List<Mjjg> mjjgJsonList = JSON.parseArray(response.res.rows, Mjjg.class);
                         if (mjjgJsonList != null && !mjjgJsonList.isEmpty()) {
-                            wrMjgDbThread = new WriteMjgDBThread(mHandler,uiMsg);
+                            wrMjgDbThread = new WriteMjgDBThread(mHandler, uiMsg);
                             wrMjgDbThread.setList(mjjgJsonList);
                             wrMjgDbThread.start();
                         }
-//                        myBusinessInfos.get(2).setListSize("" + 0);
-//                        mSyncAdapter.notifyDataSetChanged();
+                        //                        myBusinessInfos.get(2).setListSize("" + 0);
+                        //                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -365,12 +362,12 @@ public class SyncActivity extends BaseActivity {
                     try {
                         List<Mjjgda> mjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
                         if (mjjgdaJsonList != null && !mjjgdaJsonList.isEmpty()) {
-                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler,uiMsg);
+                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg);
                             writeMjgDaDBThread.setList(mjjgdaJsonList);
                             writeMjgDaDBThread.start();
                         }
-//                        myBusinessInfos.get(2).setListSize("" + 0);
-//                        mSyncAdapter.notifyDataSetChanged();
+                        //                        myBusinessInfos.get(2).setListSize("" + 0);
+                        //                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -392,6 +389,8 @@ public class SyncActivity extends BaseActivity {
                 Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
                 switch (msg.what) {
                     case BackThread_DOWORK:
+                        uiMsg = mHandler.obtainMessage();
+                        uiMsg.what = INIT_DOWORK;
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
                         Kf kfInfo = (Kf) DBDataUtils.getInfoHasOp(Kf.class, "anchor", ">=", "0");
                         if (kfInfo == null) {
@@ -419,11 +418,19 @@ public class SyncActivity extends BaseActivity {
                         if (mjjgdaInfo == null) {
                             mjjgdaAnchor = 0;
                         } else {
-                            mjjgdaAnchor = Integer.valueOf(mjjgInfo.getAnchor());
+                            mjjgdaAnchor = Integer.valueOf(mjjgdaInfo.getAnchor());
                         }
-                        uiMsg = mHandler.obtainMessage();
-                        uiMsg.what = INIT_DOWORK;
+                        try {
+                            mDaLocalCount = DBDataUtils.count(Mjjgda.class, "status", "<", "9");
+                            if (mDaLocalCount > 0) {
+                                uiMsg.arg1 = (int) mDaLocalCount;
+                            }
+                        } catch (DbException e) {
+                            e.printStackTrace();
+                        }
+
                         mHandler.sendMessage(uiMsg);
+                        //                        mHandler.obtainMessage(INIT_DOWORK).sendToTarget();
                         break;
                     case BackThread_GETKF:
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, BackThread_GETKF);
@@ -436,6 +443,15 @@ public class SyncActivity extends BaseActivity {
                         break;
                     case BackThread_GETMJJGDA:
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgdaAnchor, BackThread_GETMJJGDA);
+                        break;
+                    case BackThread_PUTMJJGDA:
+                        List<Mjjgda> mjgdaList = (List<Mjjgda>) DBDataUtils.getInfos(Mjjgda.class, "status", "<", "9");
+                        for (int i = 0; i <= 1000; i++) {
+                            for (Mjjgda mjjgda : mjgdaList) {
+                                FilesBusines.putDa(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, mjjgda);
+                            }
+                        }
+
                         break;
                     case BackThread_PUTKF:
                         //                        kfList = (List<Kf>) DBDataUtils.getInfos(Kf.class, "status", "<", "9");
