@@ -346,6 +346,25 @@ public class DBDataUtils {
     }
 
     /**
+     * 删除数据
+     *
+     * @param key1
+     * @param value1
+     * @return
+     */
+    public static boolean deleteInfo(Class<?> entityType, String key1, String value1, String key2, String value2, String key3, String op3 ,String value3) {
+        DbUtils db = DataBaseCreator.create();
+        boolean isSuccess = false;
+        try {
+            db.delete(entityType, WhereBuilder.b(key1, "=", value1).and(key2, "=", value2).and(key3, op3, value3));
+            isSuccess = true;
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return isSuccess;
+    }
+
+    /**
      * 删除全部数据
      *
      * @param
@@ -413,6 +432,7 @@ public class DBDataUtils {
             e.printStackTrace();
         }
     }
+
     public static void saveAll(List list) {
         try {
             //			DbUtils dbUtils = DbUtils.create(ApplicationApp.context);
@@ -433,6 +453,7 @@ public class DBDataUtils {
         }
 
     }
+
     /***
      * 更新
      *
@@ -442,11 +463,11 @@ public class DBDataUtils {
         try {
             DbUtils dbUtils = DataBaseCreator.create();
             dbUtils.updateAll(list);
-        } catch (DbException e)
-        {
+        } catch (DbException e) {
             e.printStackTrace();
         }
     }
+
     /***
      * 更新
      *
@@ -456,8 +477,7 @@ public class DBDataUtils {
         try {
             DbUtils dbUtils = DataBaseCreator.create();
             dbUtils.update(obj);
-        } catch (DbException e)
-        {
+        } catch (DbException e) {
             e.printStackTrace();
         }
     }

@@ -37,6 +37,7 @@ import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
+import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
@@ -72,7 +73,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     private PopupWindow mPopupWindow;
     private SearchViewHolder holder;
     private long lastTime = 0;
-    private Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class, Kf.class, Mjj.class, Mjjg.class, Mjjgda.class};
+    private Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class, Kf.class, Mjj.class, Mjjg.class, Mjjgda.class, MjjgdaDelInfos.class};
     private Activity mContext;
 
     @Override

@@ -22,7 +22,7 @@ public class FilesBusines {
      * @return
      */
     public static RequestTask getWorkState(Context context,
-                                           BusinessResolver.BusinessCallback<BaseResponse> callback, int kf, int mjj, int mjg) {
+                                           BusinessResolver.BusinessCallback<BaseResponse> callback, int kf, int mjj, int mjg,int mjgda) {
         final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
@@ -34,6 +34,7 @@ public class FilesBusines {
         req.put("kfanchor", kf);
         req.put("mjjanchor", mjj);
         req.put("mjganchor", mjg);
+        req.put("mjgdaanchor", mjgda);
         JSONArray str_jsons = new JSONArray();
         str_jsons.add(req);
         str_json.put("req", str_jsons);

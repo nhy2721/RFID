@@ -27,6 +27,7 @@ import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
+import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
@@ -300,6 +301,8 @@ public class UpFLoorActivity extends BaseActivity {
                 mjjgda.setStatus(0);//数据库新增
                 mjjgda.setAnchor(0);//数据新增默认版本号为0，等同步完获得服务器的版本号更新本地
                 DBDataUtils.save(mjjgda);
+                //删除未同步的下架数据
+                DBDataUtils.deleteInfo(MjjgdaDelInfos.class,"bm",mjjgda.getBm(),"jlid",mjjgda.getJlid(),"status","<","9");
             }
             //这里发送通知ui更新界面
             scanInfoLocal = "";//上过架后清空该变量

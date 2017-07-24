@@ -82,8 +82,10 @@ public class Constant {
 	public static final int ACT_PUT_KF = 1002;
 	public static final int ACT_GET_MJJ = 1003;
 	public static final int ACT_GET_MJJG = 1004;
+	public static final int ACT_GET_MJJGDA = 1005;
 	/** 查询集合记录 */
-	public static final int ACT_SET_CASHLOGS = 7;
+	public static final int BackThread_SUCCESS = 10000;
+	public static final int BackThread_GETDA_SUCCESS = 10001;
 
 
 

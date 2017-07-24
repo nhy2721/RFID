@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
@@ -80,6 +81,7 @@ public class DownFLoorActivity extends BaseActivity {
     private int index;
     private String editString;
     private List<Mjjgda> mDataList;
+    private List<MjjgdaDelInfos> delInfosesList;//下架删除的记录存入MjjgdaDelInfos表
     private DownFloorAdapter mDownFloorAdapter;
     private int size = 50;
     private static int size1 = 1;
@@ -178,7 +180,7 @@ public class DownFLoorActivity extends BaseActivity {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
         mDataList = new ArrayList<>();
-
+        delInfosesList = new ArrayList<>();
         mProgressBar.setVisibility(View.GONE);
         mFab.setOnClickListener(new OnSingleClickListener() {
             @Override
@@ -209,6 +211,7 @@ public class DownFLoorActivity extends BaseActivity {
                     case UI_SUBMITSUCCESS:
                         mTextInputEditText.setText("");
                         mDataList.clear();
+                        delInfosesList.clear();
                         mDownFloorAdapter.notifyDataSetChanged();
                         mProgressBar.setVisibility(View.GONE);
                         Toast.makeText(UIUtils.getContext(), "下架成功", Toast.LENGTH_SHORT).show();
@@ -271,12 +274,11 @@ public class DownFLoorActivity extends BaseActivity {
     private boolean saveDB(List<Mjjgda> mDataList) {
         boolean str = false;
         //        操作内容是根据选中的条目删除密集架档案表数据，完成下架。
-        for (Mjjgda mjjgda : mDataList) {
-            MjjgdaDelInfos mjjgdaDelInfos = new MjjgdaDelInfos();
-
-            //            str = MjgdaSearchDb.delInfo(Mjjgda.class, "bm", map.get("bm") + "", "jlid", map.get("jlid") + "");
-        }
         str = MjgdaSearchDb.delInfo(mDataList);
+        if (str) {
+            DBDataUtils.saveAll(delInfosesList);
+        }
+
         return str;
 
     }
@@ -363,6 +365,10 @@ public class DownFLoorActivity extends BaseActivity {
                         //                        map.put("local", name);//界面显示存放位置
                         mjjgda.setScanInfo(name);
                         mDataList.add(mjjgda);
+                        //将下架记录存一份到delInfosesList集合中后保存数据
+                        String jsonObj = JSON.toJSONString(mjjgda);
+                        MjjgdaDelInfos ms = (MjjgdaDelInfos) JSON.parseObject(jsonObj, MjjgdaDelInfos.class);
+                        delInfosesList.add(ms);
                     }
                     break;
             }
@@ -429,7 +435,7 @@ public class DownFLoorActivity extends BaseActivity {
                 // TODO 这里有个注意的地方，如果你刚进来时没有数据，但是设置了适配器，这个时候就会触发加载更多，需要开发者判断下是否有数据，如果有数据才去加载更多。
 
                 Toast.makeText(DownFLoorActivity.this, "滑到最底部了，去加载更多吧！", Toast.LENGTH_SHORT).show();
-//                size += 50;
+                //                size += 50;
                 //                for (int i = size - 50; i < size; i++) {
                 //                    Map map = new HashMap();
                 //                    map.put("id", i);
@@ -521,6 +527,7 @@ public class DownFLoorActivity extends BaseActivity {
             Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
             if (position != -1) {
                 mDataList.remove(position);
+                delInfosesList.remove(position);
                 mDownFloorAdapter.notifyItemRemoved(position);
                 mDownFloorAdapter.notifyItemRangeChanged(position, listSize);
             }
@@ -552,6 +559,7 @@ public class DownFLoorActivity extends BaseActivity {
             // TODO 推荐调用Adapter.notifyItemRemoved(position)，也可以Adapter.notifyDataSetChanged();
             if (menuPosition == 0) {// 删除按钮被点击。
                 mDataList.remove(adapterPosition);
+                delInfosesList.remove(adapterPosition);
                 mDownFloorAdapter.notifyItemRemoved(adapterPosition);
             }
         }

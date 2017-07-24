@@ -22,6 +22,7 @@ import com.botongsoft.rfid.bean.JsonBean.MjjJson;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
+import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.busines.FilesBusines;
 import com.botongsoft.rfid.busines.MyBusinessInfo;
@@ -34,9 +35,10 @@ import com.botongsoft.rfid.common.utils.JsonUtils;
 import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
-import com.botongsoft.rfid.ui.Handler.WriteKfDBThread;
-import com.botongsoft.rfid.ui.Handler.WriteMjgDBThread;
-import com.botongsoft.rfid.ui.Handler.WriteMjjDBThread;
+import com.botongsoft.rfid.ui.Thread.WriteKfDBThread;
+import com.botongsoft.rfid.ui.Thread.WriteMjgDBThread;
+import com.botongsoft.rfid.ui.Thread.WriteMjgDaDBThread;
+import com.botongsoft.rfid.ui.Thread.WriteMjjDBThread;
 import com.botongsoft.rfid.ui.adapter.SyncAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
 import com.lidroid.xutils.util.LogUtils;
@@ -82,6 +84,8 @@ public class SyncActivity extends BaseActivity {
     private static final int BackThread_PUTKF = 1001;
     private static final int BackThread_GETMJJ = 1003;
     private static final int BackThread_GETMJJG = 1004;
+    private static final int BackThread_GETMJJGDA = 1005;
+    private static final int BackThread_PUTMJJGDA = 1006;
     //传递后台运行消息队列
     Message backThreadmsg;
     Message uiMsg;
@@ -89,9 +93,12 @@ public class SyncActivity extends BaseActivity {
     private WriteKfDBThread wrKfDbThread;//数据库操作相关
     private WriteMjjDBThread wrMjjDbThread;//数据库操作相关
     private WriteMjgDBThread wrMjgDbThread;//数据库操作相关
+    private WriteMjgDaDBThread writeMjgDaDBThread;//数据库操作相关
+
     static int kfAnchor;
     static int mjjAnchor;
     static int mjjgAnchor;
+    static int mjjgdaAnchor;
 
 
     @Override
@@ -113,7 +120,7 @@ public class SyncActivity extends BaseActivity {
                     case CONN_SUCCESS:
                         syncArry = UIUtils.getContext().getResources().getStringArray(R.array.sync_array);
                         for (int i = 0; i < syncArry.length; i++) {
-                            myBusinessInfos.add(new MyBusinessInfo(syncArry[i], 1000 + i, 0, null));
+                            myBusinessInfos.add(new MyBusinessInfo(syncArry[i], 1000 + i, "" + 0, null));
                         }
                         backThreadmsg = mCheckMsgHandler.obtainMessage();
                         LogUtils.d("BackThread_DOWORK;");
@@ -122,13 +129,21 @@ public class SyncActivity extends BaseActivity {
                         //                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext,kfAnchor,mjjAnchor,mjjgAnchor);
                         break;
                     case INIT_DOWORK:
-                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, mjjAnchor, mjjgAnchor);
+                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, mjjAnchor, mjjgAnchor, mjjgdaAnchor);
                         break;
                     case CONN_UNSUCCESS:
                         new AlertDialog.Builder(mContext)
                                 .setTitle("服务器无法访问")
                                 .setMessage("情检查网络是否畅通")
                                 .create().show();
+                        break;
+                    case Constant.BackThread_SUCCESS:
+                        ToastUtils.showLong("通知界面保存完毕");
+                        mSyncAdapter.notifyDataSetChanged();
+                        break;
+                    case Constant.BackThread_GETDA_SUCCESS:
+                        ToastUtils.showLong("通知界面保存完毕");
+                        mSyncAdapter.notifyDataSetChanged();
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -164,9 +179,9 @@ public class SyncActivity extends BaseActivity {
     private List<MyBusinessInfo> getSyncListData() {
         //这里开线程查询数据库有多少的表是有数据更新的。然后将需要更新的对象加入myBusinessInfos集合
         KfJson kfJson = (KfJson) JsonUtils.analysisJsonFileByRaw(this, "kf", KfJson.class);
-        myBusinessInfos.add(new MyBusinessInfo("库房", null, Integer.valueOf(kfJson.getRes().getRecordCount()), kfJson));
+        myBusinessInfos.add(new MyBusinessInfo("库房", null, kfJson.getRes().getRecordCount(), kfJson));
         MjjJson mjjJson = (MjjJson) JsonUtils.analysisJsonFileByRaw(this, "mjj", MjjJson.class);
-        myBusinessInfos.add(new MyBusinessInfo("密集架", null, Integer.valueOf(mjjJson.getRes().getRecordCount()), mjjJson));
+        myBusinessInfos.add(new MyBusinessInfo("密集架", null, mjjJson.getRes().getRecordCount(), mjjJson));
         //        String mjjgString  = FileUtils.readFileFromAsset(this,"mjjg.sql");
         //        myBusinessInfos.add(new MyBusinessInfo("密集架格", "", Integer.valueOf(mjjJson.getRes().getRecordCount()), null, mjjJson));
         return myBusinessInfos;
@@ -233,6 +248,14 @@ public class SyncActivity extends BaseActivity {
                     backThreadmsg.what = BackThread_GETMJJG;
                     mCheckMsgHandler.sendMessage(backThreadmsg);
                     break;
+                case "档案":
+                    if (temple > 0) {//如果服务器有更新数据 先获取服务器的更新数据
+                        backThreadmsg = mCheckMsgHandler.obtainMessage();
+                        backThreadmsg.what = BackThread_GETMJJGDA;
+                        mCheckMsgHandler.sendMessage(backThreadmsg);
+                    }
+
+                    break;
                 default:
                     break;
             }
@@ -244,6 +267,7 @@ public class SyncActivity extends BaseActivity {
         }
     };
 
+    static int temple = 0;
 
     @Override
     public void onSuccess(BaseResponse response, int act) {
@@ -262,9 +286,29 @@ public class SyncActivity extends BaseActivity {
                 if (response.isSuccess()) {
                     try {
                         List<CountJson> countJsons = JSONObject.parseArray(response.res.rows, CountJson.class);
-                        myBusinessInfos.get(0).setListSize(Integer.valueOf(countJsons.get(0).kf));
-                        myBusinessInfos.get(1).setListSize(Integer.valueOf(countJsons.get(0).mjj));
-                        myBusinessInfos.get(2).setListSize(Integer.valueOf(countJsons.get(0).mjjg));
+                        if (Integer.valueOf(countJsons.get(0).kf) > 0) {
+                            myBusinessInfos.get(0).setListSize("服务器新数据：" + countJsons.get(0).kf + "条记录");
+                        } else {
+                            myBusinessInfos.get(0).setListSize("无数据");
+                        }
+                        if (Integer.valueOf(countJsons.get(0).mjj) > 0) {
+                            myBusinessInfos.get(1).setListSize("服务器新数据：" + countJsons.get(0).mjj + "条记录");
+                        } else {
+                            myBusinessInfos.get(1).setListSize("无数据");
+                        }
+                        if (Integer.valueOf(countJsons.get(0).mjjg) > 0) {
+                            myBusinessInfos.get(2).setListSize("服务器新数据：" + countJsons.get(0).mjjg + "条记录");
+                        } else {
+                            myBusinessInfos.get(2).setListSize("无数据");
+                        }
+
+                        if (Integer.valueOf(countJsons.get(0).mjgda) > 0) {
+                            temple = Integer.valueOf(countJsons.get(0).mjgda);
+                            myBusinessInfos.get(3).setListSize("/服务器新数据：" + countJsons.get(0).mjgda + "条记录");
+                        } else {
+                            myBusinessInfos.get(3).setListSize("无数据");
+                        }
+
                         mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -279,8 +323,8 @@ public class SyncActivity extends BaseActivity {
                             wrKfDbThread.setList(kfJsonList);
                             wrKfDbThread.start();
                         }
-                        myBusinessInfos.get(0).setListSize(0);
-                        mSyncAdapter.notifyDataSetChanged();
+//                        myBusinessInfos.get(0).setListSize("" + 0);
+//                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -295,8 +339,8 @@ public class SyncActivity extends BaseActivity {
                             wrMjjDbThread.setList(mjjJsonList);
                             wrMjjDbThread.start();
                         }
-                        myBusinessInfos.get(1).setListSize(0);
-                        mSyncAdapter.notifyDataSetChanged();
+//                        myBusinessInfos.get(1).setListSize("" + 0);
+//                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -306,12 +350,27 @@ public class SyncActivity extends BaseActivity {
                     try {
                         List<Mjjg> mjjgJsonList = JSON.parseArray(response.res.rows, Mjjg.class);
                         if (mjjgJsonList != null && !mjjgJsonList.isEmpty()) {
-                            wrMjgDbThread = new WriteMjgDBThread();
+                            wrMjgDbThread = new WriteMjgDBThread(mHandler,uiMsg);
                             wrMjgDbThread.setList(mjjgJsonList);
                             wrMjgDbThread.start();
                         }
-                        myBusinessInfos.get(2).setListSize(0);
-                        mSyncAdapter.notifyDataSetChanged();
+//                        myBusinessInfos.get(2).setListSize("" + 0);
+//                        mSyncAdapter.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else if (act == Constant.ACT_GET_MJJGDA) {
+                if (response.isSuccess()) {
+                    try {
+                        List<Mjjgda> mjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
+                        if (mjjgdaJsonList != null && !mjjgdaJsonList.isEmpty()) {
+                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler,uiMsg);
+                            writeMjgDaDBThread.setList(mjjgdaJsonList);
+                            writeMjgDaDBThread.start();
+                        }
+//                        myBusinessInfos.get(2).setListSize("" + 0);
+//                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -355,42 +414,28 @@ public class SyncActivity extends BaseActivity {
                         } else {
                             mjjgAnchor = Integer.valueOf(mjjgInfo.getAnchor());
                         }
+                        //先将本地的版本号发送给服务器，判断服务器时候有更新过 有更新要解决冲突
+                        Mjjgda mjjgdaInfo = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "anchor", ">=", "0");
+                        if (mjjgdaInfo == null) {
+                            mjjgdaAnchor = 0;
+                        } else {
+                            mjjgdaAnchor = Integer.valueOf(mjjgInfo.getAnchor());
+                        }
                         uiMsg = mHandler.obtainMessage();
                         uiMsg.what = INIT_DOWORK;
                         mHandler.sendMessage(uiMsg);
                         break;
                     case BackThread_GETKF:
-
-                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        //                        Kf kfInfo = (Kf) DBDataUtils.getInfoHasOp(Kf.class, "anchor", ">=", "0");
-                        //                        if (kfInfo == null) {
-                        //                            kfAnchor = 0;
-                        //                        } else {
-                        //                            kfAnchor = Integer.valueOf(kfInfo.getAnchor());
-                        //                        }
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, BackThread_GETKF);
                         break;
                     case BackThread_GETMJJ:
-
-                        //                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        //                        Mjj mjjInfo = (Mjj) DBDataUtils.getInfoHasOp(Mjj.class, "anchor", ">=", "0");
-                        //                        if (mjjInfo == null) {
-                        //                            mjjAnchor = 0;
-                        //                        } else {
-                        //                            mjjAnchor = Integer.valueOf(mjjInfo.getAnchor());
-                        //                        }
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjAnchor, BackThread_GETMJJ);
                         break;
                     case BackThread_GETMJJG:
-                        //                        int mjjgAnchor;
-                        //                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        //                        Mjjg mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
-                        //                        if (mjjgInfo == null) {
-                        //                            mjjgAnchor = 0;
-                        //                        } else {
-                        //                            mjjgAnchor = Integer.valueOf(mjjgInfo.getAnchor());
-                        //                        }
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgAnchor, BackThread_GETMJJG);
+                        break;
+                    case BackThread_GETMJJGDA:
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgdaAnchor, BackThread_GETMJJGDA);
                         break;
                     case BackThread_PUTKF:
                         //                        kfList = (List<Kf>) DBDataUtils.getInfos(Kf.class, "status", "<", "9");
@@ -491,6 +536,10 @@ public class SyncActivity extends BaseActivity {
         if (wrMjgDbThread != null) {
             wrMjgDbThread.interrupt();//中断线程的方法
             wrMjgDbThread = null;
+        }
+        if (writeMjgDaDBThread != null) {
+            writeMjgDaDBThread.interrupt();//中断线程的方法
+            writeMjgDaDBThread = null;
         }
         finish();
     }

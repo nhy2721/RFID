@@ -1,4 +1,4 @@
-package com.botongsoft.rfid.ui.Handler;
+package com.botongsoft.rfid.ui.Thread;
 
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.common.db.DBDataUtils;

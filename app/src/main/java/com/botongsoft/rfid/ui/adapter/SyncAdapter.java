@@ -93,10 +93,10 @@ public class SyncAdapter extends SwipeMenuAdapter<SyncAdapter.DefaultViewHolder>
 
         public void setData(MyBusinessInfo myBusinessInfo, int position) {
             this.tv_name.setText(myBusinessInfo.getName());
-            this.tv_oleNsize.setText(myBusinessInfo.getListSize() + "条记录需要更新");
-            if (myBusinessInfo.getListSize() > 0) {
-                this.tv_status.setText("未更新");
-            }
+            this.tv_oleNsize.setText(myBusinessInfo.getListSize());
+//            if (myBusinessInfo.getListSize() > 0) {
+//                this.tv_status.setText("未更新");
+//            }
         }
 
         @Override

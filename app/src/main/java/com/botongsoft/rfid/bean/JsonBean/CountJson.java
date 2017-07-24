@@ -10,6 +10,6 @@ public class CountJson implements Serializable {
     public String kf;//库房
     public String mjj;//密集架
     public String mjjg;//密集格
-    public String mjjda;//档案
+    public String mjgda;//档案
     public String checkplan;//盘点计划
 }

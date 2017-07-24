@@ -1,6 +1,10 @@
-package com.botongsoft.rfid.ui.Handler;
+package com.botongsoft.rfid.ui.Thread;
+
+import android.os.Handler;
+import android.os.Message;
 
 import com.botongsoft.rfid.bean.classity.Mjjg;
+import com.botongsoft.rfid.common.constants.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 
 import java.util.ArrayList;
@@ -15,6 +19,13 @@ public class WriteMjgDBThread extends Thread {
     private List<Mjjg> saveList = new ArrayList<Mjjg>();
     private List<Mjjg> newList = new ArrayList<Mjjg>();
     private Mjjg mjjgOld;
+    private Handler mhandler;
+    private Message uiMsg;
+
+    public WriteMjgDBThread(Handler mhandler, Message uiMsg) {
+        this.mhandler = mhandler;
+        this.uiMsg = uiMsg;
+    }
 
     public void setList(List list) {
         this.objList = list;
@@ -46,6 +57,6 @@ public class WriteMjgDBThread extends Thread {
         if (saveList != null && !saveList.isEmpty()) {
             DBDataUtils.updateAll(saveList);
         }
-
+        mhandler.obtainMessage(Constant.BackThread_SUCCESS).sendToTarget();
     }
 }
