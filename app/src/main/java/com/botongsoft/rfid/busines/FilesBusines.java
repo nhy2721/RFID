@@ -6,13 +6,13 @@ import android.os.AsyncTask;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.botongsoft.rfid.R;
-import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.constants.Constant;
 import com.botongsoft.rfid.common.service.http.BusinessRequest;
 import com.botongsoft.rfid.common.service.http.BusinessResolver;
 import com.botongsoft.rfid.common.service.http.RequestTask;
 
+import java.util.List;
 import java.util.concurrent.Executors;
 
 public class FilesBusines {
@@ -25,7 +25,7 @@ public class FilesBusines {
      * @return
      */
     public static RequestTask getWorkState(Context context,
-                                           BusinessResolver.BusinessCallback<BaseResponse> callback, int kf, int mjj, int mjg, int mjgda) {
+                                           BusinessResolver.BusinessCallback<BaseResponse> callback, Long kf, Long mjj, Long mjg, Long mjgda) {
         final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
@@ -58,7 +58,7 @@ public class FilesBusines {
      * @return
      */
     public static RequestTask putDa(RequestTask task, Context context,
-                                    BusinessResolver.BusinessCallback<BaseResponse> callback, int reqType, Mjjgda mjgda) {
+                                    BusinessResolver.BusinessCallback<BaseResponse> callback, int reqType, List mjgdaList, List mjgdaDelList) {
         //        final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
@@ -67,7 +67,8 @@ public class FilesBusines {
         JSONObject str_json = new JSONObject();
         JSONObject req = new JSONObject();
         req.put("reqType", reqType);
-        req.put("mjgda", mjgda);
+        req.put("mjgda", mjgdaList);
+        req.put("mjgdadel", mjgdaDelList);
         JSONArray str_jsons = new JSONArray();
         str_jsons.add(req);
         str_json.put("req", str_jsons);
@@ -75,8 +76,8 @@ public class FilesBusines {
         request.cls = BaseResponse.class;
         request.RESULT_ACT = reqType;
         //        task.showDialog(request);
-//                task.execute(request);
-//        task.executeOnExecutor(Executors.newFixedThreadPool(20), request);//背压问题
+        //                task.execute(request);
+        //        task.executeOnExecutor(Executors.newFixedThreadPool(20), request);//背压问题
         task.executeOnExecutor(Executors.newCachedThreadPool(), request);
         return task;
 
@@ -91,7 +92,7 @@ public class FilesBusines {
      * @return
      */
     public static RequestTask getState(Context context,
-                                       BusinessResolver.BusinessCallback<BaseResponse> callback, int anchor, int reqType) {
+                                       BusinessResolver.BusinessCallback<BaseResponse> callback, Long anchor, int reqType) {
         final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,

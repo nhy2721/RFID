@@ -25,7 +25,7 @@ public class CheckPlanDeatil implements java.io.Serializable {
     @Column
     private int status;
     @Column
-    private int anchor;
+    private long anchor;
 
     public int getStatus() {
         return status;
@@ -35,11 +35,11 @@ public class CheckPlanDeatil implements java.io.Serializable {
         this.status = status;
     }
 
-    public int getAnchor() {
+    public long getAnchor() {
         return anchor;
     }
 
-    public void setAnchor(int anchor) {
+    public void setAnchor(long anchor) {
         this.anchor = anchor;
     }
 

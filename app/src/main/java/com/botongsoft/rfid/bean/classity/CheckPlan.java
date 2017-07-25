@@ -28,42 +28,8 @@ public class CheckPlan implements java.io.Serializable {
     private String bz;
     @Column
     private int status;
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public int getAnchor() {
-        return anchor;
-    }
-
-    public void setAnchor(int anchor) {
-        this.anchor = anchor;
-    }
-
     @Column
-
-    private int anchor;
-
-    public int getKssj() {
-        return kssj;
-    }
-
-    public void setKssj(int kssj) {
-        this.kssj = kssj;
-    }
-
-    public int getJssj() {
-        return jssj;
-    }
-
-    public void setJssj(int jssj) {
-        this.jssj = jssj;
-    }
+    private long anchor;
 
     public int getLid() {
         return lid;
@@ -89,6 +55,22 @@ public class CheckPlan implements java.io.Serializable {
         this.pdid = pdid;
     }
 
+    public int getKssj() {
+        return kssj;
+    }
+
+    public void setKssj(int kssj) {
+        this.kssj = kssj;
+    }
+
+    public int getJssj() {
+        return jssj;
+    }
+
+    public void setJssj(int jssj) {
+        this.jssj = jssj;
+    }
+
     public String getFw() {
         return fw;
     }
@@ -111,5 +93,21 @@ public class CheckPlan implements java.io.Serializable {
 
     public void setBz(String bz) {
         this.bz = bz;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public long getAnchor() {
+        return anchor;
+    }
+
+    public void setAnchor(long anchor) {
+        this.anchor = anchor;
     }
 }

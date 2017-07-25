@@ -366,6 +366,11 @@ public class DownFLoorActivity extends BaseActivity {
                         mjjgda.setScanInfo(name);
                         mDataList.add(mjjgda);
                         //将下架记录存一份到delInfosesList集合中后保存数据
+                        if (mjjgda.getStatus() == 9) {//有同步过的下架要提交服务器 状态9(已同步过)-->>-1
+                            mjjgda.setStatus(-1);
+                        } else {
+                            mjjgda.setStatus(0);
+                        }
                         String jsonObj = JSON.toJSONString(mjjgda);
                         MjjgdaDelInfos ms = (MjjgdaDelInfos) JSON.parseObject(jsonObj, MjjgdaDelInfos.class);
                         delInfosesList.add(ms);

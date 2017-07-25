@@ -5,7 +5,7 @@ import com.lidroid.xutils.db.annotation.Id;
 import com.lidroid.xutils.db.annotation.Table;
 import com.lidroid.xutils.db.annotation.Transient;
 
-/**
+/**下架记录表 有档案下架都要存这张表
  * Created by pc on 2017/6/14.
  */
 @Table
@@ -32,7 +32,7 @@ public class MjjgdaDelInfos implements java.io.Serializable {
     @Column
     private int status;
     @Column
-    private int anchor;
+    private long anchor;
 
     public int getStatus() {
         return status;
@@ -42,11 +42,11 @@ public class MjjgdaDelInfos implements java.io.Serializable {
         this.status = status;
     }
 
-    public int getAnchor() {
+    public long getAnchor() {
         return anchor;
     }
 
-    public void setAnchor(int anchor) {
+    public void setAnchor(long anchor) {
         this.anchor = anchor;
     }
 

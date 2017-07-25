@@ -299,7 +299,7 @@ public class UpFLoorActivity extends BaseActivity {
                 mjjgda.setBm((map.get("bm").toString()));
                 mjjgda.setJlid((map.get("jlid").toString()));
                 mjjgda.setStatus(0);//数据库新增
-                mjjgda.setAnchor(0);//数据新增默认版本号为0，等同步完获得服务器的版本号更新本地
+                mjjgda.setAnchor(0L);//数据新增默认版本号为0，等同步完获得服务器的版本号更新本地
                 DBDataUtils.save(mjjgda);
                 //删除未同步的下架数据
                 DBDataUtils.deleteInfo(MjjgdaDelInfos.class,"bm",mjjgda.getBm(),"jlid",mjjgda.getJlid(),"status","<","9");

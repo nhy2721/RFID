@@ -32,7 +32,7 @@ public class Mjjgda implements java.io.Serializable {
     @Column
     private int status;
     @Column
-    private int anchor;
+    private long anchor;
     @Column
     private String scanInfo;//页面扫描的档案记录条码
     @Transient
@@ -56,11 +56,11 @@ public class Mjjgda implements java.io.Serializable {
         this.status = status;
     }
 
-    public int getAnchor() {
+    public long getAnchor() {
         return anchor;
     }
 
-    public void setAnchor(int anchor) {
+    public void setAnchor(long anchor) {
         this.anchor = anchor;
     }
 
