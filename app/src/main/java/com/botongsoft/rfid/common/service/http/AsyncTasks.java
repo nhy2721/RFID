@@ -205,7 +205,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * {@link #THREAD_POOL_EXECUTOR}.
  * </p>
  */
-public abstract class AsyncTask<Params, Progress, Result> {
+public abstract class AsyncTasks<Params, Progress, Result> {
     private static final String LOG_TAG = "AsyncTask";
 
     private static final int CORE_POOL_SIZE = 5;
@@ -302,7 +302,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
          */
         RUNNING,
         /**
-         * Indicates that {@link AsyncTask#onPostExecute} has finished.
+         * Indicates that {@link AsyncTasks#onPostExecute} has finished.
          */
         FINISHED,
     }
@@ -321,7 +321,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
      * Creates a new asynchronous task. This constructor must be invoked on the
      * UI thread.
      */
-    public AsyncTask() {
+    public AsyncTasks() {
         mWorker = new WorkerRunnable<Params, Result>() {
             public Result call() throws Exception {
                 mTaskInvoked.set(true);
@@ -577,7 +577,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
      * @see #executeOnExecutor(Executor, Object[])
      * @see #execute(Runnable)
      */
-    public final AsyncTask<Params, Progress, Result> execute(Params... params) {
+    public final AsyncTasks<Params, Progress, Result> execute(Params... params) {
         return executeOnExecutor(sDefaultExecutor, params);
     }
 
@@ -613,8 +613,8 @@ public abstract class AsyncTask<Params, Progress, Result> {
      *             {@link Status#FINISHED}.
      * @see #execute(Object[])
      */
-    public final AsyncTask<Params, Progress, Result> executeOnExecutor(Executor exec,
-            Params... params) {
+    public final AsyncTasks<Params, Progress, Result> executeOnExecutor(Executor exec,
+                                                                        Params... params) {
         if (mStatus != Status.PENDING) {
             switch (mStatus) {
                 case RUNNING:
@@ -703,11 +703,11 @@ public abstract class AsyncTask<Params, Progress, Result> {
         "RawUseOfParameterizedType"
     })
     private static class AsyncTaskResult<Data> {
-        final AsyncTask mTask;
+        final AsyncTasks mTask;
 
         final Data[] mData;
 
-        AsyncTaskResult(AsyncTask task, Data... data) {
+        AsyncTaskResult(AsyncTasks task, Data... data) {
             mTask = task;
             mData = data;
         }

@@ -108,4 +108,9 @@ public class DialogLoad {
 		progressDialog = null;
 		isShowProgressDialog = 0;
 	}
+	public static void closes() {
+		progressDialog = null;
+		isShowProgressDialog = 0;
+
+	}
 }

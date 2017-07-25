@@ -1,7 +1,9 @@
 package com.botongsoft.rfid.common.service.http;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.botongsoft.rfid.common.DialogLoad;
@@ -14,7 +16,7 @@ import com.botongsoft.rfid.common.utils.RSA;
 
 @SuppressWarnings("rawtypes")
 public class RequestTask extends
-		AsyncTask<BusinessRequest, Void, BusinessResult> {
+        AsyncTask<BusinessRequest, Void, BusinessResult> {
 
 	private static final String TAG = "RequestTask";
 
@@ -35,6 +37,9 @@ public class RequestTask extends
 	@SuppressWarnings("unchecked")
 	@Override
 	protected BusinessResult doInBackground(BusinessRequest... params) {
+		if(isCancelled()){
+			return null;
+		}
 		request = params[0];
 		BusinessResult result = new BusinessResult();
 		String strParams = JsonUtils.paramsToJson(request);
@@ -151,5 +156,16 @@ public class RequestTask extends
 
 		}
 	}
+    @Override
+    protected void onCancelled() {
+        super.onCancelled();
+        Log.i("task","执行了取消");
+    }
 
+	@Override
+	protected void onProgressUpdate(Void... values) {
+		if(isCancelled()){
+			return;
+		}
+	}
 }

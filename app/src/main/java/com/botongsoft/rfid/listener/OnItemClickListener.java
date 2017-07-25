@@ -15,6 +15,8 @@
  */
 package com.botongsoft.rfid.listener;
 
+import android.widget.ProgressBar;
+
 /**
  * Created by Yan Zhenjie on 2016/7/27.
  */
@@ -22,5 +24,6 @@ public interface OnItemClickListener {
 
     void onItemClick(int position);
     void onItemClick(int position,int listSize);
+    void onItemClick(int position, int listSize, ProgressBar pb);
 
 }

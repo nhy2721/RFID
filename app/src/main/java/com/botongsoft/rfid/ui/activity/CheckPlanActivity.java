@@ -17,6 +17,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
@@ -401,6 +402,11 @@ public class CheckPlanActivity extends BaseActivity {
                 mCheckPlanAdapter.notifyItemRemoved(position);
                 mCheckPlanAdapter.notifyItemRangeChanged(position, listSize);
             }
+        }
+
+        @Override
+        public void onItemClick(int position, int listSize, ProgressBar pb) {
+
         }
     };
 

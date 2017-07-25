@@ -13,6 +13,8 @@ import com.botongsoft.rfid.common.service.http.BusinessRequest;
 import com.botongsoft.rfid.common.service.http.BusinessResolver;
 import com.botongsoft.rfid.common.service.http.RequestTask;
 
+import java.util.concurrent.Executors;
+
 public class FilesBusines {
 
     /****
@@ -55,9 +57,9 @@ public class FilesBusines {
      * @param
      * @return
      */
-    public static RequestTask putDa(Context context,
+    public static RequestTask putDa(RequestTask task, Context context,
                                     BusinessResolver.BusinessCallback<BaseResponse> callback, int reqType, Mjjgda mjgda) {
-        final RequestTask task = new RequestTask(callback, context);
+        //        final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
                 BusinessRequest.RESULT_TYPE_OBJECT);
@@ -72,10 +74,12 @@ public class FilesBusines {
         request.paramsJSON = str_json.toJSONString();
         request.cls = BaseResponse.class;
         request.RESULT_ACT = reqType;
-        task.showDialog(request);
-        task.execute(request);
-        //        task.executeOnExecutor(Executors.newFixedThreadPool(20), request);//背压问题
+        //        task.showDialog(request);
+//                task.execute(request);
+//        task.executeOnExecutor(Executors.newFixedThreadPool(20), request);//背压问题
+        task.executeOnExecutor(Executors.newCachedThreadPool(), request);
         return task;
+
     }
 
     /****

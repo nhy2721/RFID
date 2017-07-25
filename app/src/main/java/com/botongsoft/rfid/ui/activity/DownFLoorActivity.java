@@ -532,6 +532,11 @@ public class DownFLoorActivity extends BaseActivity {
                 mDownFloorAdapter.notifyItemRangeChanged(position, listSize);
             }
         }
+
+        @Override
+        public void onItemClick(int position, int listSize, ProgressBar pb) {
+
+        }
     };
 
     /**

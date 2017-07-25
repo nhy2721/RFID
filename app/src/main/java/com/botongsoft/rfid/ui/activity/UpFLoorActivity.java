@@ -590,6 +590,11 @@ public class UpFLoorActivity extends BaseActivity {
                 mUpfloorAdapter.notifyItemRangeChanged(position, listSize);
             }
         }
+
+        @Override
+        public void onItemClick(int position, int listSize, ProgressBar pb) {
+
+        }
     };
 
     /**

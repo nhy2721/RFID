@@ -1,6 +1,7 @@
 package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -10,6 +11,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
@@ -31,6 +34,7 @@ import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.service.http.BusinessResolver;
 import com.botongsoft.rfid.common.service.http.NetUtils;
+import com.botongsoft.rfid.common.service.http.RequestTask;
 import com.botongsoft.rfid.common.utils.JsonUtils;
 import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.common.utils.UIUtils;
@@ -72,6 +76,7 @@ public class SyncActivity extends BaseActivity {
     private String[] syncArry;
     private static final int CONN_SUCCESS = 0;
     private static final int CONN_UNSUCCESS = 1;
+    private static final int CONN_UNSUCCESS1 = 3;
     private static final int INIT_DOWORK = 2;
     private static final int PUT_WROK_KF = 1002;
     List<Kf> kfList;
@@ -102,6 +107,10 @@ public class SyncActivity extends BaseActivity {
     static int mjjgAnchor;
     static int mjjgdaAnchor;
     static long mDaLocalCount;//档案本地提交服务器数量
+    RequestTask task;
+    List<Mjjgda> mjgdaLists;
+    private boolean flag = false;
+    private boolean isPause;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,6 +147,14 @@ public class SyncActivity extends BaseActivity {
                                 .setTitle("服务器无法访问")
                                 .setMessage("情检查网络是否畅通")
                                 .create().show();
+                        break;
+                    case CONN_UNSUCCESS1:
+                        ToastUtils.showShort("网络中断");
+                        //                        task.cancel(true);
+                        //                        if (networkThread != null) {
+                        //                            networkThread.interrupt();//中断线程的方法
+                        //                            networkThread = null;
+                        //                        }
                         break;
                     case Constant.BackThread_SUCCESS:
                         ToastUtils.showLong("通知界面保存完毕");
@@ -201,9 +218,14 @@ public class SyncActivity extends BaseActivity {
 
         @Override
         public void onItemClick(int position, int listSize) {
+
+        }
+
+        @Override
+        public void onItemClick(int position, int listSize, ProgressBar pb) {
             Toast.makeText(mContext, "我是第" + position + "条点击同步。", Toast.LENGTH_SHORT).show();
-            switch (myBusinessInfos.get(position).getName()) {
-                case "库房":
+            switch (position) {
+                case 0:
                     LogUtils.d("read KfJson " + myBusinessInfos.get(position).getListSize());
                     backThreadmsg = mCheckMsgHandler.obtainMessage();
                     LogUtils.d("BackThread_GETKF;");
@@ -220,26 +242,27 @@ public class SyncActivity extends BaseActivity {
                     //                        DBDataUtils.save(kf);
                     //                    }
                     break;
-                case "密集架":
+                case 1:
                     LogUtils.d("read MjjJson");
                     backThreadmsg = mCheckMsgHandler.obtainMessage();
                     LogUtils.d("BackThread_GETMJJ;");
                     backThreadmsg.what = BackThread_GETMJJ;
                     mCheckMsgHandler.sendMessage(backThreadmsg);
                     break;
-                case "密集格":
+                case 2:
                     LogUtils.d("read MjjJson");
                     backThreadmsg = mCheckMsgHandler.obtainMessage();
                     LogUtils.d("BackThread_GETMJJG;");
                     backThreadmsg.what = BackThread_GETMJJG;
                     mCheckMsgHandler.sendMessage(backThreadmsg);
                     break;
-                case "档案":
+                case 3:
                     if (temple > 0) {//如果服务器有更新数据 先获取服务器的更新数据
                         backThreadmsg = mCheckMsgHandler.obtainMessage();
                         backThreadmsg.what = BackThread_GETMJJGDA;
                         mCheckMsgHandler.sendMessage(backThreadmsg);
                     } else if (mDaLocalCount > 0) {
+                        pb.setProgress(100);
                         mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
                     }
 
@@ -379,6 +402,7 @@ public class SyncActivity extends BaseActivity {
 
     @Override
     public void onError(BusinessException e, int act) {
+        ToastUtils.showLong(act + "");
         ToastUtils.showLong(e.getMessage());
     }
 
@@ -445,10 +469,38 @@ public class SyncActivity extends BaseActivity {
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgdaAnchor, BackThread_GETMJJGDA);
                         break;
                     case BackThread_PUTMJJGDA:
-                        List<Mjjgda> mjgdaList = (List<Mjjgda>) DBDataUtils.getInfos(Mjjgda.class, "status", "<", "9");
-                        for (int i = 0; i <= 1000; i++) {
-                            for (Mjjgda mjjgda : mjgdaList) {
-                                FilesBusines.putDa(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, mjjgda);
+
+                        if (flag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        flag = true;
+                        Log.d("onClick", "开始");
+
+                        mjgdaLists = (List<Mjjgda>) DBDataUtils.getInfos(Mjjgda.class, "status", "<", "9");
+
+                        for (int i = 0; i <= mjgdaLists.size() * 10000; i++) {
+                            //                            for (Mjjgda mjjgda : mjgdaList) {
+                            boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
+                            if (st) {
+                                if (mjgdaLists != null && !mjgdaLists.isEmpty()) {
+                                    task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
+                                    FilesBusines.putDa(task, mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, mjgdaLists.get(0));
+                                }
+                                Log.i("i", i + "");
+                            } else {
+                                //                                    DialogLoad.closes();
+                                //                                    uiMsg = mHandler.obtainMessage();
+                                //                                    uiMsg.what = CONN_UNSUCCESS1;
+                                //                                    mHandler.sendMessage(uiMsg);
+                                if (task != null || task.getStatus() == AsyncTask.Status.RUNNING) {
+                                    task.cancel(true);
+                                    mjgdaLists.clear();
+                                }
+                                break;
+                                //                                    task.cancel(true);
+
+                                //                                }
                             }
                         }
 
@@ -491,12 +543,10 @@ public class SyncActivity extends BaseActivity {
             boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
             if (st) {
                 uiMsg.what = CONN_SUCCESS;
-                mHandler.sendMessage(uiMsg);
             } else {
                 uiMsg.what = CONN_UNSUCCESS;
-                mHandler.sendMessage(uiMsg);
             }
-
+            mHandler.sendMessage(uiMsg);
         }
     };
 
@@ -523,6 +573,13 @@ public class SyncActivity extends BaseActivity {
         //停止查询
         isOnScreen = false;
         mCheckMsgThread.quit();
+        //        if (task != null && task.getStatus() == AsyncTask.Status.RUNNING) {
+        //            task.cancel(true);
+        //        }
+        if (mjgdaLists != null && !mjgdaLists.isEmpty()) {
+            mjgdaLists.clear();
+        }
+
     }
 
     @Override
@@ -557,8 +614,30 @@ public class SyncActivity extends BaseActivity {
             writeMjgDaDBThread.interrupt();//中断线程的方法
             writeMjgDaDBThread = null;
         }
+        mCheckMsgHandler.removeCallbacksAndMessages(null);
+        mHandler.removeCallbacksAndMessages(null);
+        //        if (task != null && task.getStatus() == AsyncTask.Status.RUNNING) {
+        //            task.cancel(true);
+        //        }
         finish();
     }
 
+    /*
+         * 重写返回键,模拟返回按下暂停键
+         */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BACK:
+                if (flag) {
+                    isPause = true;
+                    flag = false;
+                }
+                break;
+            default:
+                break;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 
 }

@@ -94,14 +94,15 @@ public class SyncAdapter extends SwipeMenuAdapter<SyncAdapter.DefaultViewHolder>
         public void setData(MyBusinessInfo myBusinessInfo, int position) {
             this.tv_name.setText(myBusinessInfo.getName());
             this.tv_oleNsize.setText(myBusinessInfo.getListSize());
-//            if (myBusinessInfo.getListSize() > 0) {
-//                this.tv_status.setText("未更新");
-//            }
+            //            if (myBusinessInfo.getListSize() > 0) {
+            //                this.tv_status.setText("未更新");
+            //            }
         }
 
         @Override
         public void onClick(View view) {
             if (mOnItemClickListener != null) {
+                mOnItemClickListener.onItemClick(getAdapterPosition(), myBusinessInfo.size() - 1, pb);
                 mOnItemClickListener.onItemClick(getAdapterPosition(), myBusinessInfo.size() - 1);
                 //                mOnItemClickListener.onItemClick(getLayoutPosition());
             }

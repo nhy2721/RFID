@@ -459,6 +459,11 @@ public class UpGuidanceActivity extends BaseActivity {
                 mUpGuidanceAdapter.notifyItemRangeChanged(position, listSize);
             }
         }
+
+        @Override
+        public void onItemClick(int position, int listSize, ProgressBar pb) {
+
+        }
     };
 
     /**

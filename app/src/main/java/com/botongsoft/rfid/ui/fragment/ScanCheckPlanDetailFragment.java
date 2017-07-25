@@ -16,6 +16,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -704,6 +705,11 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                         }
                     })
                     .create().show();
+        }
+
+        @Override
+        public void onItemClick(int position, int listSize, ProgressBar pb) {
+
         }
     };
 }
