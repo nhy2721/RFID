@@ -27,7 +27,6 @@ import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
-import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
@@ -284,6 +283,41 @@ public class UpFLoorActivity extends BaseActivity {
             String temp[] = scanInfoLocal.split("/");//拆分上架的位置
             //保存数据库
             for (Map map : mDataList) {
+                //                Mjjgda oldMjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", map.get("bm").toString(), "jlid", map.get("jlid").toString());
+                //                Mjjgda oldMjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", temp[0] + "",
+                //                        "jlid", "=", temp[1] + "", "status", "!=", "-1");
+                //                if (oldMjjgda != null) {
+                //先删除没同步过的版本号为0的重复数据 直接删是因为一个id编码只会有一个位置
+                DBDataUtils.deleteInfos(Mjjgda.class, "bm", "=", map.get("bm").toString(),
+                        "jlid", "=", map.get("jlid").toString(), "anchor", "=", "0", "status", "=", "-1");
+                //如果上架的位置与表里有同步过的位置相等 要删除已下架的数据才能保存新的位置
+                Mjjgda delMjjgda = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "bm", "=",
+                        map.get("bm").toString(), "jlid", "=", map.get("jlid").toString(), "status", "=", "-1", "anchor", ">", "0");
+                if (delMjjgda != null) {
+                    if (delMjjgda.getKfid() == Integer.valueOf(temp[0])
+                            && delMjjgda.getMjjid() == Integer.valueOf(temp[1])
+                            && delMjjgda.getMjgid() == Integer.valueOf(temp[2])) {
+                        //判断如果位置相等删除需要提交同步的旧数据，保存一个新数据
+                        DBDataUtils.deleteInfo(delMjjgda);
+                    }
+                }
+                //                    if (oldMjjgda.getAnchor() > 0) {//判断是否有同步过该条数据，有的话做更新位置操作
+                //                        if (temp.length == 3) {
+                //                            oldMjjgda.setKfid(Integer.valueOf(temp[0]));
+                //                            oldMjjgda.setMjjid(Integer.valueOf(temp[1]));
+                //                            oldMjjgda.setMjgid(Integer.valueOf(temp[2]));
+                //                        } else if (temp.length == 2) {
+                //                            oldMjjgda.setMjjid(Integer.valueOf(temp[0]));
+                //                            oldMjjgda.setMjgid(Integer.valueOf(temp[1]));
+                //                        } else if (temp.length == 1) {
+                //                            oldMjjgda.setMjgid(Integer.valueOf(temp[0]));
+                //                        }
+                //                        oldMjjgda.setBm((map.get("bm").toString()));
+                //                        oldMjjgda.setJlid((map.get("jlid").toString()));
+                //                        DBDataUtils.update(oldMjjgda);
+                //                    }
+
+                //                } else {
                 Mjjgda mjjgda = new Mjjgda();
                 mjjgda.setScanInfo(map.get("title").toString());//保存到档案表的扫描信息字段
                 if (temp.length == 3) {
@@ -302,7 +336,9 @@ public class UpFLoorActivity extends BaseActivity {
                 mjjgda.setAnchor(0L);//数据新增默认版本号为0，等同步完获得服务器的版本号更新本地
                 DBDataUtils.save(mjjgda);
                 //删除未同步的下架数据
-                DBDataUtils.deleteInfo(MjjgdaDelInfos.class,"bm",mjjgda.getBm(),"jlid",mjjgda.getJlid(),"status","<","9");
+                //                DBDataUtils.deleteInfo(MjjgdaDelInfos.class,"bm",mjjgda.getBm(),"jlid",mjjgda.getJlid(),"status","=","0");
+                //                }
+
             }
             //这里发送通知ui更新界面
             scanInfoLocal = "";//上过架后清空该变量
@@ -365,7 +401,9 @@ public class UpFLoorActivity extends BaseActivity {
                 case Constant.LX_MJGDA:
                     //不是属于密集格再查询档案是否已经上过架了
                     Mjjgda mjjgda = null;
-                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+                    //                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+                    mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", temp[0] + "",
+                            "jlid", "=", temp[1] + "", "status", "!=", "-1");
                     if (mjjgda == null) {
                         //没上过架存入页面显示
                         Map map = new HashMap();

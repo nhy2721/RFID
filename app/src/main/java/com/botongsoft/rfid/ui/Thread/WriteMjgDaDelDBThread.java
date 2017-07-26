@@ -3,6 +3,7 @@ package com.botongsoft.rfid.ui.Thread;
 import android.os.Handler;
 import android.os.Message;
 
+import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
 import com.botongsoft.rfid.common.constants.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
@@ -17,9 +18,9 @@ import java.util.List;
  */
 
 public class WriteMjgDaDelDBThread extends Thread {
-    private List<MjjgdaDelInfos> objList = null;
-    private List<MjjgdaDelInfos> saveList = new ArrayList<MjjgdaDelInfos>();
-//    private List<MjjgdaDelInfos> newList = new ArrayList<MjjgdaDelInfos>();
+    private List<Mjjgda> objList = null;
+    private List<Mjjgda> saveList = new ArrayList<Mjjgda>();
+    //    private List<MjjgdaDelInfos> newList = new ArrayList<MjjgdaDelInfos>();
     private MjjgdaDelInfos mjjgdaOld;
     private Handler mhandler;
     private Message uiMsg;
@@ -35,19 +36,24 @@ public class WriteMjgDaDelDBThread extends Thread {
 
     @Override
     public void run() {
-        for (MjjgdaDelInfos mjjgdaDelInfo : objList) {
-            mjjgdaOld = (MjjgdaDelInfos) DBDataUtils.getInfo(MjjgdaDelInfos.class, "bm", mjjgdaDelInfo.getBm() + "", "jlid", mjjgdaDelInfo.getJlid() + "");
-            if (mjjgdaOld != null) {
+        for (Mjjgda mjjgdaDelInfo : objList) {
+            //            mjjgdaOld = (MjjgdaDelInfos) DBDataUtils.getInfo(MjjgdaDelInfos.class, "bm", mjjgdaInfo.getBm() + "", "jlid", mjjgdaDelInfo.getJlid() + "");
+             DBDataUtils.deleteInfo(Mjjgda.class, "bm",  String.valueOf(mjjgdaDelInfo.getBm()),
+                    "jlid", String.valueOf(mjjgdaDelInfo.getJlid()),
+                    "id", "=", 0+"");
 
-                mjjgdaOld.setStatus(9);
-                saveList.add(mjjgdaOld);
-            }
+            //            if (mjjgdaOld != null) {
+            //
+            //                mjjgdaOld.setStatus(9);
+            //                saveList.add(mjjgdaOld);
+            //            }
         }
 
-        if (saveList != null && !saveList.isEmpty()) {
-            DBDataUtils.updateAll(saveList);
-        }
-//        mhandler.obtainMessage(Constant.BackThread_GETDADEL_SUCCESS).sendToTarget();
+        //        if (saveList != null && !saveList.isEmpty()) {
+        ////            DBDataUtils.updateAll(saveList);
+        //            DBDataUtils.delList(saveList);
+        //        }
+        //        mhandler.obtainMessage(Constant.BackThread_GETDADEL_SUCCESS).sendToTarget();
         mhandler.obtainMessage(Constant.BackThread_GETDA_SUCCESS).sendToTarget();
     }
 }

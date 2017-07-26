@@ -261,11 +261,12 @@ public class UpGuidanceActivity extends BaseActivity {
                     Kf kf = null;
                     // 查询文件存放的位置
                     Mjjgda mjjgda = null;
-                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+                    mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", temp[0] + "",
+                            "jlid", "=", temp[1] + "", "status", "!=", "-1");
                     if (mjjgda != null) {
                         Map map = new HashMap();
                         map.put("id", size1++);
-                        map.put("title",mjjgda.getBm()+"-"+mjjgda.getJlid());
+                        map.put("title", mjjgda.getBm() + "-" + mjjgda.getJlid());
                         map.put("bm", mjjgda.getBm());
                         map.put("jlid", mjjgda.getJlid());
                         Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");

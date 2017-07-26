@@ -68,7 +68,9 @@ public class FilesBusines {
         JSONObject req = new JSONObject();
         req.put("reqType", reqType);
         req.put("mjgda", mjgdaList);
-        req.put("mjgdadel", mjgdaDelList);
+        if(mjgdaDelList!=null){
+            req.put("mjgdadel", mjgdaDelList);
+        }
         JSONArray str_jsons = new JSONArray();
         str_jsons.add(req);
         str_json.put("req", str_jsons);

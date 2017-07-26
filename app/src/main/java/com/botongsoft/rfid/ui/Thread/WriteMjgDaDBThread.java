@@ -36,7 +36,8 @@ public class WriteMjgDaDBThread extends Thread {
     @Override
     public void run() {
         for (Mjjgda mjjgda : objList) {
-            mjjgdaOld = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", mjjgda.getBm() + "", "jlid", mjjgda.getJlid() + "");
+            mjjgdaOld = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", mjjgda.getBm() + "",
+                    "jlid", mjjgda.getJlid() + "");
             if (mjjgdaOld != null) {
                 mjjgdaOld.setAnchor(mjjgda.getAnchor());
                 mjjgdaOld.setId(mjjgda.getId());

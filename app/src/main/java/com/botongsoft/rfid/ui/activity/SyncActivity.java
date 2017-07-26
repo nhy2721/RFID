@@ -168,10 +168,10 @@ public class SyncActivity extends BaseActivity {
                         ToastUtils.showLong("通知界面保存完毕");
                         temple = 0;
                         mSyncAdapter.notifyDataSetChanged();
-                        ToastUtils.showShort("BackThread_GETDA_SUCCESS" + mDaLocalCount);
-                        if (mDaLocalCount > 0) {//服务器更新完数据后如果本地有数据需提交更新就发消息到后台线程去执行
-                            mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
-                        }
+                        ToastUtils.showShort("BackThread_GETDA_SUCCESS==》" + mDaLocalCount);
+//                        if (mDaLocalCount > 0) {//服务器更新完数据后如果本地有数据需提交更新就发消息到后台线程去执行
+//                            mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+//                        }
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -268,7 +268,8 @@ public class SyncActivity extends BaseActivity {
                         backThreadmsg = mCheckMsgHandler.obtainMessage();
                         backThreadmsg.what = BackThread_GETMJJGDA;
                         mCheckMsgHandler.sendMessage(backThreadmsg);
-                    } else if (mDaLocalCount > 0) {
+                    }
+                    if (mDaLocalCount > 0) {
                         pb.setProgress(100);
                         mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
                     }
@@ -410,8 +411,9 @@ public class SyncActivity extends BaseActivity {
                             writeMjgDaDBThread.setList(mjjgdaJsonList);
                             writeMjgDaDBThread.start();
                         }
-                        List<MjjgdaDelInfos> mjjgdaDelJsonList = JSON.parseArray(response.res.delrecords, MjjgdaDelInfos.class);
+                        List<Mjjgda> mjjgdaDelJsonList = JSON.parseArray(response.res.delrecords, Mjjgda.class);
                         if (mjjgdaDelJsonList != null && !mjjgdaDelJsonList.isEmpty()) {
+                            Log.i("delList", mjjgdaDelJsonList.toString());
                             writeMjgDaDelDBThread = new WriteMjgDaDelDBThread(mHandler, uiMsg);
                             writeMjgDaDelDBThread.setList(mjjgdaDelJsonList);
                             writeMjgDaDelDBThread.start();
@@ -473,10 +475,13 @@ public class SyncActivity extends BaseActivity {
                             mjjgdaAnchor = Long.valueOf(mjjgdaInfo.getAnchor());
                         }
                         try {
-                            int temp1 = (int) DBDataUtils.count(Mjjgda.class, "status", "<", "9");
-                            //查询本地档案下架删除记录更新到服务器
-                            int temp = (int) DBDataUtils.count(MjjgdaDelInfos.class, "status", "=", "-1");
-                            mDaLocalCount = temp1 + temp;
+                            int temp1 = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
+                            int temp2 = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
+
+                            //                            //查询本地档案下架删除记录更新到服务器
+                            //                            int temp = (int) DBDataUtils.count(MjjgdaDelInfos.class, "status", "=", "-1");
+                            //                            mDaLocalCount = temp1 + temp;
+                            mDaLocalCount = temp1 + temp2;
                             if (mDaLocalCount > 0) {
                                 uiMsg.arg1 = (int) mDaLocalCount;
                             }
@@ -507,14 +512,16 @@ public class SyncActivity extends BaseActivity {
                         isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                         flag = true;
                         Log.d("onClick", "开始");
-
-                        mjgdaLists = (List<Mjjgda>) DBDataUtils.getInfos(Mjjgda.class, "status", "<", "9");
-                        mjgdaDelLists = (List<MjjgdaDelInfos>) DBDataUtils.getInfos(MjjgdaDelInfos.class, "status", "=", "-1");
+                        //已同步被下架
+                        List<Mjjgda> tempList1 = (List<Mjjgda>) DBDataUtils.getInfos(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
+                        //新上架子
+                        List<Mjjgda> tempList = (List<Mjjgda>) DBDataUtils.getInfos(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
+                        //                        mjgdaDelLists = (List<MjjgdaDelInfos>) DBDataUtils.getInfos(MjjgdaDelInfos.class, "status", "=", "-1");
                         boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
                         if (st) {
-                            if (mjgdaLists != null && !mjgdaLists.isEmpty()) {
+                            if ((tempList != null && !tempList.isEmpty())||(tempList1 != null && !tempList1.isEmpty())) {
                                 task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
-                                FilesBusines.putDa(task, mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, mjgdaLists, mjgdaDelLists);
+                                FilesBusines.putDa(task, mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, tempList, tempList1);
                             }
 
                         } else {
@@ -532,20 +539,7 @@ public class SyncActivity extends BaseActivity {
                         }
 
                         break;
-                    case BackThread_PUTKF:
-                        //                        kfList = (List<Kf>) DBDataUtils.getInfos(Kf.class, "status", "<", "9");
-                        //                        if (kfList.size() > 0) {
-                        //                            for (Kf kf : kfList) {
-                        //                                boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
-                        //                                if (st) {
-                        //                                    FilesBusines.putKfState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, JSON.toJSON(kfList));
-                        //                                } else {
-                        //                                    msg.what = CONN_UNSUCCESS;
-                        //                                    handler.sendMessage(msg);
-                        //                                }
-                        //                            }
-                        //                        }
-                        break;
+
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
                         break;

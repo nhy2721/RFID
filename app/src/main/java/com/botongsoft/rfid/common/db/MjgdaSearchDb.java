@@ -14,6 +14,12 @@ public class MjgdaSearchDb {
         return (Mjjgda) DBDataUtils.getInfo(entityType, key1, value1, key2, value2);
     }
 
+    public static Mjjgda getInfoHasOp(Class<?> entityType, String key1, String op1, String value1,
+                                      String key2, String op2, String value2, String key3, String op3, String value3) {
+        return (Mjjgda) DBDataUtils.getInfoHasOp(entityType, key1, op1, value1, key2, op2, value2,
+                key3, op3, value3);
+    }
+
     public static boolean delInfo(List<?> entities) {
         return DBDataUtils.delList(entities);
     }

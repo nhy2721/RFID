@@ -111,9 +111,38 @@ public class DBDataUtils {
         return list;
     }
 
+    /**
+     * 获取数据
+     *
+     * @param entityType
+     * @return
+     */
+    public static Object getInfos(Class<?> entityType, String key, String op, String value, String key1, String op1, String value1) {
+        DbUtils db = DataBaseCreator.create();
+        Object list = null;
+        try {
+            list = db.findAll(Selector.from(entityType).where(key, op, value).and(key1, op1, value1));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public static long count(Class<?> entityType, String key, String op, String value) throws DbException {
         DbUtils db = DataBaseCreator.create();
         return db.count(Selector.from(entityType).where(key, op, value));
+    }
+
+    public static long count(Class<?> entityType, String key, String op, String value,
+                             String key2, String op2, String value2) throws DbException {
+        DbUtils db = DataBaseCreator.create();
+        return db.count(Selector.from(entityType).where(key, op, value).and(key2, op2, value2));
+    }
+
+    public static long countOr(Class<?> entityType, String key, String op, String value,
+                               String key2, String op2, String value2) throws DbException {
+        DbUtils db = DataBaseCreator.create();
+        return db.count(Selector.from(entityType).where(key, op, value).and(key2, op2, value2));
     }
 
     /**
@@ -129,6 +158,49 @@ public class DBDataUtils {
         try {
             info = db.findFirst(Selector.from(entityType)
                     .where(key, op, value).orderBy(key, true));
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
+
+    public static Object getInfoHasOp(Class<?> entityType, String key1, String op1, String value1,
+                                      String key2, String op2, String value2) {
+        DbUtils db = DataBaseCreator.create();
+        Object info = null;
+        try {
+            info = db.findFirst(Selector.from(entityType)
+                    .where(key1, op1, value1).and(key2, op2, value2));
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
+
+    public static Object getInfoHasOp(Class<?> entityType, String key1, String op1, String value1,
+                                      String key2, String op2, String value2, String key3, String op3, String value3) {
+        DbUtils db = DataBaseCreator.create();
+        Object info = null;
+        try {
+            info = db.findFirst(Selector.from(entityType)
+                    .where(key1, op1, value1).and(key2, op2, value2).and(key3, op3, value3));
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
+
+    public static Object getInfoHasOp(Class<?> entityType, String key1, String op1, String value1,
+                                      String key2, String op2, String value2, String key3, String op3,
+                                      String value3, String key4, String op4, String value4) {
+        DbUtils db = DataBaseCreator.create();
+        Object info = null;
+        try {
+            info = db.findFirst(Selector.from(entityType)
+                    .where(key1, op1, value1).and(key2, op2, value2).and(key3, op3, value3).and(key4, op4, value4));
 
         } catch (DbException e) {
             e.printStackTrace();
@@ -357,7 +429,8 @@ public class DBDataUtils {
      * @param value1
      * @return
      */
-    public static boolean deleteInfo(Class<?> entityType, String key1, String value1, String key2, String value2, String key3, String op3, String value3) {
+    public static boolean deleteInfo(Class<?> entityType, String key1, String value1, String key2,
+                                     String value2, String key3, String op3, String value3) {
         DbUtils db = DataBaseCreator.create();
         boolean isSuccess = false;
         try {
@@ -393,6 +466,51 @@ public class DBDataUtils {
         boolean isSuccess = false;
         try {
             db.delete(entityType, WhereBuilder.b(key1, "=", value1).and(key2, "=", value2));
+            isSuccess = true;
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return isSuccess;
+    }
+
+    public static boolean deleteInfos(Class<?> entityType, String key1, String value1, String key2,
+                                      String value2, String key3, String value3) {
+        DbUtils db = DataBaseCreator.create();
+        boolean isSuccess = false;
+        try {
+            db.delete(entityType, WhereBuilder.b(key1, "=", value1).and(key2, "=", value2).and(key3, "=", value3));
+            isSuccess = true;
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return isSuccess;
+    }
+
+    public static boolean deleteInfos(Class<?> entityType, String key1, String op1, String value1, String key2, String op2,
+                                      String value2, String key3, String op3, String value3, String key4, String op4, String value4) {
+        DbUtils db = DataBaseCreator.create();
+        boolean isSuccess = false;
+        try {
+            db.delete(entityType, WhereBuilder.b(key1, op1, value1).and(key2, op2, value2).and(key3, op3, value3).and(key4, op4, value4));
+            isSuccess = true;
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return isSuccess;
+    }
+    public static boolean deleteInfos(Class<?> entityType, String key1, String op1, String value1,
+                                      String key2, String op2, String value2,
+                                      String key3, String op3, String value3,
+                                      String key4, String op4, String value4,
+                                      String key5, String op5, String value5,
+                                      String key6, String op6, String value6,
+                                      String key7, String op7, String value7) {
+        DbUtils db = DataBaseCreator.create();
+        boolean isSuccess = false;
+        try {
+            db.delete(entityType, WhereBuilder.b(key1, op1, value1).and(key2, op2, value2).
+                    and(key3, op3, value3).and(key4, op4, value4).and(key5, op5, value5)
+                    .and(key6, op6, value6).and(key7, op7, value7));
             isSuccess = true;
         } catch (DbException e) {
             e.printStackTrace();

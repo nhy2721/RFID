@@ -20,7 +20,6 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSON;
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
@@ -272,13 +271,14 @@ public class DownFLoorActivity extends BaseActivity {
     };
 
     private boolean saveDB(List<Mjjgda> mDataList) {
-        boolean str = false;
+        boolean str = true;
         //        操作内容是根据选中的条目删除密集架档案表数据，完成下架。
-        str = MjgdaSearchDb.delInfo(mDataList);
-        if (str) {
-            DBDataUtils.saveAll(delInfosesList);
-        }
-
+        //        str = MjgdaSearchDb.delInfo(mDataList);//旧操作是直接删除下架List对象
+        //        if (str) {//保存下架记录到delInfo表
+        //            DBDataUtils.saveAll(delInfsesList);
+        //        }
+        //新操作改成更新这些数据
+        DBDataUtils.updateAll(mDataList);
         return str;
 
     }
@@ -340,7 +340,9 @@ public class DownFLoorActivity extends BaseActivity {
                     Kf kf = null;
                     // 查询文件存放的位置
                     Mjjgda mjjgda = null;
-                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+                    //                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+                    mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", temp[0] + "",
+                            "jlid", "=", temp[1] + "", "status", "!=", "-1");//下架只查不属于被删除的数据
                     if (mjjgda != null) {
                         mjjgda.setTitle(mjjgda.getBm() + "-" + mjjgda.getJlid());
                         //                        Map map = new HashMap();
@@ -364,16 +366,17 @@ public class DownFLoorActivity extends BaseActivity {
                         String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
                         //                        map.put("local", name);//界面显示存放位置
                         mjjgda.setScanInfo(name);
+                        mjjgda.setStatus(-1);
                         mDataList.add(mjjgda);
-                        //将下架记录存一份到delInfosesList集合中后保存数据
-                        if (mjjgda.getStatus() == 9) {//有同步过的下架要提交服务器 状态9(已同步过)-->>-1
-                            mjjgda.setStatus(-1);
-                        } else {
-                            mjjgda.setStatus(0);
-                        }
-                        String jsonObj = JSON.toJSONString(mjjgda);
-                        MjjgdaDelInfos ms = (MjjgdaDelInfos) JSON.parseObject(jsonObj, MjjgdaDelInfos.class);
-                        delInfosesList.add(ms);
+                        //                        //将下架记录存一份到delInfosesList集合中后保存数据
+                        //                        if (mjjgda.getStatus() == 9) {//有同步过的下架要提交服务器 状态9(已同步过)-->>-1
+                        //                            mjjgda.setStatus(-1);
+                        //                        } else {
+                        //                            mjjgda.setStatus(0);
+                        //                        }
+                        //                        String jsonObj = JSON.toJSONString(mjjgda);
+                        //                        MjjgdaDelInfos ms = (MjjgdaDelInfos) JSON.parseObject(jsonObj, MjjgdaDelInfos.class);
+                        //                        delInfosesList.add(ms);
                     }
                     break;
             }
