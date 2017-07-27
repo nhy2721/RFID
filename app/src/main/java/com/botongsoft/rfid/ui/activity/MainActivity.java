@@ -156,11 +156,11 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                         e.printStackTrace();
                     }
                 }
-                try {
-                    if (db.count(CheckPlan.class) <= 0) {
-                        boolean checkplanStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "checkplan.sql");
-                        LogUtils.e("盘点数据数据新增 " + checkplanStruts + "");
-                    }
+//                try {
+//                    if (db.count(CheckPlan.class) <= 0) {
+//                        boolean checkplanStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "checkplan.sql");
+//                        LogUtils.e("盘点数据数据新增 " + checkplanStruts + "");
+//                    }
 //                    if (db.count(Kf.class) <= 0) {
 //                        boolean kfStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "kf.sql");
 //                        LogUtils.e("库房数据新增 " + kfStruts + "");
@@ -173,9 +173,9 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 //                        boolean mjjgStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjjg.sql");
 //                        LogUtils.e("密集架格数据新增 " + mjjgStruts + "");
 //                    }
-                } catch (DbException e) {
-                    e.printStackTrace();
-                }
+//                } catch (DbException e) {
+//                    e.printStackTrace();
+//                }
 
             }
         }.start();

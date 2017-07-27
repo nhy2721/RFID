@@ -22,6 +22,7 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.JsonBean.CountJson;
 import com.botongsoft.rfid.bean.JsonBean.KfJson;
 import com.botongsoft.rfid.bean.JsonBean.MjjJson;
+import com.botongsoft.rfid.bean.classity.CheckPlan;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
@@ -40,6 +41,7 @@ import com.botongsoft.rfid.common.utils.JsonUtils;
 import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
+import com.botongsoft.rfid.ui.Thread.WriteCheckPlanDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteKfDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjgDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjgDaDBThread;
@@ -95,6 +97,7 @@ public class SyncActivity extends BaseActivity {
     private static final int BackThread_GETMJJG = 1004;
     private static final int BackThread_GETMJJGDA = 1005;
     private static final int BackThread_PUTMJJGDA = 1006;
+    private static final int BackThread_GETCHECKPLAN = 1007;
     //传递后台运行消息队列
     Message backThreadmsg;
     Message uiMsg;
@@ -104,11 +107,13 @@ public class SyncActivity extends BaseActivity {
     private WriteMjgDBThread wrMjgDbThread;//数据库操作相关
     private WriteMjgDaDBThread writeMjgDaDBThread;//数据库操作相关
     private WriteMjgDaDelDBThread writeMjgDaDelDBThread;//数据库操作相关
+    private WriteCheckPlanDBThread writeCheckPlanDBThread;
     static int temple = 0;
     static Long kfAnchor;
     static Long mjjAnchor;
     static Long mjjgAnchor;
     static Long mjjgdaAnchor;
+    static Long checkPlanAnchor;
     static long mDaLocalCount;//档案本地提交服务器数量
     RequestTask task;
     List<Mjjgda> mjgdaLists;
@@ -144,7 +149,7 @@ public class SyncActivity extends BaseActivity {
                         //                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext,kfAnchor,mjjAnchor,mjjgAnchor);
                         break;
                     case INIT_DOWORK:
-                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, mjjAnchor, mjjgAnchor, mjjgdaAnchor);
+                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, mjjAnchor, mjjgAnchor, mjjgdaAnchor, checkPlanAnchor);
                         break;
                     case CONN_UNSUCCESS:
                         new AlertDialog.Builder(mContext)
@@ -169,9 +174,9 @@ public class SyncActivity extends BaseActivity {
                         temple = 0;
                         mSyncAdapter.notifyDataSetChanged();
                         ToastUtils.showShort("BackThread_GETDA_SUCCESS==》" + mDaLocalCount);
-//                        if (mDaLocalCount > 0) {//服务器更新完数据后如果本地有数据需提交更新就发消息到后台线程去执行
-//                            mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
-//                        }
+                        //                        if (mDaLocalCount > 0) {//服务器更新完数据后如果本地有数据需提交更新就发消息到后台线程去执行
+                        //                            mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+                        //                        }
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -270,10 +275,17 @@ public class SyncActivity extends BaseActivity {
                         mCheckMsgHandler.sendMessage(backThreadmsg);
                     }
                     if (mDaLocalCount > 0) {
-                        pb.setProgress(100);
+                        //                        pb.setProgress(100);
                         mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
                     }
 
+                    break;
+                case 4:
+                    LogUtils.d("read checkPlan");
+                    backThreadmsg = mCheckMsgHandler.obtainMessage();
+                    LogUtils.d("BackThread_GETCHECKPLAN;");
+                    backThreadmsg.what = BackThread_GETCHECKPLAN;
+                    mCheckMsgHandler.sendMessage(backThreadmsg);
                     break;
                 default:
                     break;
@@ -300,7 +312,7 @@ public class SyncActivity extends BaseActivity {
         //            newsAdapter.setCurList(beanList);
         //        }
         if (response != null) {
-            if (act == Constant.ACT_GET_WORDS) {//服务器返回更新数
+            if (act == BackThread_DOWORK) {//服务器返回更新数
                 if (response.isSuccess()) {
                     try {
                         List<CountJson> countJsons = JSONObject.parseArray(response.res.rows, CountJson.class);
@@ -336,12 +348,18 @@ public class SyncActivity extends BaseActivity {
                             myBusinessInfos.get(3).setListSize("无数据");
                         }
 
+                        if (Integer.valueOf(countJsons.get(0).checkplan) > 0) {
+                            myBusinessInfos.get(4).setListSize("服务器新数据：" + countJsons.get(0).checkplan + "条记录");
+                        } else {
+                            myBusinessInfos.get(4).setListSize("无数据");
+                        }
+
                         mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
-            } else if (act == Constant.ACT_GET_KF) {
+            } else if (act == BackThread_GETKF) {
                 if (response.isSuccess()) {
                     try {
                         List<Kf> kfJsonList = JSON.parseArray(response.res.rows, Kf.class);
@@ -357,7 +375,7 @@ public class SyncActivity extends BaseActivity {
                     }
                 }
 
-            } else if (act == Constant.ACT_GET_MJJ) {
+            } else if (act == BackThread_GETMJJ) {
                 if (response.isSuccess()) {
                     try {
                         List<Mjj> mjjJsonList = JSON.parseArray(response.res.rows, Mjj.class);
@@ -372,7 +390,7 @@ public class SyncActivity extends BaseActivity {
                         e.printStackTrace();
                     }
                 }
-            } else if (act == Constant.ACT_GET_MJJG) {
+            } else if (act == BackThread_GETMJJG) {
                 if (response.isSuccess()) {
                     try {
                         List<Mjjg> mjjgJsonList = JSON.parseArray(response.res.rows, Mjjg.class);
@@ -387,7 +405,7 @@ public class SyncActivity extends BaseActivity {
                         e.printStackTrace();
                     }
                 }
-            } else if (act == Constant.ACT_GET_MJJGDA) {
+            } else if (act == BackThread_GETMJJGDA) {
                 if (response.isSuccess()) {
                     try {
                         List<Mjjgda> mjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
@@ -402,7 +420,7 @@ public class SyncActivity extends BaseActivity {
                         e.printStackTrace();
                     }
                 }
-            } else if (act == Constant.ACT_PUT_MJJGDA) {
+            } else if (act == BackThread_PUTMJJGDA) {
                 if (response.isSuccess()) {
                     try {
                         List<Mjjgda> mjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
@@ -417,6 +435,21 @@ public class SyncActivity extends BaseActivity {
                             writeMjgDaDelDBThread = new WriteMjgDaDelDBThread(mHandler, uiMsg);
                             writeMjgDaDelDBThread.setList(mjjgdaDelJsonList);
                             writeMjgDaDelDBThread.start();
+                        }
+                        //                        myBusinessInfos.get(2).setListSize("" + 0);
+                        //                        mSyncAdapter.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }else if (act == BackThread_GETCHECKPLAN) {
+                if (response.isSuccess()) {
+                    try {
+                        List<CheckPlan> checkPlanJsonList = JSON.parseArray(response.res.rows, CheckPlan.class);
+                        if (checkPlanJsonList != null && !checkPlanJsonList.isEmpty()) {
+                            writeCheckPlanDBThread = new WriteCheckPlanDBThread(mHandler, uiMsg);
+                            writeCheckPlanDBThread.setList(checkPlanJsonList);
+                            writeCheckPlanDBThread.start();
                         }
                         //                        myBusinessInfos.get(2).setListSize("" + 0);
                         //                        mSyncAdapter.notifyDataSetChanged();
@@ -475,12 +508,10 @@ public class SyncActivity extends BaseActivity {
                             mjjgdaAnchor = Long.valueOf(mjjgdaInfo.getAnchor());
                         }
                         try {
+                            //已经同步过的数据下架了
                             int temp1 = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
+                            //新保存的上架记录
                             int temp2 = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
-
-                            //                            //查询本地档案下架删除记录更新到服务器
-                            //                            int temp = (int) DBDataUtils.count(MjjgdaDelInfos.class, "status", "=", "-1");
-                            //                            mDaLocalCount = temp1 + temp;
                             mDaLocalCount = temp1 + temp2;
                             if (mDaLocalCount > 0) {
                                 uiMsg.arg1 = (int) mDaLocalCount;
@@ -489,6 +520,13 @@ public class SyncActivity extends BaseActivity {
                             e.printStackTrace();
                         }
 
+                        //盘点计划表版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                        CheckPlan mCheckPlan = (CheckPlan) DBDataUtils.getInfoHasOp(CheckPlan.class, "anchor", ">=", "0");
+                        if (mCheckPlan == null) {
+                            checkPlanAnchor = 0L;
+                        } else {
+                            checkPlanAnchor = Long.valueOf(mCheckPlan.getAnchor());
+                        }
                         mHandler.sendMessage(uiMsg);
                         //                        mHandler.obtainMessage(INIT_DOWORK).sendToTarget();
                         break;
@@ -505,13 +543,11 @@ public class SyncActivity extends BaseActivity {
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgdaAnchor, BackThread_GETMJJGDA);
                         break;
                     case BackThread_PUTMJJGDA:
-                        ToastUtils.showShort("我跳进来");
                         if (flag) {
                             return;
                         }
                         isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                         flag = true;
-                        Log.d("onClick", "开始");
                         //已同步被下架
                         List<Mjjgda> tempList1 = (List<Mjjgda>) DBDataUtils.getInfos(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
                         //新上架子
@@ -519,7 +555,7 @@ public class SyncActivity extends BaseActivity {
                         //                        mjgdaDelLists = (List<MjjgdaDelInfos>) DBDataUtils.getInfos(MjjgdaDelInfos.class, "status", "=", "-1");
                         boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
                         if (st) {
-                            if ((tempList != null && !tempList.isEmpty())||(tempList1 != null && !tempList1.isEmpty())) {
+                            if ((tempList != null && !tempList.isEmpty()) || (tempList1 != null && !tempList1.isEmpty())) {
                                 task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
                                 FilesBusines.putDa(task, mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, tempList, tempList1);
                             }
@@ -534,12 +570,12 @@ public class SyncActivity extends BaseActivity {
                                 mjgdaLists.clear();
                             }
                             break;
-
-
                         }
 
                         break;
-
+                    case BackThread_GETCHECKPLAN:
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, checkPlanAnchor, BackThread_GETCHECKPLAN);
+                        break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
                         break;

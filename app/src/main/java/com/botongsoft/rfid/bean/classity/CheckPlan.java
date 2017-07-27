@@ -1,5 +1,6 @@
 package com.botongsoft.rfid.bean.classity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.lidroid.xutils.db.annotation.Column;
 import com.lidroid.xutils.db.annotation.Id;
 import com.lidroid.xutils.db.annotation.Table;
@@ -17,9 +18,11 @@ public class CheckPlan implements java.io.Serializable {
     @Column
     private int pdid;
     @Column
-    private int kssj;
+    @JSONField(format="yyyy-MM-dd")
+    private String kssj;
     @Column
-    private int jssj;
+    @JSONField (format="yyyy-MM-dd")
+    private String jssj;
     @Column
     private String fw;
     @Column
@@ -55,19 +58,20 @@ public class CheckPlan implements java.io.Serializable {
         this.pdid = pdid;
     }
 
-    public int getKssj() {
+
+    public String getKssj() {
         return kssj;
     }
 
-    public void setKssj(int kssj) {
+    public void setKssj(String kssj) {
         this.kssj = kssj;
     }
 
-    public int getJssj() {
+    public String getJssj() {
         return jssj;
     }
 
-    public void setJssj(int jssj) {
+    public void setJssj(String jssj) {
         this.jssj = jssj;
     }
 

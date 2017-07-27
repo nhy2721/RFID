@@ -92,12 +92,12 @@ public class Constant {
      * 获取服务器表数据更新数
      */
     public static final int ACT_GET_WORDS = 9999;
-    public static final int ACT_GET_KF = 1000;
-    public static final int ACT_PUT_KF = 1002;
-    public static final int ACT_GET_MJJ = 1003;
-    public static final int ACT_GET_MJJG = 1004;
-    public static final int ACT_GET_MJJGDA = 1005;
-    public static final int ACT_PUT_MJJGDA = 1006;
+//    public static final int ACT_GET_KF = 1000;
+//    public static final int ACT_PUT_KF = 1002;
+//    public static final int ACT_GET_MJJ = 1003;
+//    public static final int ACT_GET_MJJG = 1004;
+//    public static final int ACT_GET_MJJGDA = 1005;
+//    public static final int ACT_PUT_MJJGDA = 1006;
     /**
      * 查询集合记录
      */
