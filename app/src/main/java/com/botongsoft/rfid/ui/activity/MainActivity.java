@@ -33,6 +33,7 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.CheckError;
 import com.botongsoft.rfid.bean.classity.CheckPlan;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
+import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
@@ -42,7 +43,6 @@ import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
 import com.botongsoft.rfid.common.service.http.BusinessException;
-import com.botongsoft.rfid.common.utils.FileUtils;
 import com.botongsoft.rfid.common.utils.KeyBoardUtils;
 import com.botongsoft.rfid.common.utils.PermissionUtils;
 import com.botongsoft.rfid.common.utils.SPUtils;
@@ -73,7 +73,8 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     private PopupWindow mPopupWindow;
     private SearchViewHolder holder;
     private long lastTime = 0;
-    private Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class, Kf.class, Mjj.class, Mjjg.class, Mjjgda.class, MjjgdaDelInfos.class};
+    private Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class,
+            Kf.class, Mjj.class, Mjjg.class, Mjjgda.class, MjjgdaDelInfos.class, CheckPlanDeatilDel.class};
     private Activity mContext;
 
     @Override

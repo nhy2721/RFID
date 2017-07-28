@@ -25,7 +25,7 @@ public class FilesBusines {
      * @return
      */
     public static RequestTask getWorkState(Context context,
-                                           BusinessResolver.BusinessCallback<BaseResponse> callback, Long kf, Long mjj, Long mjg, Long mjgda,Long checkPlanAnchor) {
+                                           BusinessResolver.BusinessCallback<BaseResponse> callback, Long kf, Long mjj, Long mjg, Long mjgda, Long checkPlanAnchor) {
         final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
@@ -69,7 +69,7 @@ public class FilesBusines {
         JSONObject req = new JSONObject();
         req.put("reqType", reqType);
         req.put("mjgda", mjgdaList);
-        if(mjgdaDelList!=null){
+        if (mjgdaDelList != null) {
             req.put("mjgdadel", mjgdaDelList);
         }
         JSONArray str_jsons = new JSONArray();
@@ -116,4 +116,45 @@ public class FilesBusines {
         return task;
     }
 
+    /****
+     * 提交档案纠错数据接口
+     *
+     * @param context
+     *
+     * @param
+     * @return
+     */
+    public static RequestTask putCheckPlan(Context context,
+                                           BusinessResolver.BusinessCallback<BaseResponse> callback,
+                                           int reqType, List checkPlanDetailList, List checkPlanErrorList,List checkPlanDetailDelList) {
+        final RequestTask task = new RequestTask(callback, context);
+        BusinessRequest request = new BusinessRequest(
+                BusinessRequest.REQUEST_TYPE_POST,
+                BusinessRequest.RESULT_TYPE_OBJECT);
+        request.proDialogMsgId = R.string.request_hint_register;
+        JSONObject str_json = new JSONObject();
+        JSONObject req = new JSONObject();
+        req.put("reqType", reqType);
+        if (checkPlanDetailList != null) {
+            req.put("checkPlanDetail", checkPlanDetailList);
+        }
+        if (checkPlanErrorList != null) {
+            req.put("checkPlanErrorList", checkPlanErrorList);
+        }
+        if (checkPlanDetailDelList != null) {
+            req.put("checkPlanDetailDelList", checkPlanDetailDelList);
+        }
+        JSONArray str_jsons = new JSONArray();
+        str_jsons.add(req);
+        str_json.put("req", str_jsons);
+        request.paramsJSON = str_json.toJSONString();
+        request.cls = BaseResponse.class;
+        request.RESULT_ACT = reqType;
+        //        task.showDialog(request);
+        //                task.execute(request);
+        //        task.executeOnExecutor(Executors.newFixedThreadPool(20), request);//背压问题
+        task.executeOnExecutor(Executors.newCachedThreadPool(), request);
+        return task;
+
+    }
 }

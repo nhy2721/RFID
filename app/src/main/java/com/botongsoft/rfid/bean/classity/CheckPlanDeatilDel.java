@@ -8,7 +8,7 @@ import com.lidroid.xutils.db.annotation.Table;
  * Created by pc on 2017/6/14.
  */
 @Table
-public class CheckPlanDeatil implements java.io.Serializable {
+public class CheckPlanDeatilDel implements java.io.Serializable {
 
     @Id
     private int lid;//安卓端主键

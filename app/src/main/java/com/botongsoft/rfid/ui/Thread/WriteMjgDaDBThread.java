@@ -4,11 +4,12 @@ import android.os.Handler;
 import android.os.Message;
 
 import com.botongsoft.rfid.bean.classity.Mjjgda;
-import com.botongsoft.rfid.common.constants.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.botongsoft.rfid.common.constants.Constant.BackThread_GETDA_SUCCESS;
 
 
 /**
@@ -36,6 +37,10 @@ public class WriteMjgDaDBThread extends Thread {
     @Override
     public void run() {
         for (Mjjgda mjjgda : objList) {
+            uiMsg = mhandler.obtainMessage();
+            uiMsg.arg1 =  objList.size()-1;
+            uiMsg.what = BackThread_GETDA_SUCCESS;
+            mhandler.sendMessage(uiMsg);
             mjjgdaOld = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", mjjgda.getBm() + "",
                     "jlid", mjjgda.getJlid() + "");
             if (mjjgdaOld != null) {
@@ -61,6 +66,6 @@ public class WriteMjgDaDBThread extends Thread {
         if (saveList != null && !saveList.isEmpty()) {
             DBDataUtils.updateAll(saveList);
         }
-        mhandler.obtainMessage(Constant.BackThread_GETDA_SUCCESS).sendToTarget();
+//        mhandler.obtainMessage(Constant.BackThread_GETDA_SUCCESS).sendToTarget();
     }
 }

@@ -4,7 +4,7 @@ import com.lidroid.xutils.db.annotation.Column;
 import com.lidroid.xutils.db.annotation.Id;
 import com.lidroid.xutils.db.annotation.Table;
 
-/**
+/**盘点记录表
  * Created by pc on 2017/6/14.
  */
 @Table

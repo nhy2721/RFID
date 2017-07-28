@@ -5,11 +5,12 @@ import android.os.Message;
 
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
-import com.botongsoft.rfid.common.constants.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.botongsoft.rfid.common.constants.Constant.BackThread_GETDA_SUCCESS;
 
 
 /**
@@ -38,10 +39,13 @@ public class WriteMjgDaDelDBThread extends Thread {
     public void run() {
         for (Mjjgda mjjgdaDelInfo : objList) {
             //            mjjgdaOld = (MjjgdaDelInfos) DBDataUtils.getInfo(MjjgdaDelInfos.class, "bm", mjjgdaInfo.getBm() + "", "jlid", mjjgdaDelInfo.getJlid() + "");
-             DBDataUtils.deleteInfo(Mjjgda.class, "bm",  String.valueOf(mjjgdaDelInfo.getBm()),
+            DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaDelInfo.getBm()),
                     "jlid", String.valueOf(mjjgdaDelInfo.getJlid()),
-                    "id", "=", 0+"");
-
+                    "id", "=", 0 + "");
+            uiMsg = mhandler.obtainMessage();
+            uiMsg.arg1 = objList.size() - 1;
+            uiMsg.what = BackThread_GETDA_SUCCESS;
+            mhandler.sendMessage(uiMsg);
             //            if (mjjgdaOld != null) {
             //
             //                mjjgdaOld.setStatus(9);
@@ -54,6 +58,7 @@ public class WriteMjgDaDelDBThread extends Thread {
         //            DBDataUtils.delList(saveList);
         //        }
         //        mhandler.obtainMessage(Constant.BackThread_GETDADEL_SUCCESS).sendToTarget();
-        mhandler.obtainMessage(Constant.BackThread_GETDA_SUCCESS).sendToTarget();
+
+        //        mhandler.obtainMessage(Constant.BackThread_GETDA_SUCCESS).sendToTarget();
     }
 }

@@ -100,7 +100,7 @@ public class DBDataUtils {
      * @param entityType
      * @return
      */
-    public static Object getInfos(Class<?> entityType, String key, String op, String value) {
+    public static Object getInfosHasOp(Class<?> entityType, String key, String op, String value) {
         DbUtils db = DataBaseCreator.create();
         Object list = null;
         try {
@@ -117,11 +117,74 @@ public class DBDataUtils {
      * @param entityType
      * @return
      */
-    public static Object getInfos(Class<?> entityType, String key, String op, String value, String key1, String op1, String value1) {
+    public static Object getInfosHasOp(Class<?> entityType, String key, String op, String value, String key1, String op1, String value1) {
         DbUtils db = DataBaseCreator.create();
         Object list = null;
         try {
             list = db.findAll(Selector.from(entityType).where(key, op, value).and(key1, op1, value1));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * 获取数据
+     *
+     * @param entityType
+     * @return
+     */
+    public static Object getInfosHasOp(Class<?> entityType, String key, String op, String value,
+                                       String key1, String op1, String value1, String key2, String op2, String value2) {
+        DbUtils db = DataBaseCreator.create();
+        Object list = null;
+        try {
+            list = db.findAll(Selector.from(entityType).where(key, op, value).and(key1, op1, value1)
+                    .and(key2, op2, value2));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * 获取数据
+     *
+     * @param entityType
+     * @return
+     */
+    public static Object getInfosHasOp(Class<?> entityType, String key, String op, String value,
+                                       String key1, String op1, String value1,
+                                       String key2, String op2, String value2,
+                                       String key3, String op3, String value3
+    ) {
+        DbUtils db = DataBaseCreator.create();
+        Object list = null;
+        try {
+            list = db.findAll(Selector.from(entityType).where(key, op, value).and(key1, op1, value1)
+                    .and(key2, op2, value2).and(key3, op3, value3));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * 获取数据
+     *
+     * @param entityType
+     * @return
+     */
+    public static Object getInfosHasOp(Class<?> entityType, String key, String op, String value,
+                                       String key1, String op1, String value1,
+                                       String key2, String op2, String value2,
+                                       String key3, String op3, String value3,
+                                       String key4, String op4, String value4) {
+        DbUtils db = DataBaseCreator.create();
+        Object list = null;
+        try {
+            list = db.findAll(Selector.from(entityType).where(key, op, value).and(key1, op1, value1)
+                    .and(key2, op2, value2).and(key3, op3, value3).and(key4, op4, value4));
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -267,7 +330,8 @@ public class DBDataUtils {
         return info;
     }
 
-    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2, String key3, String value3, String key4, String value4, String key5, String value5) {
+    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2,
+                                 String key3, String value3, String key4, String value4, String key5, String value5) {
         DbUtils db = DataBaseCreator.create();
         Object info = null;
         try {
@@ -280,6 +344,37 @@ public class DBDataUtils {
         return info;
     }
 
+    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2,
+                                 String key3, String value3, String key4, String value4, String key5, String value5,
+                                 String key6, String value6) {
+        DbUtils db = DataBaseCreator.create();
+        Object info = null;
+        try {
+            info = db.findFirst(Selector.from(entityType)
+                    .where(key1, "=", value1).and(key2, "=", value2).and(key3, "=", value3)
+                    .and(key4, "=", value4).and(key5, "=", value5).and(key6, "=", value6));
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
+
+    public static Object getInfo(Class<?> entityType, String key1, String value1, String key2, String value2,
+                                 String key3, String value3, String key4, String value4, String key5, String value5,
+                                 String key6, String value6, String key7, String value7) {
+        DbUtils db = DataBaseCreator.create();
+        Object info = null;
+        try {
+            info = db.findFirst(Selector.from(entityType)
+                    .where(key1, "=", value1).and(key2, "=", value2).and(key3, "=", value3)
+                    .and(key4, "=", value4).and(key5, "=", value5).and(key6, "=", value6).and(key7, "=", value7));
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
     /**
      * 获取数据
      *
@@ -498,6 +593,7 @@ public class DBDataUtils {
         }
         return isSuccess;
     }
+
     public static boolean deleteInfos(Class<?> entityType, String key1, String op1, String value1,
                                       String key2, String op2, String value2,
                                       String key3, String op3, String value3,
