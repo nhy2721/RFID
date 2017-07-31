@@ -92,16 +92,23 @@ public class Constant {
      * 获取服务器表数据更新数
      */
     public static final int ACT_GET_WORDS = 9999;
-//    public static final int ACT_GET_KF = 1000;
-//    public static final int ACT_PUT_KF = 1002;
-//    public static final int ACT_GET_MJJ = 1003;
-//    public static final int ACT_GET_MJJG = 1004;
-//    public static final int ACT_GET_MJJGDA = 1005;
-//    public static final int ACT_PUT_MJJGDA = 1006;
+    //    public static final int ACT_GET_KF = 1000;
+    //    public static final int ACT_PUT_KF = 1002;
+    //    public static final int ACT_GET_MJJ = 1003;
+    //    public static final int ACT_GET_MJJG = 1004;
+    //    public static final int ACT_GET_MJJGDA = 1005;
+    //    public static final int ACT_PUT_MJJGDA = 1006;
     /**
      * 查询集合记录
      */
     public static final int BackThread_SUCCESS = 10000;
     public static final int BackThread_GETDA_SUCCESS = 10001;
     public static final int BackThread_GETDADEL_SUCCESS = 10002;
+    public static final int BackThread_GETKF_SUCCESS_PB = 4997;
+    public static final int BackThread_GETMJJ_SUCCESS_PB = 4998;
+    public static final int BackThread_GETMJG_SUCCESS_PB = 4999;
+    public static final int BackThread_GETDA_SUCCESS_PB = 5000;
+    public static final int BackThread_GETCHECKPLAN_SUCCESS_PB = 5001;
+    public static final int BackThread_GETCHECKDETAIL_SUCCESS_PB = 5002;
+    public static final int BackThread_GETCHECKERROR_SUCCESS_PB = 5003;
 }

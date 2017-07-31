@@ -1,5 +1,6 @@
 package com.botongsoft.rfid.ui.Thread;
 
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
@@ -9,7 +10,7 @@ import com.botongsoft.rfid.common.db.DBDataUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.botongsoft.rfid.common.constants.Constant.BackThread_GETDA_SUCCESS;
+import static com.botongsoft.rfid.common.constants.Constant.BackThread_GETDA_SUCCESS_PB;
 
 
 /**
@@ -36,13 +37,16 @@ public class WriteMjgDaDBThread extends Thread {
 
     @Override
     public void run() {
-        for (Mjjgda mjjgda : objList) {
+        for (int i = 0; i < objList.size(); i++) {
+            Mjjgda mjjgda = objList.get(i);
             uiMsg = mhandler.obtainMessage();
-            uiMsg.arg1 =  objList.size()-1;
-            uiMsg.what = BackThread_GETDA_SUCCESS;
+            Bundle b = new Bundle();
+            b.putInt("da",i+1);
+            uiMsg.setData(b);
+            uiMsg.what = BackThread_GETDA_SUCCESS_PB;
             mhandler.sendMessage(uiMsg);
             mjjgdaOld = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", mjjgda.getBm() + "",
-                    "jlid", mjjgda.getJlid() + "");
+                                        "jlid", mjjgda.getJlid() + "");
             if (mjjgdaOld != null) {
                 mjjgdaOld.setAnchor(mjjgda.getAnchor());
                 mjjgdaOld.setId(mjjgda.getId());
@@ -60,6 +64,32 @@ public class WriteMjgDaDBThread extends Thread {
                 newList.add(mjjgda);
             }
         }
+//        for (Mjjgda mjjgda : objList) {
+//            uiMsg = mhandler.obtainMessage();
+//            Bundle b = new Bundle();
+//            b.putInt("da",objList.size()+1);
+//            uiMsg.setData(b);
+//            uiMsg.what = BackThread_GETDA_SUCCESS_PB;
+//            mhandler.sendMessage(uiMsg);
+//            mjjgdaOld = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", mjjgda.getBm() + "",
+//                    "jlid", mjjgda.getJlid() + "");
+//            if (mjjgdaOld != null) {
+//                mjjgdaOld.setAnchor(mjjgda.getAnchor());
+//                mjjgdaOld.setId(mjjgda.getId());
+//                mjjgdaOld.setMjjid(mjjgda.getMjjid());
+//                mjjgdaOld.setXh(mjjgda.getXh());
+//                mjjgdaOld.setFlag(mjjgda.getFlag());
+//                mjjgdaOld.setKfid(mjjgda.getKfid());
+//                mjjgdaOld.setBm(mjjgda.getBm());
+//                mjjgdaOld.setMjgid(mjjgda.getMjgid());
+//                mjjgdaOld.setJlid(mjjgda.getJlid());
+//                mjjgdaOld.setStatus(9);
+//                saveList.add(mjjgdaOld);
+//            } else {
+//                mjjgda.setStatus(9);
+//                newList.add(mjjgda);
+//            }
+//        }
         if (newList != null && !newList.isEmpty()) {
             DBDataUtils.saveAll(newList);
         }
