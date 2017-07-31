@@ -35,7 +35,8 @@ public class WriteCheckErrorDBThread extends Thread {
 
     @Override
     public void run() {
-        for (int i = 0; i < objList.size(); i++) {
+        int size =objList.size();
+        for (int i = 0; i < size; i++) {
             CheckError mCheckError = objList.get(i);
             uiMsg = mhandler.obtainMessage();
             Bundle b = new Bundle();

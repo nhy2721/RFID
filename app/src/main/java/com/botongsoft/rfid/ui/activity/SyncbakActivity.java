@@ -1,6 +1,7 @@
 package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,7 +29,6 @@ import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
-import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.busines.FilesBusines;
 import com.botongsoft.rfid.common.constants.Constant;
@@ -148,7 +148,7 @@ public class SyncbakActivity extends BaseActivity {
     private static final int CONN_UNSUCCESS1 = 3;
     private static final int INIT_DOWORK = 2;
     private static final int PUT_WROK_KF = 1002;
-    List<Kf> kfList;
+
     private boolean isOnScreen;//是否在屏幕上
     private HandlerThread mCheckMsgThread;//Handler线程池
     //后台运行的handler
@@ -157,7 +157,6 @@ public class SyncbakActivity extends BaseActivity {
     private Handler mHandler;
     private static final int BackThread_DOWORK = 9999;
     private static final int BackThread_GETKF = 1000;
-    private static final int BackThread_PUTKF = 1001;
     private static final int BackThread_GETMJJ = 1003;
     private static final int BackThread_GETMJJG = 1004;
     private static final int BackThread_GETMJJGDA = 1005;
@@ -190,10 +189,10 @@ public class SyncbakActivity extends BaseActivity {
     static long mDaLocalCount;//档案本地提交服务器数量
     RequestTask task;
     List<Mjjgda> mjgdaLists;
-    List<MjjgdaDelInfos> mjgdaDelLists;
     private boolean flag = false;
     private boolean isPause;
-    List<Mjjgda> mjjgdaJsonList;
+    List<Mjjgda> getMjjgdaJsonList;
+    List<Mjjgda> putMjjgdaJsonList;
     List<Mjjg> mjjgJsonList;
     List<Mjj> mjjJsonList;
     List<Kf> kfJsonList;
@@ -249,9 +248,12 @@ public class SyncbakActivity extends BaseActivity {
                         LogUtils.d(checkdetail + "");
                         pb7.setMax(checkDetailJsonList.size());
                         pb7.setProgress(checkdetail);
+                        tv_status7.setText("正在写入数据库");
+                        tv_status7.setTextColor(Color.RED);
                         if (checkdetail == checkDetailJsonList.size()) {
                             tv_oleNsize7.setText("更新完成");
-                            bt_action7.setEnabled(true);
+                            tv_oleNsize7.setTextColor(Color.GREEN);
+                            tv_status7.setText("");
                         }
                         break;
                     case Constant.BackThread_GETCHECKERROR_SUCCESS_PB:
@@ -259,9 +261,12 @@ public class SyncbakActivity extends BaseActivity {
                         LogUtils.d(checkerror + "");
                         pb6.setMax(checkErrorJsonList.size());
                         pb6.setProgress(checkerror);
+                        tv_status6.setText("正在写入数据库");
+                        tv_status6.setTextColor(Color.RED);
                         if (checkerror == checkErrorJsonList.size()) {
                             tv_oleNsize6.setText("更新完成");
-                            bt_action6.setEnabled(true);
+                            tv_oleNsize6.setTextColor(Color.GREEN);
+                            tv_status6.setText("");
                         }
                         break;
                     case Constant.BackThread_GETCHECKPLAN_SUCCESS_PB:
@@ -269,32 +274,57 @@ public class SyncbakActivity extends BaseActivity {
                         LogUtils.d(checkplan + "");
                         pb5.setMax(checkPlanJsonList.size());
                         pb5.setProgress(checkplan);
+                        tv_status5.setText("正在写入数据库");
+                        tv_status5.setTextColor(Color.RED);
                         if (checkplan == checkPlanJsonList.size()) {
                             tv_oleNsize5.setText("更新完成");
-                            bt_action5.setEnabled(true);
+                            tv_oleNsize5.setTextColor(Color.GREEN);
+                            tv_status5.setText("");
                         }
                         break;
                     case Constant.BackThread_GETDA_SUCCESS_PB:
                         int da = data.getInt("da");
                         LogUtils.d(da + "");
-                        pb4.setMax(mjjgdaJsonList.size());
+                        LogUtils.d(getMjjgdaJsonList.size() + "");
+                        pb4.setMax(getMjjgdaJsonList.size());
                         pb4.setProgress(da);
-                        if (da == mjjgdaJsonList.size()) {
-                            //                            pb4.setProgress(100);
+                        tv_status4.setText("正在写入数据库");
+                        tv_status4.setTextColor(Color.RED);
+                        if (da == getMjjgdaJsonList.size()) {
                             tv_oleNsize4.setText("更新完成");
-                            bt_action4.setEnabled(true);
+                            tv_oleNsize4.setTextColor(Color.GREEN);
+                            tv_status4.setText("");
+                            if (mDaLocalCount > 0) {
+                                mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+                            }
                         }
                         temple = 0;
 
+                        break;
+                    case Constant.BackThread_PUTDA_SUCCESS_PB:
+                        int putda = data.getInt("da");
+                        LogUtils.d(putda + "");
+                        pb4.setMax(putMjjgdaJsonList.size());
+                        pb4.setProgress(putda);
+                        tv_status4.setText("正在写入数据库");
+                        tv_status4.setTextColor(Color.RED);
+                        if (putda == putMjjgdaJsonList.size()) {
+                            tv_oleNsize4.setText("更新完成");
+                            tv_oleNsize4.setTextColor(Color.GREEN);
+                            tv_status4.setText("");
+                        }
                         break;
                     case Constant.BackThread_GETMJG_SUCCESS_PB:
                         int mjjg = data.getInt("mjg");
                         LogUtils.d(mjjg + "");
                         pb3.setMax(mjjgJsonList.size());
                         pb3.setProgress(mjjg);
+                        tv_status3.setText("正在写入数据库");
+                        tv_status3.setTextColor(Color.RED);
                         if (mjjg == mjjgJsonList.size()) {
                             tv_oleNsize3.setText("更新完成");
-                            bt_action3.setEnabled(true);
+                            tv_oleNsize3.setTextColor(Color.GREEN);
+                            tv_status3.setText("");
                         }
                         break;
                     case Constant.BackThread_GETMJJ_SUCCESS_PB:
@@ -302,9 +332,12 @@ public class SyncbakActivity extends BaseActivity {
                         LogUtils.d(mjj + "");
                         pb2.setMax(mjjJsonList.size());
                         pb2.setProgress(mjj);
+                        tv_status2.setText("正在写入数据库");
+                        tv_status2.setTextColor(Color.RED);
                         if (mjj == mjjJsonList.size()) {
                             tv_oleNsize2.setText("更新完成");
-                            bt_action2.setEnabled(true);
+                            tv_oleNsize2.setTextColor(Color.GREEN);
+                            tv_status2.setText("");
                         }
                         break;
                     case Constant.BackThread_GETKF_SUCCESS_PB:
@@ -312,9 +345,13 @@ public class SyncbakActivity extends BaseActivity {
                         LogUtils.d(kf + "");
                         pb1.setMax(kfJsonList.size());
                         pb1.setProgress(kf);
+                        tv_status1.setText("正在写入数据库");
+                        tv_status1.setTextColor(Color.RED);
                         if (kf == kfJsonList.size()) {
                             tv_oleNsize1.setText("更新完成");
-                            bt_action1.setEnabled(true);
+                            tv_oleNsize1.setTextColor(Color.GREEN);
+                            tv_status1.setText("");
+
                         }
                         break;
                     default:
@@ -373,16 +410,15 @@ public class SyncbakActivity extends BaseActivity {
                 break;
             case R.id.bt_action4:
                 button.setEnabled(false);
-                if (temple > 0) {//如果服务器有更新数据 先获取服务器的更新数据
+                if (temple > 0) {
+                    //如果服务器有更新数据 先获取服务器的更新数据,然后在通知线程完毕后去查找本地是否有更新数据再上传到服务器
                     backThreadmsg = mCheckMsgHandler.obtainMessage();
                     backThreadmsg.what = BackThread_GETMJJGDA;
                     mCheckMsgHandler.sendMessage(backThreadmsg);
-                }
-                if (mDaLocalCount > 0) {
-                    //                        pb.setProgress(100);
+                } else if (mDaLocalCount > 0 && temple <= 0) {
+                    //服务器没有更新，本地有更新
                     mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
                 }
-
                 break;
             case R.id.bt_action5:
                 button.setEnabled(false);
@@ -496,8 +532,6 @@ public class SyncbakActivity extends BaseActivity {
                             wrKfDbThread.setList(kfJsonList);
                             wrKfDbThread.start();
                         }
-                        //                        myBusinessInfos.get(0).setListSize("" + 0);
-                        //                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -512,8 +546,6 @@ public class SyncbakActivity extends BaseActivity {
                             wrMjjDbThread.setList(mjjJsonList);
                             wrMjjDbThread.start();
                         }
-                        //                        myBusinessInfos.get(1).setListSize("" + 0);
-                        //                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -527,8 +559,6 @@ public class SyncbakActivity extends BaseActivity {
                             wrMjgDbThread.setList(mjjgJsonList);
                             wrMjgDbThread.start();
                         }
-                        //                        myBusinessInfos.get(2).setListSize("" + 0);
-                        //                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -536,14 +566,12 @@ public class SyncbakActivity extends BaseActivity {
             } else if (act == BackThread_GETMJJGDA) {
                 if (response.isSuccess()) {
                     try {
-                        mjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
-                        if (mjjgdaJsonList != null && !mjjgdaJsonList.isEmpty()) {
-                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg);
-                            writeMjgDaDBThread.setList(mjjgdaJsonList);
+                        getMjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
+                        if (getMjjgdaJsonList != null && !getMjjgdaJsonList.isEmpty()) {
+                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 0);
+                            writeMjgDaDBThread.setList(getMjjgdaJsonList);
                             writeMjgDaDBThread.start();
                         }
-                        //                        myBusinessInfos.get(2).setListSize("" + 0);
-                        //                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -551,21 +579,19 @@ public class SyncbakActivity extends BaseActivity {
             } else if (act == BackThread_PUTMJJGDA) {
                 if (response.isSuccess()) {
                     try {
-                        List<Mjjgda> mjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
-                        if (mjjgdaJsonList != null && !mjjgdaJsonList.isEmpty()) {
-                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg);
-                            writeMjgDaDBThread.setList(mjjgdaJsonList);
+                        putMjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
+                        if (putMjjgdaJsonList != null && !putMjjgdaJsonList.isEmpty()) {
+                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 1);
+                            writeMjgDaDBThread.setList(putMjjgdaJsonList);
                             writeMjgDaDBThread.start();
                         }
-                        List<Mjjgda> mjjgdaDelJsonList = JSON.parseArray(response.res.delrecords, Mjjgda.class);
-                        if (mjjgdaDelJsonList != null && !mjjgdaDelJsonList.isEmpty()) {
-                            Log.i("delList", mjjgdaDelJsonList.toString());
+                        List<Mjjgda> delMjjgdaJsonList = JSON.parseArray(response.res.delrecords, Mjjgda.class);
+                        if (delMjjgdaJsonList != null && !delMjjgdaJsonList.isEmpty()) {
+                            Log.i("delList", delMjjgdaJsonList.toString());
                             writeMjgDaDelDBThread = new WriteMjgDaDelDBThread(mHandler, uiMsg);
-                            writeMjgDaDelDBThread.setList(mjjgdaDelJsonList);
+                            writeMjgDaDelDBThread.setList(delMjjgdaJsonList);
                             writeMjgDaDelDBThread.start();
                         }
-                        //                        myBusinessInfos.get(2).setListSize("" + 0);
-                        //                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -579,8 +605,6 @@ public class SyncbakActivity extends BaseActivity {
                             writeCheckPlanDBThread.setList(checkPlanJsonList);
                             writeCheckPlanDBThread.start();
                         }
-                        //                        myBusinessInfos.get(2).setListSize("" + 0);
-                        //                        mSyncAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -660,7 +684,7 @@ public class SyncbakActivity extends BaseActivity {
                             mjjgdaAnchor = Long.valueOf(mjjgdaInfo.getAnchor());
                         }
                         try {
-                            //已经同步过的数据下架了
+                            //已经同步过的数据下架了(版本号大于0 状态为删除状态-1)
                             int temp1 = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
                             //新保存的上架记录
                             int temp2 = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
@@ -718,7 +742,6 @@ public class SyncbakActivity extends BaseActivity {
                         List<Mjjgda> tempList1 = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
                         //新上架子
                         List<Mjjgda> tempList = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
-                        //                        mjgdaDelLists = (List<MjjgdaDelInfos>) DBDataUtils.getInfos(MjjgdaDelInfos.class, "status", "=", "-1");
                         boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
                         if (st) {
                             if ((tempList != null && !tempList.isEmpty()) || (tempList1 != null && !tempList1.isEmpty())) {
@@ -727,10 +750,6 @@ public class SyncbakActivity extends BaseActivity {
                             }
 
                         } else {
-                            //                                    DialogLoad.closes();
-                            //                                    uiMsg = mHandler.obtainMessage();
-                            //                                    uiMsg.what = CONN_UNSUCCESS1;
-                            //                                    mHandler.sendMessage(uiMsg);
                             if (task != null || task.getStatus() == AsyncTask.Status.RUNNING) {
                                 task.cancel(true);
                                 mjgdaLists.clear();

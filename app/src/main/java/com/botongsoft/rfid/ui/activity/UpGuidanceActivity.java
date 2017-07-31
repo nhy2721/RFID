@@ -350,14 +350,14 @@ public class UpGuidanceActivity extends BaseActivity {
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             if (!recyclerView.canScrollVertically(1)) {// 手指不能向上滑动了
                 // TODO 这里有个注意的地方，如果你刚进来时没有数据，但是设置了适配器，这个时候就会触发加载更多，需要开发者判断下是否有数据，如果有数据才去加载更多。
-                size += 50;
-                for (int i = size - 50; i < size; i++) {
-                    Map map = new HashMap();
-                    map.put("id", i);
-                    map.put("title", "我是第" + i + "个。");
-                    mDataList.add(map);
-                }
-                mUpGuidanceAdapter.notifyDataSetChanged();
+//                size += 50;
+//                for (int i = size - 50; i < size; i++) {
+//                    Map map = new HashMap();
+//                    map.put("id", i);
+//                    map.put("title", "我是第" + i + "个。");
+//                    mDataList.add(map);
+//                }
+//                mUpGuidanceAdapter.notifyDataSetChanged();
             }
         }
 

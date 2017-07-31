@@ -36,7 +36,8 @@ public class WriteCheckDetailDBThread extends Thread {
 
     @Override
     public void run() {
-        for (int i = 0; i < objList.size(); i++) {
+        int size =objList.size();
+        for (int i = 0; i < size; i++) {
             CheckPlanDeatil mCheckPlanDeatil = objList.get(i);
             uiMsg = mhandler.obtainMessage();
             Bundle b = new Bundle();

@@ -458,7 +458,7 @@ public class SyncActivity extends BaseActivity {
                     try {
                         List<Mjjgda> mjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
                         if (mjjgdaJsonList != null && !mjjgdaJsonList.isEmpty()) {
-                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg);
+                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 0);
                             writeMjgDaDBThread.setList(mjjgdaJsonList);
                             writeMjgDaDBThread.start();
                         }
@@ -473,7 +473,7 @@ public class SyncActivity extends BaseActivity {
                     try {
                         List<Mjjgda> mjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
                         if (mjjgdaJsonList != null && !mjjgdaJsonList.isEmpty()) {
-                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg);
+                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 1);
                             writeMjgDaDBThread.setList(mjjgdaJsonList);
                             writeMjgDaDBThread.start();
                         }
