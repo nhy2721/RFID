@@ -2,8 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_share"
-        android:icon="@drawable/ic_action_share"
-        android:title="@string/action_share"
+        android:id="@+id/action_Sync"
+        android:icon="@drawable/ic_action_sync"
+        android:orderInCategory="100"
+        android:title="一键同步"
         app:showAsAction="ifRoom" />
 </menu>

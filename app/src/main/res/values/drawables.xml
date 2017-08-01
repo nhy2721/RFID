@@ -5,6 +5,7 @@
     <item name="ic_menu_manage" type="drawable">@android:drawable/ic_menu_manage</item>
     <item name="ic_menu_send" type="drawable">@android:drawable/ic_menu_send</item>
 
+    <item name="ic_action_sync" type="drawable">@drawable/sync</item>
     <item name="ic_action_share" type="drawable">@drawable/ic_share_white_24dp</item>
     <item name="ic_action_search" type="drawable">@drawable/ic_search_white_24dp</item>
     <item name="ic_action_sort" type="drawable">@drawable/ic_sort_white_24dp</item>

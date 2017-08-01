@@ -3,6 +3,7 @@ package com.botongsoft.rfid.ui.activity;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -12,7 +13,12 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -188,8 +194,14 @@ public class SyncbakActivity extends BaseActivity {
     private long mCheckErrorCount;//盘点格子记录本地提交服务器数量
     static long mDaLocalCount;//档案本地提交服务器数量
     RequestTask task;
-    List<Mjjgda> mjgdaLists;
-    private boolean flag = false;
+    private boolean getKfFlag = false;
+    private boolean getMjjFlag = false;
+    private boolean getMjgflag = false;
+    private boolean getDaFLag = false;
+    private boolean putDaFLag = false;
+    private boolean getCheckPlanFLag = false;
+    private boolean putCheckDetailFLag = false;
+    private boolean putCheckErrorFLag = false;
     private boolean isPause;
     List<Mjjgda> getMjjgdaJsonList;
     List<Mjjgda> putMjjgdaJsonList;
@@ -297,6 +309,7 @@ public class SyncbakActivity extends BaseActivity {
                             if (mDaLocalCount > 0) {
                                 mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
                             }
+
                         }
                         temple = 0;
 
@@ -313,6 +326,7 @@ public class SyncbakActivity extends BaseActivity {
                             tv_oleNsize4.setTextColor(Color.GREEN);
                             tv_status4.setText("");
                         }
+
                         break;
                     case Constant.BackThread_GETMJG_SUCCESS_PB:
                         int mjjg = data.getInt("mjg");
@@ -325,6 +339,7 @@ public class SyncbakActivity extends BaseActivity {
                             tv_oleNsize3.setText("更新完成");
                             tv_oleNsize3.setTextColor(Color.GREEN);
                             tv_status3.setText("");
+                            getMjgflag = false;
                         }
                         break;
                     case Constant.BackThread_GETMJJ_SUCCESS_PB:
@@ -448,16 +463,6 @@ public class SyncbakActivity extends BaseActivity {
 
     @Override
     public void onSuccess(BaseResponse response, int act) {
-        //        if (baseResponse.isSuccess() && !TextUtils.isEmpty(baseResponse.res.rows)) {
-        //            int recordCount = baseResponse.res.recordCount;
-        //            List<NewsInfo> newsinfo = JSONObject.parseArray(baseResponse.res.rows,
-        //                    NewsInfo.class);
-        //            if (current_pagesize == 1) {
-        //                beanList.clear();
-        //            }
-        //            beanList.addAll(newsinfo);
-        //            newsAdapter.setCurList(beanList);
-        //        }
         if (response != null) {
             if (act == BackThread_DOWORK) {//服务器返回更新数
                 if (response.isSuccess()) {
@@ -575,6 +580,7 @@ public class SyncbakActivity extends BaseActivity {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                    //                    flag = false;
                 }
             } else if (act == BackThread_PUTMJJGDA) {
                 if (response.isSuccess()) {
@@ -595,6 +601,7 @@ public class SyncbakActivity extends BaseActivity {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                    //                    flag = false;
                 }
             } else if (act == BackThread_GETCHECKPLAN) {
                 if (response.isSuccess()) {
@@ -721,23 +728,43 @@ public class SyncbakActivity extends BaseActivity {
                         //                        mHandler.obtainMessage(INIT_DOWORK).sendToTarget();
                         break;
                     case BackThread_GETKF:
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, BackThread_GETKF);
-                        break;
-                    case BackThread_GETMJJ:
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjAnchor, BackThread_GETMJJ);
-                        break;
-                    case BackThread_GETMJJG:
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgAnchor, BackThread_GETMJJG);
-                        break;
-                    case BackThread_GETMJJGDA:
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgdaAnchor, BackThread_GETMJJGDA);
-                        break;
-                    case BackThread_PUTMJJGDA:
-                        if (flag) {
+                        if (getKfFlag) {
                             return;
                         }
                         isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        flag = true;
+                        getKfFlag = true;
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, BackThread_GETKF);
+                        break;
+                    case BackThread_GETMJJ:
+                        if (getMjjFlag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        getMjjFlag = true;
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjAnchor, BackThread_GETMJJ);
+                        break;
+                    case BackThread_GETMJJG:
+                        if (getMjgflag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        getMjgflag = true;
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgAnchor, BackThread_GETMJJG);
+                        break;
+                    case BackThread_GETMJJGDA:
+                        if (getDaFLag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        getDaFLag = true;
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgdaAnchor, BackThread_GETMJJGDA);
+                        break;
+                    case BackThread_PUTMJJGDA:
+                        if (putDaFLag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        putDaFLag = true;
                         //已同步被下架
                         List<Mjjgda> tempList1 = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
                         //新上架子
@@ -752,20 +779,35 @@ public class SyncbakActivity extends BaseActivity {
                         } else {
                             if (task != null || task.getStatus() == AsyncTask.Status.RUNNING) {
                                 task.cancel(true);
-                                mjgdaLists.clear();
+
                             }
                             break;
                         }
 
                         break;
                     case BackThread_GETCHECKPLAN:
+                        if (getCheckPlanFLag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        getCheckPlanFLag = true;
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, checkPlanAnchor, BackThread_GETCHECKPLAN);
                         break;
                     case BackThread_PUTCHECKERRORPLAN:
+                        if (putCheckErrorFLag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        putCheckErrorFLag = true;
                         List<CheckError> checkErrorList = (List<CheckError>) DBDataUtils.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0");
                         FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKERRORPLAN, null, checkErrorList, null);
                         break;
                     case BackThread_PUTCHECKDETAILPLAN:
+                        if (putCheckDetailFLag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        putCheckDetailFLag = true;
                         List<CheckPlanDeatil> checkDetailList = (List<CheckPlanDeatil>) DBDataUtils.getInfosHasOp(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">", "0");
                         List<CheckPlanDeatilDel> checkDetailDelList = (List<CheckPlanDeatilDel>) DBDataUtils.getInfosHasOp(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
                         FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKDETAILPLAN, checkDetailList, null, checkDetailDelList);
@@ -821,15 +863,14 @@ public class SyncbakActivity extends BaseActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        LogUtils.d("onPause");
         //停止查询
         isOnScreen = false;
         mCheckMsgThread.quit();
         //        if (task != null && task.getStatus() == AsyncTask.Status.RUNNING) {
         //            task.cancel(true);
         //        }
-        if (mjgdaLists != null && !mjgdaLists.isEmpty()) {
-            mjgdaLists.clear();
-        }
+
         temple = 0;
         mDaLocalCount = 0;
     }
@@ -837,6 +878,7 @@ public class SyncbakActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        LogUtils.d("onDestroy");
         //停止查询
         isOnScreen = false;
         temple = 0;
@@ -872,6 +914,10 @@ public class SyncbakActivity extends BaseActivity {
         //        if (task != null && task.getStatus() == AsyncTask.Status.RUNNING) {
         //            task.cancel(true);
         //        }
+        //        if (flag) {
+        //            isPause = true;
+        //            flag = false;
+        //        }
         finish();
     }
 
@@ -882,10 +928,8 @@ public class SyncbakActivity extends BaseActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
-                if (flag) {
-                    isPause = true;
-                    flag = false;
-                }
+                LogUtils.d("KEYCODE_BACK");
+                isSanBack();
                 break;
             default:
                 break;
@@ -893,4 +937,134 @@ public class SyncbakActivity extends BaseActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+    @Override
+    public void onBackPressed() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            LogUtils.d("onBackPressed");
+            finishAfterTransition();
+        } else {
+            LogUtils.d("super onBackPressed");
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected int getMenuID() {
+        return R.menu.menu_book_detail;
+    }
+
+    MenuItem menuItem;
+
+    private boolean isSanBack() {
+        if (getKfFlag == true) {
+            ToastUtils.showShort("正在更新数据库，请勿返回");
+            return false;
+        }
+        if (getMjjFlag == true) {
+            ToastUtils.showShort("正在更新数据库，请勿返回");
+            return false;
+        }
+        if (getMjgflag == true) {
+            ToastUtils.showShort("正在更新数据库，请勿返回");
+            return false;
+        }
+        if (getDaFLag == true) {
+            ToastUtils.showShort("正在更新数据库，请勿返回");
+            return false;
+        }
+        if (putDaFLag == true) {
+            ToastUtils.showShort("正在更新数据库，请勿返回");
+            return false;
+        }
+        if (getCheckPlanFLag == true) {
+            ToastUtils.showShort("正在更新数据库，请勿返回");
+            return false;
+        }
+        if (putCheckDetailFLag == true) {
+            ToastUtils.showShort("正在更新数据库，请勿返回");
+            return false;
+        }
+        if (putCheckErrorFLag == true) {
+            ToastUtils.showShort("正在更新数据库，请勿返回");
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                LogUtils.d("我按了返回键盘");
+                isSanBack();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    finishAfterTransition();
+                } else {
+                    super.onBackPressed();
+                }
+                return true;
+            case R.id.action_Sync:
+                showAnimate(item); //这里开始动画
+                item.setEnabled(false);
+                bt_action1.setEnabled(false);
+                mCheckMsgHandler.obtainMessage(BackThread_GETKF).sendToTarget();
+                bt_action2.setEnabled(false);
+                mCheckMsgHandler.obtainMessage(BackThread_GETMJJ).sendToTarget();
+                bt_action3.setEnabled(false);
+                mCheckMsgHandler.obtainMessage(BackThread_GETMJJG).sendToTarget();
+                bt_action4.setEnabled(false);
+                if (temple > 0) {
+                    //如果服务器有更新数据 先获取服务器的更新数据,然后在通知线程完毕后去查找本地是否有更新数据再上传到服务器
+                    backThreadmsg = mCheckMsgHandler.obtainMessage();
+                    backThreadmsg.what = BackThread_GETMJJGDA;
+                    mCheckMsgHandler.sendMessage(backThreadmsg);
+                } else if (mDaLocalCount > 0 && temple <= 0) {
+                    //服务器没有更新，本地有更新
+                    mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+                }
+                bt_action5.setEnabled(false);
+                mCheckMsgHandler.obtainMessage(BackThread_GETCHECKPLAN).sendToTarget();
+                bt_action6.setEnabled(false);
+                mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKERRORPLAN).sendToTarget();
+                bt_action7.setEnabled(false);
+                mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
+
+                hideAnimate();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    /**
+     * 关闭动画
+     */
+    private void hideAnimate() {
+        if (menuItem != null) {
+            View view = menuItem.getActionView();
+            if (view != null) {
+                view.clearAnimation();
+                menuItem.setActionView(null);
+            }
+        }
+    }
+
+    /**
+     * item做动画
+     *
+     * @param item
+     */
+    private void showAnimate(MenuItem item) {
+        hideAnimate();
+        menuItem = item;
+        //这里使用一个ImageView设置成MenuItem的ActionView，这样我们就可以使用这个ImageView显示旋转动画了
+        ImageView qrView = (ImageView) getLayoutInflater().inflate(R.layout.action_view, null);
+        qrView.setImageResource(R.drawable.sync);
+        menuItem.setActionView(qrView);
+        //显示动画
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.shake);
+        animation.setRepeatMode(Animation.RESTART);
+        animation.setRepeatCount(Animation.INFINITE);
+        qrView.startAnimation(animation);
+    }
 }
