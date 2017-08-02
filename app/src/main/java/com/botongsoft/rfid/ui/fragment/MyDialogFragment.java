@@ -47,6 +47,7 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
     Handler myHandler;
     private MjjgEntity entity = new MjjgEntity();
     private int pdid;
+    MjjgEntity.TagsEntity.TagInfo tg = null;
 
     //写一个静态方法产生实例
     public static MyDialogFragment newInstance(int layoutId, Mjj mjj, String value, int pdid) {
@@ -89,7 +90,8 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
             searchDB(Constant.VALUE_RIGHT);
         }
         mMjjgEntityAdapter = new MjjgEntityAdapter(getContext());
-        GridLayoutManager manager = new GridLayoutManager(getContext(), mjj.getZs());
+        int zs = mjj.getZs();
+        GridLayoutManager manager = new GridLayoutManager(getContext(), zs);
         //        http://blog.csdn.net/erjizi/article/details/49797967
         //        http://www.jianshu.com/p/675883c26ef2
         //设置header
@@ -132,7 +134,7 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
                 int zsLen = mjj.getZs();
                 for (int i2 = csLen; i2 >= 0; i2--) {
                     for (int j = 0; j < zsLen; j++) {
-                        MjjgEntity.TagsEntity.TagInfo tg = te.new TagInfo();
+                        tg = te.new TagInfo();
                         // tg.setTagName("第" + (i2 + 1) + "层第" + (j + 1) + "组");
                         Mjjg mjjg = searchDBByMjjg(mjj.getId(), Constant.VALUE_LEFT, i2 + 1, j + 1);
                         if (mjjg != null) {
@@ -159,7 +161,7 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
                 int zsLen = mjj.getZs();
                 for (int i2 = csLen; i2 >= 0; i2--) {
                     for (int j = 0; j < zsLen; j++) {
-                        MjjgEntity.TagsEntity.TagInfo tg = te.new TagInfo();
+                        tg = te.new TagInfo();
                         // tg.setTagName("第" + (i2 + 1) + "层第" + (j + 1) + "组");
                         Mjjg mjjg = searchDBByMjjg(mjj.getId(), Constant.VALUE_RIGHT, i2 + 1, j + 1);
                         if (mjjg != null) {

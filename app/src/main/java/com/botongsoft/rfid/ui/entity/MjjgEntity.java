@@ -17,6 +17,7 @@ public class MjjgEntity {
         public class TagInfo {
             private String tagName;
             private String updateColor = "";
+            private int tagId;
 
             public int getTagId() {
                 return tagId;
@@ -26,7 +27,7 @@ public class MjjgEntity {
                 this.tagId = tagId;
             }
 
-            private int  tagId;
+
             public String getTagName() {
                 return tagName;
             }

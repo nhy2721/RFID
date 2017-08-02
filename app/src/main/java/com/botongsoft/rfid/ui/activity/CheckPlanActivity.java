@@ -51,7 +51,6 @@ import static com.botongsoft.rfid.R.id.toolbar;
 public class CheckPlanActivity extends BaseActivity {
     private static final int UI_SUCCESS = 0;
 
-
     @BindView(toolbar)
     Toolbar mToolbar;
     @BindView(R.id.swipe_layout)
@@ -80,6 +79,7 @@ public class CheckPlanActivity extends BaseActivity {
     //传递UI前台显示消息队列
     Message mHandlerMessage;
     Bundle mBundle;
+    Intent intent = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -360,12 +360,23 @@ public class CheckPlanActivity extends BaseActivity {
         @Override
         public void onItemClick(int position) {
 
-            Intent intent = new Intent(UIUtils.getContext(), CheckPlanDetailActivity.class);
-            intent.putExtra("index", position);
-            intent.putExtra("title", "开始盘点");
-            //这里要把pdid和盘点范围传过去
-            intent.putExtra("pdid", mDataList.get(position).getPdid());
-            intent.putExtra("fw", mDataList.get(position).getFw());
+            if (index == 2) {
+                intent = new Intent(UIUtils.getContext(), CheckPlanDetailActivity.class);
+                intent.putExtra("index", position);
+                intent.putExtra("title", "开始盘点");
+                //这里要把pdid和盘点范围传过去
+                intent.putExtra("pdid", mDataList.get(position).getPdid());
+                intent.putExtra("fw", mDataList.get(position).getFw());
+            } else {
+                intent = new Intent(UIUtils.getContext(), CheckPlanErrorActivity.class);
+                intent.putExtra("index", position);
+                intent.putExtra("title", "盘点纠错");
+                //这里要把pdid和盘点范围传过去
+                intent.putExtra("pdid", mDataList.get(position).getPdid());
+                intent.putExtra("fw", mDataList.get(position).getFw());
+            }
+
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 if (BaseActivity.activity == null) {
                     UIUtils.startActivity(intent);

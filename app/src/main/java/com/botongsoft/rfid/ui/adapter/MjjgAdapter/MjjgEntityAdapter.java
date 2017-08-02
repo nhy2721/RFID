@@ -3,11 +3,14 @@ package com.botongsoft.rfid.ui.adapter.MjjgAdapter;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import com.botongsoft.rfid.R;
-import com.botongsoft.rfid.ui.entity.MjjgEntity;
+import com.botongsoft.rfid.listener.OnSingleClickListener;
 import com.botongsoft.rfid.ui.entity.HotelUtils;
+import com.botongsoft.rfid.ui.entity.MjjgEntity;
+import com.lidroid.xutils.util.LogUtils;
 
 import java.util.ArrayList;
 
@@ -105,6 +108,12 @@ public class MjjgEntityAdapter extends SectionedRecyclerViewAdapter<HeaderHolder
         if(tt.getUpdateColor().equals("old")){
             holder.descView.setBackgroundColor(mContext.getResources().getColor(R.color.colorAccent));
         }
+        holder.descView.setOnClickListener(new OnSingleClickListener() {
+            @Override
+            protected void onSingleClick(View view) {
+                LogUtils.d(tt.getTagName());
+            }
+        });
     }
 }
 
