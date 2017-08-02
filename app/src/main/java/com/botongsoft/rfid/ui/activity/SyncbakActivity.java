@@ -266,6 +266,7 @@ public class SyncbakActivity extends BaseActivity {
                             tv_oleNsize7.setText("更新完成");
                             tv_oleNsize7.setTextColor(Color.GREEN);
                             tv_status7.setText("");
+                            putCheckDetailFLag = false;
                         }
                         break;
                     case Constant.BackThread_GETCHECKERROR_SUCCESS_PB:
@@ -279,6 +280,7 @@ public class SyncbakActivity extends BaseActivity {
                             tv_oleNsize6.setText("更新完成");
                             tv_oleNsize6.setTextColor(Color.GREEN);
                             tv_status6.setText("");
+                            putCheckErrorFLag = false;
                         }
                         break;
                     case Constant.BackThread_GETCHECKPLAN_SUCCESS_PB:
@@ -292,6 +294,7 @@ public class SyncbakActivity extends BaseActivity {
                             tv_oleNsize5.setText("更新完成");
                             tv_oleNsize5.setTextColor(Color.GREEN);
                             tv_status5.setText("");
+                            getCheckPlanFLag = false;
                         }
                         break;
                     case Constant.BackThread_GETDA_SUCCESS_PB:
@@ -309,7 +312,7 @@ public class SyncbakActivity extends BaseActivity {
                             if (mDaLocalCount > 0) {
                                 mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
                             }
-
+                            getDaFLag = false;
                         }
                         temple = 0;
 
@@ -325,6 +328,7 @@ public class SyncbakActivity extends BaseActivity {
                             tv_oleNsize4.setText("更新完成");
                             tv_oleNsize4.setTextColor(Color.GREEN);
                             tv_status4.setText("");
+                            putDaFLag = false;
                         }
 
                         break;
@@ -353,6 +357,7 @@ public class SyncbakActivity extends BaseActivity {
                             tv_oleNsize2.setText("更新完成");
                             tv_oleNsize2.setTextColor(Color.GREEN);
                             tv_status2.setText("");
+                            getMjjFlag = false;
                         }
                         break;
                     case Constant.BackThread_GETKF_SUCCESS_PB:
@@ -366,7 +371,7 @@ public class SyncbakActivity extends BaseActivity {
                             tv_oleNsize1.setText("更新完成");
                             tv_oleNsize1.setTextColor(Color.GREEN);
                             tv_status1.setText("");
-
+                            getKfFlag = false;
                         }
                         break;
                     default:
@@ -536,6 +541,8 @@ public class SyncbakActivity extends BaseActivity {
                             wrKfDbThread = new WriteKfDBThread(mHandler, uiMsg);
                             wrKfDbThread.setList(kfJsonList);
                             wrKfDbThread.start();
+                        }else{
+                            getKfFlag = false;
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -550,6 +557,8 @@ public class SyncbakActivity extends BaseActivity {
                             wrMjjDbThread = new WriteMjjDBThread(mHandler, uiMsg);
                             wrMjjDbThread.setList(mjjJsonList);
                             wrMjjDbThread.start();
+                        }else{
+                            getMjjFlag = false;
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -563,6 +572,8 @@ public class SyncbakActivity extends BaseActivity {
                             wrMjgDbThread = new WriteMjgDBThread(mHandler, uiMsg);
                             wrMjgDbThread.setList(mjjgJsonList);
                             wrMjgDbThread.start();
+                        }else{
+                            getMjgflag = false;
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -576,6 +587,8 @@ public class SyncbakActivity extends BaseActivity {
                             writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 0);
                             writeMjgDaDBThread.setList(getMjjgdaJsonList);
                             writeMjgDaDBThread.start();
+                        }else{
+                            getDaFLag = false;
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -590,6 +603,8 @@ public class SyncbakActivity extends BaseActivity {
                             writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 1);
                             writeMjgDaDBThread.setList(putMjjgdaJsonList);
                             writeMjgDaDBThread.start();
+                        }else{
+                            putDaFLag = false;
                         }
                         List<Mjjgda> delMjjgdaJsonList = JSON.parseArray(response.res.delrecords, Mjjgda.class);
                         if (delMjjgdaJsonList != null && !delMjjgdaJsonList.isEmpty()) {
@@ -611,6 +626,8 @@ public class SyncbakActivity extends BaseActivity {
                             writeCheckPlanDBThread = new WriteCheckPlanDBThread(mHandler, uiMsg);
                             writeCheckPlanDBThread.setList(checkPlanJsonList);
                             writeCheckPlanDBThread.start();
+                        }else{
+                            getCheckPlanFLag = false;
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -624,6 +641,8 @@ public class SyncbakActivity extends BaseActivity {
                             writeCheckErrorDBThread = new WriteCheckErrorDBThread(mHandler, uiMsg);
                             writeCheckErrorDBThread.setList(checkErrorJsonList);
                             writeCheckErrorDBThread.start();
+                        }else{
+                            putCheckErrorFLag = false;
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -637,6 +656,8 @@ public class SyncbakActivity extends BaseActivity {
                             writeCheckDetailDBThread = new WriteCheckDetailDBThread(mHandler, uiMsg);
                             writeCheckDetailDBThread.setList(checkDetailJsonList);
                             writeCheckDetailDBThread.start();
+                        }else{
+                            putCheckDetailFLag = false;
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -929,7 +950,38 @@ public class SyncbakActivity extends BaseActivity {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
                 LogUtils.d("KEYCODE_BACK");
-                isSanBack();
+                if (getKfFlag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (getMjjFlag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (getMjgflag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (getDaFLag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (putDaFLag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (getCheckPlanFLag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (putCheckDetailFLag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (putCheckErrorFLag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
                 break;
             default:
                 break;
@@ -955,48 +1007,44 @@ public class SyncbakActivity extends BaseActivity {
 
     MenuItem menuItem;
 
-    private boolean isSanBack() {
-        if (getKfFlag == true) {
-            ToastUtils.showShort("正在更新数据库，请勿返回");
-            return false;
-        }
-        if (getMjjFlag == true) {
-            ToastUtils.showShort("正在更新数据库，请勿返回");
-            return false;
-        }
-        if (getMjgflag == true) {
-            ToastUtils.showShort("正在更新数据库，请勿返回");
-            return false;
-        }
-        if (getDaFLag == true) {
-            ToastUtils.showShort("正在更新数据库，请勿返回");
-            return false;
-        }
-        if (putDaFLag == true) {
-            ToastUtils.showShort("正在更新数据库，请勿返回");
-            return false;
-        }
-        if (getCheckPlanFLag == true) {
-            ToastUtils.showShort("正在更新数据库，请勿返回");
-            return false;
-        }
-        if (putCheckDetailFLag == true) {
-            ToastUtils.showShort("正在更新数据库，请勿返回");
-            return false;
-        }
-        if (putCheckErrorFLag == true) {
-            ToastUtils.showShort("正在更新数据库，请勿返回");
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 LogUtils.d("我按了返回键盘");
-                isSanBack();
+                if (getKfFlag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (getMjjFlag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (getMjgflag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (getDaFLag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (putDaFLag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (getCheckPlanFLag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (putCheckDetailFLag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
+                if (putCheckErrorFLag == true) {
+                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    return false;
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     finishAfterTransition();
                 } else {
