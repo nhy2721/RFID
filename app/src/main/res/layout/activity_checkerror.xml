@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="com.botongsoft.rfid.ui.activity.CheckPlanActivity"
+    >
+
+
+    <com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:layout_marginBottom="50dp"
+        android:scrollbarStyle="outsideOverlay"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        />
+
+
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        >
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:minHeight="?attr/actionBarSize"
+            app:layout_scrollFlags="scroll|enterAlways"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:titleTextColor="#ffffff"
+            />
+
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:spinnerMode="dropdown"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            android:padding="5sp"
+
+            >
+
+            <TextView
+                android:id="@+id/tv_title"
+                style="@style/tv_black"
+                android:layout_margin="3dp"
+                android:layout_weight="0.33"
+                android:gravity="center"
+                android:text="序号"
+                />
+
+            <TextView
+                android:id="@+id/tv_msg"
+                style="@style/tv_black"
+                android:layout_margin="3dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="编码"
+                />
+
+            <TextView
+                android:id="@+id/tv_item"
+                style="@style/tv_black"
+                android:layout_margin="3dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="状态"
+                />
+
+            <TextView
+                style="@style/tv_black"
+                android:layout_margin="3dp"
+                android:layout_weight="0.55"
+                android:gravity="center"
+                android:text=""
+                />
+
+            <!--<TextView-->
+            <!--style="@style/tv_black"-->
+            <!--android:layout_margin="3dp"-->
+            <!--android:layout_weight="0.55"-->
+            <!--android:gravity="center"-->
+            <!--android:text=""-->
+            <!--/>-->
+
+
+        </LinearLayout>
+
+
+    </android.support.design.widget.AppBarLayout>
+
+
+</android.support.design.widget.CoordinatorLayout>

@@ -95,29 +95,35 @@ public class SearchDb {
      */
     public static int countPdfw(String[] srrArray, Mjjg mjjg) {
         DbUtils db = DataBaseCreator.create();
-        String sql = "select * from com_botongsoft_rfid_bean_classity_Mjjg where mjjid = (select id from (select * from com_botongsoft_rfid_bean_classity_Mjj";
+        StringBuffer sb  = new StringBuffer();
+        sb.append("select * from com_botongsoft_rfid_bean_classity_Mjjg where mjjid = (select id from (select * from com_botongsoft_rfid_bean_classity_Mjj");
+//        String sql = "select * from com_botongsoft_rfid_bean_classity_Mjjg where mjjid = (select id from (select * from com_botongsoft_rfid_bean_classity_Mjj";
         Integer kfid = Integer.valueOf(srrArray[0]);
         Integer mjjid = 0;
         Integer zy = 0;
         if (kfid != 0) {
-            sql += " where kfid=" + kfid;
+//            sql += " where kfid=" + kfid;
+            sb.append(" where kfid=").append(kfid);
             mjjid = Integer.valueOf(srrArray[1]);
             if (mjjid != 0) {
-                sql += " and id=" + mjjid;
+//                sql += " and id=" + mjjid;
+                sb.append(" and id=").append(mjjid);
                 zy = Integer.valueOf(srrArray[2]);
             }
         }
-        sql += ") as a where a.id=" + mjjg.getMjjid() + ") and id=" + mjjg.getId();
+//        sql += ") as a where a.id=" + mjjg.getMjjid() + ") and id=" + mjjg.getId();
+        sb.append(") as a where a.id=" ).append(mjjg.getMjjid()).append(") and id=").append(mjjg.getId());
         if (kfid != 0) {
             if (mjjid != 0) {
                 if (zy != 0) {
-                    sql += " and zy =" + zy;
+//                    sql += " and zy =" + zy;
+                    sb.append(" and zy =").append(zy);
                 }
             }
         }
         Cursor cursor = null; // 执行自定义sql
         try {
-            cursor = (Cursor) db.execQuery(sql);
+            cursor = (Cursor) db.execQuery(sb.toString());
         } catch (DbException e) {
             e.printStackTrace();
         }

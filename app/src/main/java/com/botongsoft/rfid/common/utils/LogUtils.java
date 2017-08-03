@@ -98,4 +98,8 @@ public class LogUtils {
 			curTime = System.currentTimeMillis();
 		}
 	}
+
+	public static void d(String s) {
+
+	}
 }

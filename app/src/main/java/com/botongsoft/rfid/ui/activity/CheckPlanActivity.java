@@ -51,6 +51,7 @@ import static com.botongsoft.rfid.R.id.toolbar;
 public class CheckPlanActivity extends BaseActivity {
     private static final int UI_SUCCESS = 0;
 
+
     @BindView(toolbar)
     Toolbar mToolbar;
     @BindView(R.id.swipe_layout)
@@ -80,7 +81,6 @@ public class CheckPlanActivity extends BaseActivity {
     Message mHandlerMessage;
     Bundle mBundle;
     Intent intent = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_checkplan);
@@ -367,7 +367,7 @@ public class CheckPlanActivity extends BaseActivity {
                 //这里要把pdid和盘点范围传过去
                 intent.putExtra("pdid", mDataList.get(position).getPdid());
                 intent.putExtra("fw", mDataList.get(position).getFw());
-            } else {
+            }else{
                 intent = new Intent(UIUtils.getContext(), CheckPlanErrorActivity.class);
                 intent.putExtra("index", position);
                 intent.putExtra("title", "盘点纠错");
