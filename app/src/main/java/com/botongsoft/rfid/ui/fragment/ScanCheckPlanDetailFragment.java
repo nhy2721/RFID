@@ -490,9 +490,12 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
 
     private void clearOrSaveCheckError(Mjjg mjjg, Mjj mjj) {
         //        判断当前格子是否被扫描过(同批次)，有的话清除已扫描的错误记录表
-        CheckError ce = (CheckError) DBDataUtils.getInfo(CheckError.class, "pdid",
-                String.valueOf(pdid), "mjgid", String.valueOf(mjjg.getId()), "zy",
-                String.valueOf(mjjg.getZy()), "mjjid", String.valueOf(mjjg.getMjjid()), "kfid", String.valueOf(mjj.getKfid()));
+        CheckError ce = (CheckError) DBDataUtils.getInfo(CheckError.class,
+                "pdid", String.valueOf(pdid),
+                "mjgid", String.valueOf(mjjg.getId()),
+                "zy", String.valueOf(mjjg.getZy()),
+                "mjjid", String.valueOf(mjjg.getMjjid()),
+                "kfid", String.valueOf(mjj.getKfid()));
         if (ce != null) {
             List<CheckPlanDeatil> mCheckPlanDeatilList = (List) DBDataUtils.getInfosHasOp(CheckPlanDeatil.class, "pdid", "=",
                     String.valueOf(pdid), "mjgid", "=", String.valueOf(mjjg.getId()));
@@ -503,6 +506,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                 }
                 DBDataUtils.saveAll(delTempList);
             }
+            //清楚数据库扫过的该批次的格子内容
             DBDataUtils.deleteInfos(CheckPlanDeatil.class, "pdid", String.valueOf(pdid), "mjgid", String.valueOf(mjjg.getId()));
             delTempList.clear();
         } else {

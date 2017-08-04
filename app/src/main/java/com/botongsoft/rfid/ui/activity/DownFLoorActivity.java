@@ -25,7 +25,6 @@ import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
-import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
@@ -80,7 +79,7 @@ public class DownFLoorActivity extends BaseActivity {
     private int index;
     private String editString;
     private List<Mjjgda> mDataList;
-    private List<MjjgdaDelInfos> delInfosesList;//下架删除的记录存入MjjgdaDelInfos表
+//    private List<MjjgdaDelInfos> delInfosesList;//下架删除的记录存入MjjgdaDelInfos表
     private DownFloorAdapter mDownFloorAdapter;
     private int size = 50;
     private static int size1 = 1;
@@ -179,7 +178,7 @@ public class DownFLoorActivity extends BaseActivity {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
         mDataList = new ArrayList<>();
-        delInfosesList = new ArrayList<>();
+//        delInfosesList = new ArrayList<>();
         mProgressBar.setVisibility(View.GONE);
         mFab.setOnClickListener(new OnSingleClickListener() {
             @Override
@@ -210,7 +209,7 @@ public class DownFLoorActivity extends BaseActivity {
                     case UI_SUBMITSUCCESS:
                         mTextInputEditText.setText("");
                         mDataList.clear();
-                        delInfosesList.clear();
+//                        delInfosesList.clear();
                         mDownFloorAdapter.notifyDataSetChanged();
                         mProgressBar.setVisibility(View.GONE);
                         Toast.makeText(UIUtils.getContext(), "下架成功", Toast.LENGTH_SHORT).show();
@@ -534,10 +533,10 @@ public class DownFLoorActivity extends BaseActivity {
         public void onItemClick(int position, int listSize) {
             Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
             if (position != -1) {
+//                delInfosesList.remove(position);
                 mDataList.remove(position);
-                delInfosesList.remove(position);
                 mDownFloorAdapter.notifyItemRemoved(position);
-                mDownFloorAdapter.notifyItemRangeChanged(position, listSize);
+//                mDownFloorAdapter.notifyItemRangeChanged(position, listSize);
             }
         }
 
@@ -572,7 +571,7 @@ public class DownFLoorActivity extends BaseActivity {
             // TODO 推荐调用Adapter.notifyItemRemoved(position)，也可以Adapter.notifyDataSetChanged();
             if (menuPosition == 0) {// 删除按钮被点击。
                 mDataList.remove(adapterPosition);
-                delInfosesList.remove(adapterPosition);
+//                delInfosesList.remove(adapterPosition);
                 mDownFloorAdapter.notifyItemRemoved(adapterPosition);
             }
         }

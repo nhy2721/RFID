@@ -1,5 +1,6 @@
 package com.botongsoft.rfid.ui.Thread;
 
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
@@ -10,7 +11,7 @@ import com.botongsoft.rfid.common.db.DBDataUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.botongsoft.rfid.common.constants.Constant.BackThread_GETDA_SUCCESS;
+import static com.botongsoft.rfid.common.constants.Constant.BackThread_PUTDA_SUCCESS_PB;
 
 
 /**
@@ -37,20 +38,25 @@ public class WriteMjgDaDelDBThread extends Thread {
 
     @Override
     public void run() {
-        for (Mjjgda mjjgdaDelInfo : objList) {
-            //            mjjgdaOld = (MjjgdaDelInfos) DBDataUtils.getInfo(MjjgdaDelInfos.class, "bm", mjjgdaInfo.getBm() + "", "jlid", mjjgdaDelInfo.getJlid() + "");
-            DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaDelInfo.getBm()),
-                    "jlid", String.valueOf(mjjgdaDelInfo.getJlid()),
-                    "id", "=", 0 + "");
+        int size = objList.size();
+        for (int i = 0; i < size; i++) {
+            Mjjgda mjjgdaDelInfo = objList.get(i);
             uiMsg = mhandler.obtainMessage();
-            uiMsg.arg1 = objList.size() - 1;
-            uiMsg.what = BackThread_GETDA_SUCCESS;
+            Bundle b = new Bundle();
+            b.putInt("dadel", i + 1);
+            uiMsg.setData(b);
+            uiMsg.what = BackThread_PUTDA_SUCCESS_PB;
             mhandler.sendMessage(uiMsg);
-            //            if (mjjgdaOld != null) {
-            //
-            //                mjjgdaOld.setStatus(9);
-            //                saveList.add(mjjgdaOld);
-            //            }
+            if(mjjgdaDelInfo.getId()==0){
+                DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaDelInfo.getBm()),
+                        "jlid", String.valueOf(mjjgdaDelInfo.getJlid()),
+                        "id", "=", 0 + "");
+            }else{
+                DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaDelInfo.getBm()),
+                        "jlid", String.valueOf(mjjgdaDelInfo.getJlid()),
+                        "id", "=", mjjgdaDelInfo.getId()+"");
+            }
+
         }
 
         //        if (saveList != null && !saveList.isEmpty()) {

@@ -44,6 +44,7 @@ import com.botongsoft.rfid.common.service.http.BusinessResolver;
 import com.botongsoft.rfid.common.service.http.NetUtils;
 import com.botongsoft.rfid.common.service.http.RequestTask;
 import com.botongsoft.rfid.common.utils.ToastUtils;
+import com.botongsoft.rfid.ui.Thread.WriteCheckDetailDBDelThread;
 import com.botongsoft.rfid.ui.Thread.WriteCheckDetailDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteCheckErrorDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteCheckPlanDBThread;
@@ -182,7 +183,8 @@ public class SyncbakActivity extends BaseActivity {
     private WriteCheckPlanDBThread writeCheckPlanDBThread;
     private WriteCheckErrorDBThread writeCheckErrorDBThread;
     private WriteCheckDetailDBThread writeCheckDetailDBThread;
-    static int temple = 0;
+    private WriteCheckDetailDBDelThread writeCheckDetailDBDelThread;
+    static int temple = 0;//服务器更新的档案条目数
     static Long kfAnchor;
     static Long mjjAnchor;
     static Long mjjgAnchor;
@@ -192,7 +194,7 @@ public class SyncbakActivity extends BaseActivity {
     private Long serverCheckErrorAnchor = 0L;
     private long mCheckDetailCount;//盘点错误记录本地提交服务器数量
     private long mCheckErrorCount;//盘点格子记录本地提交服务器数量
-    static long mDaLocalCount;//档案本地提交服务器数量
+    long mDaLocalCount;//档案本地提交服务器数量
     RequestTask task;
     private boolean getKfFlag = false;
     private boolean getMjjFlag = false;
@@ -265,17 +267,34 @@ public class SyncbakActivity extends BaseActivity {
                         break;
                     case Constant.BackThread_GETCHECKDETAIL_SUCCESS_PB:
                         int checkdetail = data.getInt("checkdetail");
-                        LogUtils.d(checkdetail + "");
-                        pb7.setMax(checkDetailJsonList.size());
-                        pb7.setProgress(checkdetail);
-                        tv_status7.setText("正在写入数据库");
-                        tv_status7.setTextColor(Color.RED);
-                        if (checkdetail == checkDetailJsonList.size()) {
-                            tv_oleNsize7.setText("更新完成");
-                            tv_oleNsize7.setTextColor(Color.GREEN);
-                            tv_status7.setText("");
-                            putCheckDetailFLag = false;
+                        int checkdetaildel = data.getInt("checkdetaildel");
+                        if (checkdetail > 0) {
+                            LogUtils.d(checkdetail + "");
+                            pb7.setMax(checkDetailJsonList.size());
+                            pb7.setProgress(checkdetail);
+                            tv_status7.setText("正在写入数据库");
+                            tv_status7.setTextColor(Color.RED);
+                            if (checkdetail == checkDetailJsonList.size()) {
+                                tv_oleNsize7.setText("更新完成");
+                                tv_oleNsize7.setTextColor(Color.GREEN);
+                                tv_status7.setText("");
+                                putCheckDetailFLag = false;
+                            }
+                        } else if (checkdetail == 0 && CheckPlanDeatilDelCount > 0) {
+                            //如果本地盘点明细无数据 但是删除有数据
+                            LogUtils.d(CheckPlanDeatilDelCount + "");
+                            pb7.setMax(CheckPlanDeatilDelCount);
+                            pb7.setProgress(checkdetaildel);
+                            tv_status7.setText("正在写入数据库");
+                            tv_status7.setTextColor(Color.RED);
+                            if (checkdetaildel == CheckPlanDeatilDelCount) {
+                                tv_oleNsize7.setText("更新完成");
+                                tv_oleNsize7.setTextColor(Color.GREEN);
+                                tv_status7.setText("");
+                                putCheckDetailFLag = false;
+                            }
                         }
+
                         break;
                     case Constant.BackThread_GETCHECKERROR_SUCCESS_PB:
                         int checkerror = data.getInt("checkerror");
@@ -327,18 +346,35 @@ public class SyncbakActivity extends BaseActivity {
                         break;
                     case Constant.BackThread_PUTDA_SUCCESS_PB:
                         int putda = data.getInt("da");
-                        LogUtils.d(putda + "");
-                        pb4.setMax(putMjjgdaJsonList.size());
-                        pb4.setProgress(putda);
-                        tv_status4.setText("正在写入数据库");
-                        tv_status4.setTextColor(Color.RED);
-                        if (putda == putMjjgdaJsonList.size()) {
-                            tv_oleNsize4.setText("更新完成");
-                            tv_oleNsize4.setTextColor(Color.GREEN);
-                            tv_status4.setText("");
-                            putDaFLag = false;
+                        int putdadel = data.getInt("dadel");
+                        if (putdadel > 0 && putda == 0) {
+                            //如果只有提交删除数据没有提交上架数据 进度条值走删除记录的进度条
+                            LogUtils.d(putdadel + "");
+                            pb4.setMax(DaDelCount);
+                            pb4.setProgress(putdadel);
+                            tv_status4.setText("正在写入数据库");
+                            tv_status4.setTextColor(Color.RED);
+                            if (putdadel == DaDelCount) {
+                                tv_oleNsize4.setText("更新完成");
+                                tv_oleNsize4.setTextColor(Color.GREEN);
+                                tv_status4.setText("");
+                                putDaFLag = false;
+                                temple = 0;
+                            }
+                        } else {
+                            LogUtils.d(putda + "");
+                            pb4.setMax(putMjjgdaJsonList.size());
+                            pb4.setProgress(putda);
+                            tv_status4.setText("正在写入数据库");
+                            tv_status4.setTextColor(Color.RED);
+                            if (putda == putMjjgdaJsonList.size()) {
+                                tv_oleNsize4.setText("更新完成");
+                                tv_oleNsize4.setTextColor(Color.GREEN);
+                                tv_status4.setText("");
+                                putDaFLag = false;
+                                temple = 0;
+                            }
                         }
-
                         break;
                     case Constant.BackThread_GETMJG_SUCCESS_PB:
                         int mjjg = data.getInt("mjg");
@@ -667,6 +703,13 @@ public class SyncbakActivity extends BaseActivity {
                         } else {
                             putCheckDetailFLag = false;
                         }
+                        List<CheckPlanDeatilDel> delJsonList = JSON.parseArray(response.res.delrecords, CheckPlanDeatilDel.class);
+                        if (delJsonList != null && !delJsonList.isEmpty()) {
+                            Log.i("delList", delJsonList.toString());
+                            writeCheckDetailDBDelThread = new WriteCheckDetailDBDelThread(mHandler, uiMsg);
+                            writeCheckDetailDBDelThread.setList(delJsonList);
+                            writeCheckDetailDBDelThread.start();
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -680,6 +723,10 @@ public class SyncbakActivity extends BaseActivity {
         ToastUtils.showLong(act + "");
         ToastUtils.showLong(e.getMessage());
     }
+
+    int CheckPlanDeatilDelCount;
+    int CheckPlanDeatilCount;
+    int DaDelCount;
 
     private void initBackThread() {
         mCheckMsgHandler = new Handler(mCheckMsgThread.getLooper()) {
@@ -721,10 +768,10 @@ public class SyncbakActivity extends BaseActivity {
                         }
                         try {
                             //已经同步过的数据下架了(版本号大于0 状态为删除状态-1)
-                            int temp1 = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
+                            DaDelCount = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
                             //新保存的上架记录
                             int temp2 = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
-                            mDaLocalCount = temp1 + temp2;
+                            mDaLocalCount = DaDelCount + temp2;
                             if (mDaLocalCount > 0) {
                                 uiMsg.arg1 = (int) mDaLocalCount;
                             }
@@ -748,8 +795,9 @@ public class SyncbakActivity extends BaseActivity {
                         }
                         //盘点纠错表
                         try {
-                            int temp1 = (int) DBDataUtils.count(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">=", "0");
-                            mCheckDetailCount = Long.valueOf(temp1);
+                            CheckPlanDeatilCount = (int) DBDataUtils.count(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">=", "0");
+                            CheckPlanDeatilDelCount = (int) DBDataUtils.count(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
+                            mCheckDetailCount = Long.valueOf(CheckPlanDeatilCount + CheckPlanDeatilDelCount);
                         } catch (DbException e) {
                             e.printStackTrace();
                         }
@@ -1061,7 +1109,7 @@ public class SyncbakActivity extends BaseActivity {
                 return true;
             case R.id.action_Sync:
                 if (isOnLine) {//网络 状态正常
-//                    showAnimate(item); //这里开始动画 太丑了
+                    //                    showAnimate(item); //这里开始动画 太丑了
                     item.setEnabled(false);
                     bt_action1.setEnabled(false);
                     mCheckMsgHandler.obtainMessage(BackThread_GETKF).sendToTarget();
@@ -1086,7 +1134,7 @@ public class SyncbakActivity extends BaseActivity {
                     bt_action7.setEnabled(false);
                     mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
 
-//                    hideAnimate();
+                    //                    hideAnimate();
                 }
 
                 return true;
