@@ -8,7 +8,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -16,7 +15,6 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
 import com.botongsoft.rfid.common.db.SearchDb;
-import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanListAdapter;
 import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.exception.DbException;
@@ -66,32 +64,27 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
     @Override
     public void onDestroy() {
         super.onDestroy();
-        LogUtils.e("onDestroy", "ScanCheckPlanListFragment onDestroy4444444444444444");
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        LogUtils.e("onStop", "ScanCheckPlanListFragment onStop33333333333333333");
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mMjjList.clear();
-        LogUtils.e("onPause", "ScanCheckPlanListFragment onPause222222222222222222");
     }
 
     @Override
     public void onResume() {
-        LogUtils.e("onResume", "ScanCheckPlanListFragment onResume111111111111111");
         super.onResume();
 
     }
 
     @Override
     public void onDestroyView() {
-        LogUtils.e("onDestroyView", "ScanCheckPlanListFragment onDestroyView111111111111111");
         super.onDestroyView();
     }
 
@@ -192,7 +185,6 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
 
         public void run() {
             try {
-                Log.e("SearchDBThreads--->", String.valueOf(Thread.currentThread().getName()));
                 mjjList = (List<Mjj>) SearchDb.getMjjList(fw);
                 DbUtils db = DataBaseCreator.create();
                 //这条语句执行的意义为：根据pdid汇总统计扫描过的架子的面。有扫描过的给他个初始颜色 值为1.
@@ -252,7 +244,6 @@ public class ScanCheckPlanListFragment extends BaseFragment implements SwipeRefr
         public void onRefresh() {
             mMjjList.clear();
             searchDB();
-            //                mRecyclerView.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 2000);
         }
     };
 }
