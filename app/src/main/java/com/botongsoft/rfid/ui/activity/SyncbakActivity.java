@@ -154,7 +154,7 @@ public class SyncbakActivity extends BaseActivity {
     private static final int CONN_UNSUCCESS1 = 3;
     private static final int INIT_DOWORK = 2;
     private static final int PUT_WROK_KF = 1002;
-
+    private boolean isOnLine = true;//是否在线
     private boolean isOnScreen;//是否在屏幕上
     private HandlerThread mCheckMsgThread;//Handler线程池
     //后台运行的handler
@@ -242,6 +242,14 @@ public class SyncbakActivity extends BaseActivity {
                                 .setTitle("服务器无法访问")
                                 .setMessage("情检查网络是否畅通")
                                 .create().show();
+                        bt_action1.setEnabled(false);
+                        bt_action2.setEnabled(false);
+                        bt_action3.setEnabled(false);
+                        bt_action4.setEnabled(false);
+                        bt_action5.setEnabled(false);
+                        bt_action6.setEnabled(false);
+                        bt_action7.setEnabled(false);
+                        isOnLine = false;
                         break;
                     case CONN_UNSUCCESS1:
                         ToastUtils.showShort("网络中断");
@@ -541,7 +549,7 @@ public class SyncbakActivity extends BaseActivity {
                             wrKfDbThread = new WriteKfDBThread(mHandler, uiMsg);
                             wrKfDbThread.setList(kfJsonList);
                             wrKfDbThread.start();
-                        }else{
+                        } else {
                             getKfFlag = false;
                         }
                     } catch (JSONException e) {
@@ -557,7 +565,7 @@ public class SyncbakActivity extends BaseActivity {
                             wrMjjDbThread = new WriteMjjDBThread(mHandler, uiMsg);
                             wrMjjDbThread.setList(mjjJsonList);
                             wrMjjDbThread.start();
-                        }else{
+                        } else {
                             getMjjFlag = false;
                         }
                     } catch (JSONException e) {
@@ -572,7 +580,7 @@ public class SyncbakActivity extends BaseActivity {
                             wrMjgDbThread = new WriteMjgDBThread(mHandler, uiMsg);
                             wrMjgDbThread.setList(mjjgJsonList);
                             wrMjgDbThread.start();
-                        }else{
+                        } else {
                             getMjgflag = false;
                         }
                     } catch (JSONException e) {
@@ -587,7 +595,7 @@ public class SyncbakActivity extends BaseActivity {
                             writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 0);
                             writeMjgDaDBThread.setList(getMjjgdaJsonList);
                             writeMjgDaDBThread.start();
-                        }else{
+                        } else {
                             getDaFLag = false;
                         }
                     } catch (JSONException e) {
@@ -603,7 +611,7 @@ public class SyncbakActivity extends BaseActivity {
                             writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 1);
                             writeMjgDaDBThread.setList(putMjjgdaJsonList);
                             writeMjgDaDBThread.start();
-                        }else{
+                        } else {
                             putDaFLag = false;
                         }
                         List<Mjjgda> delMjjgdaJsonList = JSON.parseArray(response.res.delrecords, Mjjgda.class);
@@ -626,7 +634,7 @@ public class SyncbakActivity extends BaseActivity {
                             writeCheckPlanDBThread = new WriteCheckPlanDBThread(mHandler, uiMsg);
                             writeCheckPlanDBThread.setList(checkPlanJsonList);
                             writeCheckPlanDBThread.start();
-                        }else{
+                        } else {
                             getCheckPlanFLag = false;
                         }
                     } catch (JSONException e) {
@@ -641,7 +649,7 @@ public class SyncbakActivity extends BaseActivity {
                             writeCheckErrorDBThread = new WriteCheckErrorDBThread(mHandler, uiMsg);
                             writeCheckErrorDBThread.setList(checkErrorJsonList);
                             writeCheckErrorDBThread.start();
-                        }else{
+                        } else {
                             putCheckErrorFLag = false;
                         }
                     } catch (JSONException e) {
@@ -656,7 +664,7 @@ public class SyncbakActivity extends BaseActivity {
                             writeCheckDetailDBThread = new WriteCheckDetailDBThread(mHandler, uiMsg);
                             writeCheckDetailDBThread.setList(checkDetailJsonList);
                             writeCheckDetailDBThread.start();
-                        }else{
+                        } else {
                             putCheckDetailFLag = false;
                         }
                     } catch (JSONException e) {
@@ -1052,32 +1060,35 @@ public class SyncbakActivity extends BaseActivity {
                 }
                 return true;
             case R.id.action_Sync:
-                showAnimate(item); //这里开始动画
-                item.setEnabled(false);
-                bt_action1.setEnabled(false);
-                mCheckMsgHandler.obtainMessage(BackThread_GETKF).sendToTarget();
-                bt_action2.setEnabled(false);
-                mCheckMsgHandler.obtainMessage(BackThread_GETMJJ).sendToTarget();
-                bt_action3.setEnabled(false);
-                mCheckMsgHandler.obtainMessage(BackThread_GETMJJG).sendToTarget();
-                bt_action4.setEnabled(false);
-                if (temple > 0) {
-                    //如果服务器有更新数据 先获取服务器的更新数据,然后在通知线程完毕后去查找本地是否有更新数据再上传到服务器
-                    backThreadmsg = mCheckMsgHandler.obtainMessage();
-                    backThreadmsg.what = BackThread_GETMJJGDA;
-                    mCheckMsgHandler.sendMessage(backThreadmsg);
-                } else if (mDaLocalCount > 0 && temple <= 0) {
-                    //服务器没有更新，本地有更新
-                    mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
-                }
-                bt_action5.setEnabled(false);
-                mCheckMsgHandler.obtainMessage(BackThread_GETCHECKPLAN).sendToTarget();
-                bt_action6.setEnabled(false);
-                mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKERRORPLAN).sendToTarget();
-                bt_action7.setEnabled(false);
-                mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
+                if (isOnLine) {//网络 状态正常
+                    showAnimate(item); //这里开始动画
+                    item.setEnabled(false);
+                    bt_action1.setEnabled(false);
+                    mCheckMsgHandler.obtainMessage(BackThread_GETKF).sendToTarget();
+                    bt_action2.setEnabled(false);
+                    mCheckMsgHandler.obtainMessage(BackThread_GETMJJ).sendToTarget();
+                    bt_action3.setEnabled(false);
+                    mCheckMsgHandler.obtainMessage(BackThread_GETMJJG).sendToTarget();
+                    bt_action4.setEnabled(false);
+                    if (temple > 0) {
+                        //如果服务器有更新数据 先获取服务器的更新数据,然后在通知线程完毕后去查找本地是否有更新数据再上传到服务器
+                        backThreadmsg = mCheckMsgHandler.obtainMessage();
+                        backThreadmsg.what = BackThread_GETMJJGDA;
+                        mCheckMsgHandler.sendMessage(backThreadmsg);
+                    } else if (mDaLocalCount > 0 && temple <= 0) {
+                        //服务器没有更新，本地有更新
+                        mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+                    }
+                    bt_action5.setEnabled(false);
+                    mCheckMsgHandler.obtainMessage(BackThread_GETCHECKPLAN).sendToTarget();
+                    bt_action6.setEnabled(false);
+                    mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKERRORPLAN).sendToTarget();
+                    bt_action7.setEnabled(false);
+                    mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
 
-                hideAnimate();
+                    hideAnimate();
+                }
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

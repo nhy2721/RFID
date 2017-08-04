@@ -49,8 +49,7 @@ public class SpinnerAdapter extends BaseAdapter {
 //            imageView.setImageResource(R.drawable.ic_launcher);
             TextView _TextView1=(TextView)convertView.findViewById(R.id.textView1);
 //            TextView _TextView2=(TextView)convertView.findViewById(R.id.textView2);
-            _TextView1.setText(mList.get(position).kfid+"/"+mList.get(position).mjjid+"/"
-                    +mList.get(position).mjgid+"/"+mList.get(position).zy);
+            _TextView1.setText(mList.get(position).title);
 
         }
         return convertView;

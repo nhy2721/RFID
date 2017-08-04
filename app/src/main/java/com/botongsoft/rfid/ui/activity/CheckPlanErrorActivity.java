@@ -20,6 +20,9 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.SpinnerJo;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
+import com.botongsoft.rfid.bean.classity.Kf;
+import com.botongsoft.rfid.bean.classity.Mjj;
+import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
@@ -44,6 +47,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.botongsoft.rfid.R.id.toolbar;
+import static com.botongsoft.rfid.common.db.DBDataUtils.getInfo;
 
 /**
  * Created by pc on 2017/8/2.
@@ -186,6 +190,13 @@ public class CheckPlanErrorActivity extends BaseActivity {
             searchDBForSpinner();
         }
     };
+    int tempKfid;
+    int tempMjjid;
+    int tempMjgid;
+    String kfName = "";
+    String mjjName = "";
+    String mjgName = "";
+    String zyName = "";
 
     private void searchDBForSpinner() {
         DbUtils db = DataBaseCreator.create();
@@ -200,6 +211,30 @@ public class CheckPlanErrorActivity extends BaseActivity {
                 sj.kfid = dbModel.getInt("kfid");
                 sj.mjjid = dbModel.getInt("mjjid");
                 sj.mjgid = dbModel.getInt("mjgid");
+
+                if (tempKfid != sj.kfid) {
+                    tempKfid = dbModel.getInt("kfid");
+                    Kf kf = (Kf) getInfo(Kf.class, "id", String.valueOf(sj.kfid));
+                    kfName = kf.getMc();
+                }
+                if (tempMjjid != sj.mjjid) {
+                    tempMjjid = dbModel.getInt("mjjid");
+                    Mjj mjj = (Mjj) getInfo(Mjj.class, "id", String.valueOf(sj.mjjid));
+                    mjjName = mjj.getMc();
+                }
+                if (tempMjgid != sj.mjgid) {
+                    tempMjgid = dbModel.getInt("mjgid");
+                    Mjjg mjg = (Mjjg) getInfo(Mjjg.class, "id", String.valueOf(sj.mjgid));
+                    mjgName = mjg.getMc();
+                }
+                if (sj.zy == 1) {
+                    zyName = "左面";
+                } else {
+                    zyName = "右面";
+                }
+                StringBuffer sb = new StringBuffer();
+                sb.append(kfName).append("/").append(mjjName).append("/").append(mjgName).append("/").append(zyName);
+                sj.title = sb.toString();
                 spinnerList.add(sj);
             }
             mUiHandler.obtainMessage(UI_SPINNER_SUCCESS).sendToTarget();
@@ -267,10 +302,10 @@ public class CheckPlanErrorActivity extends BaseActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             if (position != -1) {
                                 if (mDataList.get(position).getStatus() == 0) {
-                                    LogUtils.e("delposition---->", String.valueOf(position));
-                                    LogUtils.e("del lid---->", String.valueOf(mDataList.get(position).getLid()));
-                                    LogUtils.e("del bm---->", String.valueOf(mDataList.get(position).getBm()));
-                                    LogUtils.e("del Jlid---->", String.valueOf(mDataList.get(position).getJlid()));
+                                    //                                    LogUtils.e("delposition---->", String.valueOf(position));
+                                    //                                    LogUtils.e("del lid---->", String.valueOf(mDataList.get(position).getLid()));
+                                    //                                    LogUtils.e("del bm---->", String.valueOf(mDataList.get(position).getBm()));
+                                    //                                    LogUtils.e("del Jlid---->", String.valueOf(mDataList.get(position).getJlid()));
                                     DBDataUtils.deleteInfo(CheckPlanDeatil.class, "lid", String.valueOf(mDataList.get(position).getLid()));
                                 } else {
                                     CheckPlanDeatil checkPlanDeatil = mDataList.get(position);
@@ -295,4 +330,16 @@ public class CheckPlanErrorActivity extends BaseActivity {
 
         }
     };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        //释放资源
+        if (mBackHandler != null) {
+            mCheckMsgThread.quit();
+        }
+        mBackHandler.removeCallbacksAndMessages(null);
+        finish();
+    }
 }
