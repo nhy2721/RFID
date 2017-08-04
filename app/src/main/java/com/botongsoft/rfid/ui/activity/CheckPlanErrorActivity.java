@@ -190,16 +190,18 @@ public class CheckPlanErrorActivity extends BaseActivity {
             searchDBForSpinner();
         }
     };
-    int tempKfid;
-    int tempMjjid;
-    int tempMjgid;
-    String kfName = "";
-    String mjjName = "";
-    String mjgName = "";
-    String zyName = "";
+
 
     private void searchDBForSpinner() {
         DbUtils db = DataBaseCreator.create();
+        StringBuffer sb = new StringBuffer();
+        int tempKfid = 0;
+        int tempMjjid= 0;
+        int tempMjgid= 0;
+        String kfName = "";
+        String mjjName = "";
+        String mjgName = "";
+        String zyName = "";
         try {
             List<DbModel> dbModels = db.findDbModelAll(Selector.from(CheckPlanDeatil.class)
                     .select("distinct zy,pdid,kfid,mjgid,mjjid ").where("pdid", "=", pdid).orderBy("mjgid"));
@@ -232,7 +234,7 @@ public class CheckPlanErrorActivity extends BaseActivity {
                 } else {
                     zyName = "右面";
                 }
-                StringBuffer sb = new StringBuffer();
+                sb.setLength(0);//清空sb
                 sb.append(kfName).append("/").append(mjjName).append("/").append(mjgName).append("/").append(zyName);
                 sj.title = sb.toString();
                 spinnerList.add(sj);

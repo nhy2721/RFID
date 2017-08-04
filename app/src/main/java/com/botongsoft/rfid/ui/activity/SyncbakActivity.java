@@ -822,7 +822,7 @@ public class SyncbakActivity extends BaseActivity {
                         getCheckPlanFLag = true;
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, checkPlanAnchor, BackThread_GETCHECKPLAN);
                         break;
-                    case BackThread_PUTCHECKERRORPLAN:
+                    case BackThread_PUTCHECKERRORPLAN:  //上传盘点过的格子记录
                         if (putCheckErrorFLag) {
                             return;
                         }
@@ -831,7 +831,7 @@ public class SyncbakActivity extends BaseActivity {
                         List<CheckError> checkErrorList = (List<CheckError>) DBDataUtils.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0");
                         FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKERRORPLAN, null, checkErrorList, null);
                         break;
-                    case BackThread_PUTCHECKDETAILPLAN:
+                    case BackThread_PUTCHECKDETAILPLAN:  //上传盘点纠错记录
                         if (putCheckDetailFLag) {
                             return;
                         }
@@ -1061,7 +1061,7 @@ public class SyncbakActivity extends BaseActivity {
                 return true;
             case R.id.action_Sync:
                 if (isOnLine) {//网络 状态正常
-                    showAnimate(item); //这里开始动画
+//                    showAnimate(item); //这里开始动画 太丑了
                     item.setEnabled(false);
                     bt_action1.setEnabled(false);
                     mCheckMsgHandler.obtainMessage(BackThread_GETKF).sendToTarget();
@@ -1086,7 +1086,7 @@ public class SyncbakActivity extends BaseActivity {
                     bt_action7.setEnabled(false);
                     mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
 
-                    hideAnimate();
+//                    hideAnimate();
                 }
 
                 return true;
