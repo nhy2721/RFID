@@ -202,7 +202,7 @@ public class CheckPlanErrorActivity extends BaseActivity {
         DbUtils db = DataBaseCreator.create();
         try {
             List<DbModel> dbModels = db.findDbModelAll(Selector.from(CheckPlanDeatil.class)
-                    .select("distinct zy,pdid,kfid,mjgid,mjjid ").where("pdid", "=", pdid));
+                    .select("distinct zy,pdid,kfid,mjgid,mjjid ").where("pdid", "=", pdid).orderBy("mjgid"));
             Log.d("spinner.size()", dbModels.size() + "");
             for (DbModel dbModel : dbModels) {
                 SpinnerJo sj = new SpinnerJo();

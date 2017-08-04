@@ -66,14 +66,14 @@ public class CategoryAdapter extends RecyclerView.Adapter {
                         UIUtils.startActivity(intent);
                         break;
                     case 2:
-                        Toast.makeText(UIUtils.getContext(), "盘点", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UIUtils.getContext(), "盘点计划", Toast.LENGTH_SHORT).show();
                         intent = new Intent(UIUtils.getContext(), CheckPlanActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
                         UIUtils.startActivity(intent);
                         break;
                     case 3:
-                        Toast.makeText(UIUtils.getContext(), "盘点记录", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UIUtils.getContext(), "盘点计划", Toast.LENGTH_SHORT).show();
                         intent = new Intent(UIUtils.getContext(), CheckPlanActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
