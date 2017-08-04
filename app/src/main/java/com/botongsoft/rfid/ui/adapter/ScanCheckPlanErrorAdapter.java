@@ -105,27 +105,28 @@ public class ScanCheckPlanErrorAdapter extends SwipeMenuAdapter<ScanCheckPlanErr
 
         public void setData(CheckPlanDeatil mCheckPlanDeatil, int position) {
             this.tvId.setText(String.valueOf(position + 1));
+            this.tvTitle.setText(mCheckPlanDeatil.getBm() + "-" + mCheckPlanDeatil.getJlid());
             if (mCheckPlanDeatil.getType() == 2) {
-
+                this.imageViewStyle.setImageResource(R.drawable.yuan_fales);
             } else if (mCheckPlanDeatil.getType() == 3) {
-
+                this.imageViewStyle.setImageResource(R.drawable.yuan_waijie);
             } else if (mCheckPlanDeatil.getType() == 4) {
-
+                this.imageViewStyle.setImageResource(R.drawable.yuan_fales);
             }
             //            if(map.getFlag()==1){
             //                this.tvTitle.setText(String.valueOf(map.getBm()+"-"+map.getJlid()+"  外借"));
             //            }else{
             //                this.tvTitle.setText(String.valueOf(map.getBm()+"-"+map.getJlid()));
             //            }
-            //            if (map.getColor() == 2) {
-            //                this.imageViewStyle.setImageResource(R.drawable.yuan_true);
-            //            } else if (map.getColor() == 0) {
-            //                this.imageViewStyle.setImageResource(R.drawable.yuan_default);
-            //            } else if (map.getColor() == 4) {
-            //                this.imageViewStyle.setImageResource(R.drawable.yuan_fales);
-            //            }else if (map.getColor() == 3) {
-            //                this.imageViewStyle.setImageResource(R.drawable.yuan_waijie);
-            //            }
+            //                        if (map.getColor() == 2) {
+            //                            this.imageViewStyle.setImageResource(R.drawable.yuan_true);
+            //                        } else if (map.getColor() == 0) {
+            //                            this.imageViewStyle.setImageResource(R.drawable.yuan_default);
+            //                        } else if (map.getColor() == 4) {
+            //                            this.imageViewStyle.setImageResource(R.drawable.yuan_fales);
+            //                        }else if (map.getColor() == 3) {
+            //                            this.imageViewStyle.setImageResource(R.drawable.yuan_waijie);
+            //                        }
             //            this.tvLocal.setText(String.valueOf(map.get("local")));
         }
 

@@ -1,6 +1,8 @@
 package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -17,13 +19,17 @@ import android.widget.Spinner;
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.SpinnerJo;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
+import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
 import com.botongsoft.rfid.bean.http.BaseResponse;
+import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
 import com.botongsoft.rfid.common.service.http.BusinessException;
+import com.botongsoft.rfid.common.utils.ConverJavaBean;
 import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanErrorAdapter;
 import com.botongsoft.rfid.ui.adapter.SpinnerAdapter;
+import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
 import com.botongsoft.rfid.ui.widget.WrapContentLinearLayoutManager;
 import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.db.sqlite.Selector;
@@ -44,6 +50,8 @@ import static com.botongsoft.rfid.R.id.toolbar;
  */
 
 public class CheckPlanErrorActivity extends BaseActivity {
+
+
     private Activity mContext;
     @BindView(toolbar)
     Toolbar mToolbar;
@@ -67,7 +75,9 @@ public class CheckPlanErrorActivity extends BaseActivity {
     //传递UI前台显示消息队列
     Message uiMessage;
     private static final int UI_SUCCESS = 0;
+    private static final int UI_SPINNER_SUCCESS = 1;
     private static final int BACK_SEARCH_SPINNER = 1;
+    private static final int BACK_SEARCH_DB = 2;
     private List<CheckPlanDeatil> mDataList = new ArrayList<>();
     private List<SpinnerJo> spinnerList = new ArrayList<>();
 
@@ -83,7 +93,7 @@ public class CheckPlanErrorActivity extends BaseActivity {
         mSwipeMenuRecyclerView.setLayoutManager(layout);// 布局管理器。
         mSwipeMenuRecyclerView.setHasFixedSize(true);// 如果Item够简单，高度是确定的，打开FixSize将提高性能。
         mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
-        //        mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
+        mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
 
         initDatas();
         scanCheckPlanErrorAdapter = new ScanCheckPlanErrorAdapter(this, mDataList);
@@ -95,7 +105,14 @@ public class CheckPlanErrorActivity extends BaseActivity {
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                LogUtils.e("onItemSelected",spinnerList.get(pos).mjgid+"");
+                LogUtils.e("onItemSelected", spinnerList.get(pos).mjgid + "");
+                mDataList.clear();
+                backMsg = mBackHandler.obtainMessage();
+                Bundle mBundle = new Bundle();
+                mBundle.putInt("pos", pos);
+                backMsg.setData(mBundle);
+                backMsg.what = BACK_SEARCH_DB;
+                mBackHandler.sendMessage(backMsg);
             }
 
             @Override
@@ -127,12 +144,34 @@ public class CheckPlanErrorActivity extends BaseActivity {
                     case BACK_SEARCH_SPINNER:
                         initSpinner();
                         break;
+                    case BACK_SEARCH_DB:
+                        int temp = msg.getData().getInt("pos");
+                        searchDBForDatas(temp);
+                        break;
                     default:
                         super.handleMessage(msg);
                         break;
                 }
             }
         };
+    }
+
+    private void searchDBForDatas(int temp) {
+        mBackHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                List tempList = (List<CheckPlanDeatil>) DBDataUtils.getInfosHasOp(CheckPlanDeatil.class,
+                        "zy", "=", String.valueOf(spinnerList.get(temp).zy),
+                        "pdid", "=", String.valueOf(spinnerList.get(temp).pdid),
+                        "kfid", "=", String.valueOf(spinnerList.get(temp).kfid),
+                        "mjjid", "=", String.valueOf(spinnerList.get(temp).mjjid),
+                        "mjgid", "=", String.valueOf(spinnerList.get(temp).mjgid));
+                mDataList.addAll(tempList);
+                uiMessage = mUiHandler.obtainMessage();
+                uiMessage.what = UI_SUCCESS;
+                mUiHandler.sendMessage(uiMessage);
+            }
+        });
     }
 
     private void initSpinner() {
@@ -143,17 +182,12 @@ public class CheckPlanErrorActivity extends BaseActivity {
 
         @Override
         public void run() {
-            //在这里调用服务器的接口，获取数据
-            //这里定义发送通知ui更新界面
-            uiMessage = mUiHandler.obtainMessage();
-            uiMessage.what = UI_SUCCESS;
             //在这里读取数据库增加list值，界面显示读取的标签信息
-            searchDB();
-            mUiHandler.sendMessage(uiMessage);
+            searchDBForSpinner();
         }
     };
 
-    private void searchDB() {
+    private void searchDBForSpinner() {
         DbUtils db = DataBaseCreator.create();
         try {
             List<DbModel> dbModels = db.findDbModelAll(Selector.from(CheckPlanDeatil.class)
@@ -168,7 +202,7 @@ public class CheckPlanErrorActivity extends BaseActivity {
                 sj.mjgid = dbModel.getInt("mjgid");
                 spinnerList.add(sj);
             }
-            spinner.setAdapter(spinnerAdapter);
+            mUiHandler.obtainMessage(UI_SPINNER_SUCCESS).sendToTarget();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -182,6 +216,9 @@ public class CheckPlanErrorActivity extends BaseActivity {
                 switch (msg.what) {
                     case UI_SUCCESS:
                         scanCheckPlanErrorAdapter.notifyDataSetChanged();
+                        break;
+                    case UI_SPINNER_SUCCESS:
+                        spinner.setAdapter(spinnerAdapter);
                         break;
                     default:
                         super.handleMessage(msg);
@@ -218,6 +255,39 @@ public class CheckPlanErrorActivity extends BaseActivity {
         @Override
         public void onItemClick(int position, int listSize) {
 
+            new AlertDialog.Builder(CheckPlanErrorActivity.this)
+                    .setMessage("确定要忽略这条错误吗？")
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (position != -1) {
+                                if (mDataList.get(position).getStatus() == 0) {
+                                    LogUtils.e("delposition---->", String.valueOf(position));
+                                    LogUtils.e("del lid---->", String.valueOf(mDataList.get(position).getLid()));
+                                    LogUtils.e("del bm---->", String.valueOf(mDataList.get(position).getBm()));
+                                    LogUtils.e("del Jlid---->", String.valueOf(mDataList.get(position).getJlid()));
+                                    DBDataUtils.deleteInfo(CheckPlanDeatil.class, "lid", String.valueOf(mDataList.get(position).getLid()));
+                                } else {
+                                    CheckPlanDeatil checkPlanDeatil = mDataList.get(position);
+                                    CheckPlanDeatilDel cd = ConverJavaBean.toAnotherObj(checkPlanDeatil, CheckPlanDeatilDel.class);
+                                    DBDataUtils.save(cd);
+                                    DBDataUtils.deleteInfo(CheckPlanDeatil.class, "lid", String.valueOf(mDataList.get(position).getLid()));
+                                }
+                                mDataList.remove(position);
+                                scanCheckPlanErrorAdapter.notifyItemRemoved(position);
+                                scanCheckPlanErrorAdapter.notifyDataSetChanged();
+                                //                                mDataLists.remove(position);
+                                //                                scanCheckPlanDetailAdapter.notifyItemRemoved(position);
+                                //                                scanCheckPlanDetailAdapter.notifyItemRangeChanged(position, listSize);
+                            }
+                        }
+                    })
+                    .create().show();
         }
 
         @Override
