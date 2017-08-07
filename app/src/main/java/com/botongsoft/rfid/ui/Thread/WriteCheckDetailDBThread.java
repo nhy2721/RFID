@@ -5,7 +5,6 @@ import android.os.Handler;
 import android.os.Message;
 
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
-import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 
 import java.util.ArrayList;
@@ -89,7 +88,7 @@ public class WriteCheckDetailDBThread extends Thread {
         if (saveList != null && !saveList.isEmpty()) {
             DBDataUtils.updateAll(saveList);
         }
-        DBDataUtils.deleteInfos(CheckPlanDeatilDel.class);
+//        DBDataUtils.deleteInfos(CheckPlanDeatilDel.class);
 //        mhandler.obtainMessage(Constant.BackThread_SUCCESS).sendToTarget();
     }
 }

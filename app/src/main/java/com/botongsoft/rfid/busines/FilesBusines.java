@@ -153,8 +153,10 @@ public class FilesBusines {
         //        task.showDialog(request);
         //                task.execute(request);
         //        task.executeOnExecutor(Executors.newFixedThreadPool(20), request);//背压问题
-        task.executeOnExecutor(Executors.newCachedThreadPool(), request);
+//        task.executeOnExecutor(Executors.newCachedThreadPool(), request);
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, request);
         return task;
+
 
     }
 }

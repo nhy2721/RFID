@@ -38,6 +38,7 @@ import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.busines.FilesBusines;
 import com.botongsoft.rfid.common.constants.Constant;
+import com.botongsoft.rfid.common.db.CheckDetailSearchDb;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.service.http.BusinessResolver;
@@ -70,6 +71,7 @@ import static com.botongsoft.rfid.R.id.toolbar;
  */
 
 public class SyncbakActivity extends BaseActivity {
+    private static final int HAS_NEW_MJJG = 8888;
     private Activity mContext;
     @BindView(appBarLayout)
     AppBarLayout mAppBarLayout;
@@ -172,8 +174,8 @@ public class SyncbakActivity extends BaseActivity {
     private static final int BackThread_PUTCHECKERRORPLAN = 1008;
     private static final int BackThread_PUTCHECKDETAILPLAN = 1009;
     //传递后台运行消息队列
-    Message backThreadmsg;
-    Message uiMsg;
+    private Message backThreadmsg;
+    private Message uiMsg;
     private Thread networkThread;//网络操作相关的子线程
     private WriteKfDBThread wrKfDbThread;//数据库操作相关
     private WriteMjjDBThread wrMjjDbThread;//数据库操作相关
@@ -184,18 +186,18 @@ public class SyncbakActivity extends BaseActivity {
     private WriteCheckErrorDBThread writeCheckErrorDBThread;
     private WriteCheckDetailDBThread writeCheckDetailDBThread;
     private WriteCheckDetailDBDelThread writeCheckDetailDBDelThread;
-    static int temple = 0;//服务器更新的档案条目数
-    static Long kfAnchor;
-    static Long mjjAnchor;
-    static Long mjjgAnchor;
-    static Long mjjgdaAnchor;
+    private static int temple = 0;//服务器更新的档案条目数
+    private static Long kfAnchor;
+    private static Long mjjAnchor;
+    private static Long mjjgAnchor;
+    private static Long mjjgdaAnchor;
     static Long checkPlanAnchor;
     private Long serverCheckDetailAnchor = 0L;
     private Long serverCheckErrorAnchor = 0L;
     private long mCheckDetailCount;//盘点错误记录本地提交服务器数量
     private long mCheckErrorCount;//盘点格子记录本地提交服务器数量
-    long mDaLocalCount;//档案本地提交服务器数量
-    RequestTask task;
+    private long mDaLocalCount;//档案本地提交服务器数量
+    private RequestTask task;
     private boolean getKfFlag = false;
     private boolean getMjjFlag = false;
     private boolean getMjgflag = false;
@@ -205,14 +207,20 @@ public class SyncbakActivity extends BaseActivity {
     private boolean putCheckDetailFLag = false;
     private boolean putCheckErrorFLag = false;
     private boolean isPause;
-    List<Mjjgda> getMjjgdaJsonList;
-    List<Mjjgda> putMjjgdaJsonList;
-    List<Mjjg> mjjgJsonList;
-    List<Mjj> mjjJsonList;
-    List<Kf> kfJsonList;
-    List<CheckPlan> checkPlanJsonList;
-    List<CheckError> checkErrorJsonList;
-    List<CheckPlanDeatil> checkDetailJsonList;
+    private List<Mjjgda> getMjjgdaJsonList;
+    private List<Mjjgda> putMjjgdaJsonList;
+    private List<Mjjg> mjjgJsonList;
+    private List<Mjj> mjjJsonList;
+    private List<Kf> kfJsonList;
+    private List<CheckPlan> checkPlanJsonList;
+    private List<CheckError> checkErrorJsonList;
+    private List<CheckPlanDeatil> checkDetailJsonList;
+    int CheckPlanDeatilDelCount;
+    int CheckPlanDeatilCount;
+    int DaDelCount;
+    int DaNewCount;
+    private int limit = 300;
+    int countTemp = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -266,7 +274,7 @@ public class SyncbakActivity extends BaseActivity {
 
                         break;
                     case Constant.BackThread_GETCHECKDETAIL_SUCCESS_PB:
-                        int checkdetail = data.getInt("checkdetail");
+                        int checkdetail = data.getInt("checkdetail");//Thread传出的数据消息
                         int checkdetaildel = data.getInt("checkdetaildel");
                         if (checkdetail > 0) {
                             LogUtils.d(checkdetail + "");
@@ -274,11 +282,22 @@ public class SyncbakActivity extends BaseActivity {
                             pb7.setProgress(checkdetail);
                             tv_status7.setText("正在写入数据库");
                             tv_status7.setTextColor(Color.RED);
+
+
+                            //                            putCheckDetailFLag = false;
                             if (checkdetail == checkDetailJsonList.size()) {
-                                tv_oleNsize7.setText("更新完成");
-                                tv_oleNsize7.setTextColor(Color.GREEN);
-                                tv_status7.setText("");
-                                putCheckDetailFLag = false;
+                                countTemp += limit;
+                                if ((CheckPlanDeatilCount - countTemp) >= 0) {
+                                    LogUtils.d(countTemp + "");
+                                    putCheckDetailFLag = false;
+                                    mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
+                                }
+                                if (countTemp >= CheckPlanDeatilCount) {//如果最后统计数大于等于初始显示的数量 提示更新完成
+                                    tv_oleNsize7.setText("更新完成");
+                                    tv_oleNsize7.setTextColor(Color.GREEN);
+                                    tv_status7.setText("");
+                                    putCheckDetailFLag = false;
+                                }
                             }
                         } else if (checkdetail == 0 && CheckPlanDeatilDelCount > 0) {
                             //如果本地盘点明细无数据 但是删除有数据
@@ -384,6 +403,11 @@ public class SyncbakActivity extends BaseActivity {
                         tv_status3.setText("正在写入数据库");
                         tv_status3.setTextColor(Color.RED);
                         if (mjjg == mjjgJsonList.size()) {
+                            //第一批次的写进数据库后 再次取得最新的版本号提交服务器取得新一批的数据
+                            mCheckMsgHandler.obtainMessage(HAS_NEW_MJJG).sendToTarget();
+                            getMjgflag = false;
+                            mCheckMsgHandler.obtainMessage(BackThread_GETMJJG).sendToTarget();
+
                             tv_oleNsize3.setText("更新完成");
                             tv_oleNsize3.setTextColor(Color.GREEN);
                             tv_status3.setText("");
@@ -724,16 +748,23 @@ public class SyncbakActivity extends BaseActivity {
         ToastUtils.showLong(e.getMessage());
     }
 
-    int CheckPlanDeatilDelCount;
-    int CheckPlanDeatilCount;
-    int DaDelCount;
 
     private void initBackThread() {
+
         mCheckMsgHandler = new Handler(mCheckMsgThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
                 switch (msg.what) {
+                    case HAS_NEW_MJJG:
+                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                        Mjjg mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
+                        if (mjjgInfo == null) {
+                            mjjgAnchor = 0L;
+                        } else {
+                            mjjgAnchor = Long.valueOf(mjjgInfo.getAnchor());
+                        }
+                        break;
                     case BackThread_DOWORK:
                         uiMsg = mHandler.obtainMessage();
                         uiMsg.what = INIT_DOWORK;
@@ -753,11 +784,11 @@ public class SyncbakActivity extends BaseActivity {
                         }
 
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        Mjjg mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
-                        if (mjjgInfo == null) {
+                        Mjjg mjjgInfo1 = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
+                        if (mjjgInfo1 == null) {
                             mjjgAnchor = 0L;
                         } else {
-                            mjjgAnchor = Long.valueOf(mjjgInfo.getAnchor());
+                            mjjgAnchor = Long.valueOf(mjjgInfo1.getAnchor());
                         }
                         //先将本地的版本号发送给服务器，判断服务器时候有更新过 有更新要解决冲突
                         Mjjgda mjjgdaInfo = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "anchor", ">=", "0");
@@ -770,8 +801,8 @@ public class SyncbakActivity extends BaseActivity {
                             //已经同步过的数据下架了(版本号大于0 状态为删除状态-1)
                             DaDelCount = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
                             //新保存的上架记录
-                            int temp2 = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
-                            mDaLocalCount = DaDelCount + temp2;
+                            DaNewCount = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
+                            mDaLocalCount = DaDelCount + DaNewCount;
                             if (mDaLocalCount > 0) {
                                 uiMsg.arg1 = (int) mDaLocalCount;
                             }
@@ -885,7 +916,7 @@ public class SyncbakActivity extends BaseActivity {
                         }
                         isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                         putCheckDetailFLag = true;
-                        List<CheckPlanDeatil> checkDetailList = (List<CheckPlanDeatil>) DBDataUtils.getInfosHasOp(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">", "0");
+                        List<CheckPlanDeatil> checkDetailList = (List<CheckPlanDeatil>) CheckDetailSearchDb.getInfosHasOp(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">", "0", 300);
                         List<CheckPlanDeatilDel> checkDetailDelList = (List<CheckPlanDeatilDel>) DBDataUtils.getInfosHasOp(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
                         FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKDETAILPLAN, checkDetailList, null, checkDetailDelList);
                         break;
@@ -923,11 +954,13 @@ public class SyncbakActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        LogUtils.d("onResume");
         isOnScreen = true;
         //        if(isOnScreen && isRun) {
         if (isOnScreen) {
+
             //开启新进程
-            if (mCheckMsgThread == null) {
+            if (mCheckMsgThread == null || !mCheckMsgThread.isAlive()) {
                 mCheckMsgThread = new HandlerThread("BackThread");// 创建一个BackHandlerThread对象，它是一个线程
                 mCheckMsgThread.start();// 启动线程
                 //创建后台线程
@@ -943,13 +976,13 @@ public class SyncbakActivity extends BaseActivity {
         LogUtils.d("onPause");
         //停止查询
         isOnScreen = false;
-        mCheckMsgThread.quit();
+        //        mCheckMsgThread.quit();
         //        if (task != null && task.getStatus() == AsyncTask.Status.RUNNING) {
         //            task.cancel(true);
         //        }
 
-        temple = 0;
-        mDaLocalCount = 0;
+        //        temple = 0;
+        //        mDaLocalCount = 0;
     }
 
     @Override
