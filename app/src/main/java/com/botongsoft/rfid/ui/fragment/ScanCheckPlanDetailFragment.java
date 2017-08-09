@@ -409,6 +409,9 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                             mjjgda.setKfid(nowKfId);
                             mjjgda.setMjgid(nowMjjgId);
                             mDataLists.add(mjjgda);
+                            soundPool= new PlaySoundPool(getContext());
+                            soundPool.loadSfx(R.raw.beep,1);
+                            soundPool.play(1,0);
                         }
                         stringList.add(editString);
                     }

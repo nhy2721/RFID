@@ -114,8 +114,7 @@ public class UpFLoorActivity extends BaseActivity {
         ButterKnife.bind(this);
         super.onCreate(savedInstanceState);
         mContext = this;
-        soundPool= new PlaySoundPool(mContext);
-        soundPool.loadSfx(R.raw.beep,1);
+
         initUiHandler();
         mAppBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
             @Override
@@ -243,10 +242,9 @@ public class UpFLoorActivity extends BaseActivity {
                         break;
                     case UI_ISEXIST:
                         mTextInputEditText.setText("");
-
-
+                        soundPool= new PlaySoundPool(mContext);
+                        soundPool.loadSfx(R.raw.beep,1);
                         soundPool.play(1,0);
-
                         String getResult1 = (String) msg.obj;
                         ToastUtils.showShort("该文件已在" + getResult1 + "上过架了");
                         break;
