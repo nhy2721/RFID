@@ -1,7 +1,6 @@
 package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -642,21 +641,22 @@ public class SyncActivity extends BaseActivity {
                         boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
                         if (st) {
                             if ((tempList != null && !tempList.isEmpty()) || (tempList1 != null && !tempList1.isEmpty())) {
-                                task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
-                                FilesBusines.putDa(task, mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, tempList, tempList1);
+//                                task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
+                                FilesBusines.putDa( mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, tempList, tempList1);
                             }
 
-                        } else {
-                            //                                    DialogLoad.closes();
-                            //                                    uiMsg = mHandler.obtainMessage();
-                            //                                    uiMsg.what = CONN_UNSUCCESS1;
-                            //                                    mHandler.sendMessage(uiMsg);
-                            if (task != null || task.getStatus() == AsyncTask.Status.RUNNING) {
-                                task.cancel(true);
-                                mjgdaLists.clear();
-                            }
-                            break;
                         }
+//                        else {
+//                            //                                    DialogLoad.closes();
+//                            //                                    uiMsg = mHandler.obtainMessage();
+//                            //                                    uiMsg.what = CONN_UNSUCCESS1;
+//                            //                                    mHandler.sendMessage(uiMsg);
+//                            if (task != null || task.getStatus() == AsyncTask.Status.RUNNING) {
+//                                task.cancel(true);
+//                                mjgdaLists.clear();
+//                            }
+//                            break;
+//                        }
 
                         break;
                     case BackThread_GETCHECKPLAN:

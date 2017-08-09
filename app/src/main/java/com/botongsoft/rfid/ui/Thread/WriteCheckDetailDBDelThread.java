@@ -10,7 +10,7 @@ import com.botongsoft.rfid.common.db.DBDataUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.botongsoft.rfid.common.constants.Constant.BackThread_GETCHECKDETAIL_SUCCESS_PB;
+import static com.botongsoft.rfid.common.constants.Constant.BackThread_PUT_CHECKDETAIL_SUCCESS_PB;
 
 /**
  * Created by pc on 2017/7/19.
@@ -42,7 +42,7 @@ public class WriteCheckDetailDBDelThread extends Thread {
             Bundle b = new Bundle();
             b.putInt("checkdetaildel", i + 1);
             uiMsg.setData(b);
-            uiMsg.what = BackThread_GETCHECKDETAIL_SUCCESS_PB;
+            uiMsg.what = BackThread_PUT_CHECKDETAIL_SUCCESS_PB;
             mhandler.sendMessage(uiMsg);
 
         }

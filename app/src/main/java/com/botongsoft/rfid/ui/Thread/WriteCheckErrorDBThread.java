@@ -10,7 +10,7 @@ import com.botongsoft.rfid.common.db.DBDataUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.botongsoft.rfid.common.constants.Constant.BackThread_GETCHECKERROR_SUCCESS_PB;
+import static com.botongsoft.rfid.common.constants.Constant.BackThread_PUT_CHECKERROR_SUCCESS_PB;
 
 /**
  * Created by pc on 2017/7/19.
@@ -42,7 +42,7 @@ public class WriteCheckErrorDBThread extends Thread {
             Bundle b = new Bundle();
             b.putInt("checkerror",i+1);
             uiMsg.setData(b);
-            uiMsg.what = BackThread_GETCHECKERROR_SUCCESS_PB;
+            uiMsg.what = BackThread_PUT_CHECKERROR_SUCCESS_PB;
             mhandler.sendMessage(uiMsg);
             mCheckErrorOld = (CheckError) DBDataUtils.getInfo(CheckError.class, "pdid", String.valueOf(mCheckError.getPdid()),
                     "zy", String.valueOf(mCheckError.getZy()),

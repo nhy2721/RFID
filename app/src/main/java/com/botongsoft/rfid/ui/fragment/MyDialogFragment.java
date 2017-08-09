@@ -68,6 +68,7 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
         if (dialog != null) {//有些场景下是获取不到的
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);//设置Dialog没有标题。需在setContentView之前设置，在之后设置会报错
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);//设置Dialog背景透明效果
+//            dialog.getWindow().setDimAmount(0);//去掉遮罩层
         }
         mRootView = inflater.inflate(getArguments().getInt("layoutId"), null);
         ButterKnife.bind(this, mRootView);

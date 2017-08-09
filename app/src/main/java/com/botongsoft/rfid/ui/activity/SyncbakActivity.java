@@ -2,7 +2,6 @@ package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -65,6 +64,7 @@ import butterknife.OnClick;
 
 import static com.botongsoft.rfid.R.id.appBarLayout;
 import static com.botongsoft.rfid.R.id.toolbar;
+import static com.botongsoft.rfid.common.constants.Constant.BackThread_PUT_CHECKDETAIL_SUCCESS_PB;
 
 /**
  * Created by pc on 2017/7/10.
@@ -72,6 +72,7 @@ import static com.botongsoft.rfid.R.id.toolbar;
 
 public class SyncbakActivity extends BaseActivity {
     private static final int HAS_NEW_MJJG = 8888;
+    private static final int HAS_NEW_DA = 8889;
     private Activity mContext;
     @BindView(appBarLayout)
     AppBarLayout mAppBarLayout;
@@ -187,16 +188,20 @@ public class SyncbakActivity extends BaseActivity {
     private WriteCheckDetailDBThread writeCheckDetailDBThread;
     private WriteCheckDetailDBDelThread writeCheckDetailDBDelThread;
     private static int temple = 0;//服务器更新的档案条目数
-    private static Long kfAnchor;
-    private static Long mjjAnchor;
-    private static Long mjjgAnchor;
-    private static Long mjjgdaAnchor;
-    static Long checkPlanAnchor;
+    private Long kfAnchor;
+    private Long mjjAnchor;
+    private Long mjjgAnchor;
+    private Long mjjgdaAnchor;
+    private Long checkPlanAnchor;
     private Long serverCheckDetailAnchor = 0L;
     private Long serverCheckErrorAnchor = 0L;
-    private long mCheckDetailCount;//盘点错误记录本地提交服务器数量
+    private long mCheckDetailCount;//盘点错误记录本地提交服务器总数量=提交数据量+删除数量
+    private int CheckPlanDeatilDelCount;//盘点错误记录本地提交服务器 提交数据量
+    private int CheckPlanDeatilCount;//盘点错误记录本地提交服务器 删除数量
     private long mCheckErrorCount;//盘点格子记录本地提交服务器数量
-    private long mDaLocalCount;//档案本地提交服务器数量
+    private long mDaLocalCount;//档案本地提交服务器总数量 = 已同步被删除数+新增数
+    private int DaDelCount;//档案本地提交服务器已同步被删除数
+    private int DaNewCount;//档案本地提交服务器新增数
     private RequestTask task;
     private boolean getKfFlag = false;
     private boolean getMjjFlag = false;
@@ -215,12 +220,13 @@ public class SyncbakActivity extends BaseActivity {
     private List<CheckPlan> checkPlanJsonList;
     private List<CheckError> checkErrorJsonList;
     private List<CheckPlanDeatil> checkDetailJsonList;
-    int CheckPlanDeatilDelCount;
-    int CheckPlanDeatilCount;
-    int DaDelCount;
-    int DaNewCount;
-    private int limit = 300;
-    int countTemp = 0;
+
+    private final int limit = 500;
+    private int checkdetailCountTemp = 0;
+    private int checkerrorCountTemp = 0;
+    private int putNewDaCountTemp = 0;
+    private Mjjg mjjgInfo;
+    private Mjjgda mjjgdaInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -273,26 +279,25 @@ public class SyncbakActivity extends BaseActivity {
                         ToastUtils.showLong("通知界面保存完毕");
 
                         break;
-                    case Constant.BackThread_GETCHECKDETAIL_SUCCESS_PB:
+                    case BackThread_PUT_CHECKDETAIL_SUCCESS_PB:
                         int checkdetail = data.getInt("checkdetail");//Thread传出的数据消息
                         int checkdetaildel = data.getInt("checkdetaildel");
                         if (checkdetail > 0) {
-                            LogUtils.d(checkdetail + "");
+                            LogUtils.d("BackThread_PUT_CHECKDETAIL_SUCCESS_PB--> " + checkdetail);
                             pb7.setMax(checkDetailJsonList.size());
                             pb7.setProgress(checkdetail);
                             tv_status7.setText("正在写入数据库");
                             tv_status7.setTextColor(Color.RED);
-
-
-                            //                            putCheckDetailFLag = false;
+                            //如果进度条等于服务器返回的数据大小。说明该次的进度已经结束
                             if (checkdetail == checkDetailJsonList.size()) {
-                                countTemp += limit;
-                                if ((CheckPlanDeatilCount - countTemp) >= 0) {
-                                    LogUtils.d(countTemp + "");
+                                checkdetailCountTemp += limit;
+                                if ((CheckPlanDeatilCount - checkdetailCountTemp) >= 0) {
+                                    //总数-临时数大于0 说明还有未提交的数据，继续执行put的方法上传数据
                                     putCheckDetailFLag = false;
                                     mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
                                 }
-                                if (countTemp >= CheckPlanDeatilCount) {//如果最后统计数大于等于初始显示的数量 提示更新完成
+                                if (checkdetailCountTemp >= CheckPlanDeatilCount) {
+                                    //如果最后统计数大于等于初始显示的数量 提示更新完成
                                     tv_oleNsize7.setText("更新完成");
                                     tv_oleNsize7.setTextColor(Color.GREEN);
                                     tv_status7.setText("");
@@ -301,7 +306,6 @@ public class SyncbakActivity extends BaseActivity {
                             }
                         } else if (checkdetail == 0 && CheckPlanDeatilDelCount > 0) {
                             //如果本地盘点明细无数据 但是删除有数据
-                            LogUtils.d(CheckPlanDeatilDelCount + "");
                             pb7.setMax(CheckPlanDeatilDelCount);
                             pb7.setProgress(checkdetaildel);
                             tv_status7.setText("正在写入数据库");
@@ -315,23 +319,36 @@ public class SyncbakActivity extends BaseActivity {
                         }
 
                         break;
-                    case Constant.BackThread_GETCHECKERROR_SUCCESS_PB:
+                    case Constant.BackThread_PUT_CHECKERROR_SUCCESS_PB:
                         int checkerror = data.getInt("checkerror");
-                        LogUtils.d(checkerror + "");
+                        LogUtils.d("BackThread_PUT_CHECKERROR_SUCCESS_PB--> " + checkerror);
                         pb6.setMax(checkErrorJsonList.size());
                         pb6.setProgress(checkerror);
                         tv_status6.setText("正在写入数据库");
                         tv_status6.setTextColor(Color.RED);
                         if (checkerror == checkErrorJsonList.size()) {
-                            tv_oleNsize6.setText("更新完成");
-                            tv_oleNsize6.setTextColor(Color.GREEN);
-                            tv_status6.setText("");
-                            putCheckErrorFLag = false;
+                            checkerrorCountTemp += limit;
+                            if ((mCheckErrorCount - checkerrorCountTemp) >= 0) {
+                                //总数-临时数大于0 说明还有未提交的数据，继续执行put的方法上传数据
+                                putCheckErrorFLag = false;
+                                mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKERRORPLAN).sendToTarget();
+                            }
+                            if (checkerrorCountTemp >= mCheckErrorCount) {
+                                //如果最后统计数大于等于初始显示的数量 提示更新完成
+                                tv_oleNsize6.setText("更新完成");
+                                tv_oleNsize6.setTextColor(Color.GREEN);
+                                tv_status6.setText("");
+                                putCheckErrorFLag = false;
+                            }
+                            //                            tv_oleNsize6.setText("更新完成");
+                            //                            tv_oleNsize6.setTextColor(Color.GREEN);
+                            //                            tv_status6.setText("");
+                            //                            putCheckErrorFLag = false;
                         }
                         break;
                     case Constant.BackThread_GETCHECKPLAN_SUCCESS_PB:
                         int checkplan = data.getInt("checkplan");
-                        LogUtils.d(checkplan + "");
+                        LogUtils.d("BackThread_GETCHECKPLAN_SUCCESS_PB--> " + checkplan);
                         pb5.setMax(checkPlanJsonList.size());
                         pb5.setProgress(checkplan);
                         tv_status5.setText("正在写入数据库");
@@ -345,19 +362,23 @@ public class SyncbakActivity extends BaseActivity {
                         break;
                     case Constant.BackThread_GETDA_SUCCESS_PB:
                         int da = data.getInt("da");
-                        LogUtils.d(da + "");
+                        LogUtils.d("BackThread_GETDA_SUCCESS_PB-->GetServer " + da);
                         LogUtils.d(getMjjgdaJsonList.size() + "");
                         pb4.setMax(getMjjgdaJsonList.size());
                         pb4.setProgress(da);
                         tv_status4.setText("正在写入数据库");
                         tv_status4.setTextColor(Color.RED);
                         if (da == getMjjgdaJsonList.size()) {
+
+                            //第一批次的写进数据库后 再次取得最新的版本号提交服务器取得新一批的数据
+                            mCheckMsgHandler.obtainMessage(HAS_NEW_DA).sendToTarget();
                             tv_oleNsize4.setText("更新完成");
                             tv_oleNsize4.setTextColor(Color.GREEN);
                             tv_status4.setText("");
-                            if (mDaLocalCount > 0) {
-                                mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
-                            }
+//                            if (mDaLocalCount > 0) {
+//                                //接收完服务器数据后再上传本地的数据
+//                                mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+//                            }
                             getDaFLag = false;
                         }
                         temple = 0;
@@ -368,7 +389,7 @@ public class SyncbakActivity extends BaseActivity {
                         int putdadel = data.getInt("dadel");
                         if (putdadel > 0 && putda == 0) {
                             //如果只有提交删除数据没有提交上架数据 进度条值走删除记录的进度条
-                            LogUtils.d(putdadel + "");
+                            LogUtils.d("BackThread_PUTDA_SUCCESS_PB-->PutServerDel 档案DEL" + putdadel);
                             pb4.setMax(DaDelCount);
                             pb4.setProgress(putdadel);
                             tv_status4.setText("正在写入数据库");
@@ -381,23 +402,37 @@ public class SyncbakActivity extends BaseActivity {
                                 temple = 0;
                             }
                         } else {
-                            LogUtils.d(putda + "");
+                            LogUtils.d("BackThread_PUTDA_SUCCESS_PB-->PutServer 档案NEW" + putda);
                             pb4.setMax(putMjjgdaJsonList.size());
                             pb4.setProgress(putda);
                             tv_status4.setText("正在写入数据库");
                             tv_status4.setTextColor(Color.RED);
                             if (putda == putMjjgdaJsonList.size()) {
-                                tv_oleNsize4.setText("更新完成");
-                                tv_oleNsize4.setTextColor(Color.GREEN);
-                                tv_status4.setText("");
-                                putDaFLag = false;
-                                temple = 0;
+                                putNewDaCountTemp += limit;
+                                if ((DaNewCount - putNewDaCountTemp) >= 0) {
+                                    //总数-临时数大于0 说明还有未提交的数据，继续执行put的方法上传数据
+                                    putDaFLag = false;
+                                    mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+                                }
+                                if (putNewDaCountTemp >= DaNewCount) {
+                                    //如果最后统计数大于等于初始显示的数量 提示更新完成
+                                    tv_oleNsize4.setText("更新完成");
+                                    tv_oleNsize4.setTextColor(Color.GREEN);
+                                    tv_status4.setText("");
+                                    putDaFLag = false;
+                                    temple = 0;
+                                }
+                                //                                tv_oleNsize4.setText("更新完成");
+                                //                                tv_oleNsize4.setTextColor(Color.GREEN);
+                                //                                tv_status4.setText("");
+                                //                                putDaFLag = false;
+                                //                                temple = 0;
                             }
                         }
                         break;
                     case Constant.BackThread_GETMJG_SUCCESS_PB:
                         int mjjg = data.getInt("mjg");
-                        LogUtils.d(mjjg + "");
+                        LogUtils.d("BackThread_GETMJG_SUCCESS_PB--> Get密集格进度条" + mjjg);
                         pb3.setMax(mjjgJsonList.size());
                         pb3.setProgress(mjjg);
                         tv_status3.setText("正在写入数据库");
@@ -405,8 +440,8 @@ public class SyncbakActivity extends BaseActivity {
                         if (mjjg == mjjgJsonList.size()) {
                             //第一批次的写进数据库后 再次取得最新的版本号提交服务器取得新一批的数据
                             mCheckMsgHandler.obtainMessage(HAS_NEW_MJJG).sendToTarget();
-                            getMjgflag = false;
-                            mCheckMsgHandler.obtainMessage(BackThread_GETMJJG).sendToTarget();
+
+
 
                             tv_oleNsize3.setText("更新完成");
                             tv_oleNsize3.setTextColor(Color.GREEN);
@@ -657,6 +692,10 @@ public class SyncbakActivity extends BaseActivity {
                             writeMjgDaDBThread.start();
                         } else {
                             getDaFLag = false;
+                            if (mDaLocalCount > 0) {
+                                //接收完服务器数据后再上传本地的数据
+                                mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+                            }
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -676,7 +715,6 @@ public class SyncbakActivity extends BaseActivity {
                         }
                         List<Mjjgda> delMjjgdaJsonList = JSON.parseArray(response.res.delrecords, Mjjgda.class);
                         if (delMjjgdaJsonList != null && !delMjjgdaJsonList.isEmpty()) {
-                            Log.i("delList", delMjjgdaJsonList.toString());
                             writeMjgDaDelDBThread = new WriteMjgDaDelDBThread(mHandler, uiMsg);
                             writeMjgDaDelDBThread.setList(delMjjgdaJsonList);
                             writeMjgDaDelDBThread.start();
@@ -758,11 +796,26 @@ public class SyncbakActivity extends BaseActivity {
                 switch (msg.what) {
                     case HAS_NEW_MJJG:
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        Mjjg mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
+                        mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
                         if (mjjgInfo == null) {
                             mjjgAnchor = 0L;
                         } else {
                             mjjgAnchor = Long.valueOf(mjjgInfo.getAnchor());
+                            getMjgflag = false;
+                            mCheckMsgHandler.obtainMessage(BackThread_GETMJJG).sendToTarget();
+                        }
+                        break;
+                    case HAS_NEW_DA:
+                        //先将本地的版本号发送给服务器，判断服务器时候有更新过 有更新要解决冲突
+                        mjjgdaInfo = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "anchor", ">=", "0");
+                        if (mjjgdaInfo == null) {
+                            mjjgdaAnchor = 0L;
+                            LogUtils.d("da == getMjjgdaJsonList.size()" + mjjgdaAnchor);
+                        } else {
+                            LogUtils.d("mjjgdaAnchor-->mjjgdaAnchor " + mjjgdaAnchor);
+                            mjjgdaAnchor = Long.valueOf(mjjgdaInfo.getAnchor());
+                            getDaFLag = false;
+                            mCheckMsgHandler.obtainMessage(BackThread_GETMJJGDA).sendToTarget();
                         }
                         break;
                     case BackThread_DOWORK:
@@ -791,11 +844,11 @@ public class SyncbakActivity extends BaseActivity {
                             mjjgAnchor = Long.valueOf(mjjgInfo1.getAnchor());
                         }
                         //先将本地的版本号发送给服务器，判断服务器时候有更新过 有更新要解决冲突
-                        Mjjgda mjjgdaInfo = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "anchor", ">=", "0");
-                        if (mjjgdaInfo == null) {
+                        Mjjgda mjjgdaInfo1 = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "anchor", ">=", "0");
+                        if (mjjgdaInfo1 == null) {
                             mjjgdaAnchor = 0L;
                         } else {
-                            mjjgdaAnchor = Long.valueOf(mjjgdaInfo.getAnchor());
+                            mjjgdaAnchor = Long.valueOf(mjjgdaInfo1.getAnchor());
                         }
                         try {
                             //已经同步过的数据下架了(版本号大于0 状态为删除状态-1)
@@ -876,21 +929,23 @@ public class SyncbakActivity extends BaseActivity {
                         //已同步被下架
                         List<Mjjgda> tempList1 = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
                         //新上架子
-                        List<Mjjgda> tempList = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
+                        //                        List<Mjjgda> tempList = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
+                        List<Mjjgda> tempList = (List<Mjjgda>) CheckDetailSearchDb.getInfosHasOp(Mjjgda.class, "status", "=", "0", "anchor", "=", "0", limit);
                         boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
                         if (st) {
                             if ((tempList != null && !tempList.isEmpty()) || (tempList1 != null && !tempList1.isEmpty())) {
-                                task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
-                                FilesBusines.putDa(task, mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, tempList, tempList1);
+                                //                                task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
+                                FilesBusines.putDa(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, tempList, tempList1);
                             }
 
-                        } else {
-                            if (task != null || task.getStatus() == AsyncTask.Status.RUNNING) {
-                                task.cancel(true);
-
-                            }
-                            break;
                         }
+                        //                        else {
+                        //                            if (task != null || task.getStatus() == AsyncTask.Status.RUNNING) {
+                        //                                task.cancel(true);
+                        //
+                        //                            }
+                        //                            break;
+                        //                        }
 
                         break;
                     case BackThread_GETCHECKPLAN:
@@ -907,7 +962,8 @@ public class SyncbakActivity extends BaseActivity {
                         }
                         isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                         putCheckErrorFLag = true;
-                        List<CheckError> checkErrorList = (List<CheckError>) DBDataUtils.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0");
+                        //                        List<CheckError> checkErrorList = (List<CheckError>) DBDataUtils.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0");
+                        List<CheckError> checkErrorList = (List<CheckError>) CheckDetailSearchDb.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0", limit);
                         FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKERRORPLAN, null, checkErrorList, null);
                         break;
                     case BackThread_PUTCHECKDETAILPLAN:  //上传盘点纠错记录
@@ -916,7 +972,7 @@ public class SyncbakActivity extends BaseActivity {
                         }
                         isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                         putCheckDetailFLag = true;
-                        List<CheckPlanDeatil> checkDetailList = (List<CheckPlanDeatil>) CheckDetailSearchDb.getInfosHasOp(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">", "0", 300);
+                        List<CheckPlanDeatil> checkDetailList = (List<CheckPlanDeatil>) CheckDetailSearchDb.getInfosHasOp(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">", "0", limit);
                         List<CheckPlanDeatilDel> checkDetailDelList = (List<CheckPlanDeatilDel>) DBDataUtils.getInfosHasOp(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
                         FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKDETAILPLAN, checkDetailList, null, checkDetailDelList);
                         break;

@@ -13,7 +13,6 @@ import com.botongsoft.rfid.common.service.http.BusinessResolver;
 import com.botongsoft.rfid.common.service.http.RequestTask;
 
 import java.util.List;
-import java.util.concurrent.Executors;
 
 public class FilesBusines {
 
@@ -58,9 +57,9 @@ public class FilesBusines {
      * @param
      * @return
      */
-    public static RequestTask putDa(RequestTask task, Context context,
+    public static RequestTask putDa(Context context,
                                     BusinessResolver.BusinessCallback<BaseResponse> callback, int reqType, List mjgdaList, List mjgdaDelList) {
-        //        final RequestTask task = new RequestTask(callback, context);
+        final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
                 BusinessRequest.RESULT_TYPE_OBJECT);
@@ -81,8 +80,10 @@ public class FilesBusines {
         //        task.showDialog(request);
         //                task.execute(request);
         //        task.executeOnExecutor(Executors.newFixedThreadPool(20), request);//背压问题
-        task.executeOnExecutor(Executors.newCachedThreadPool(), request);
+//        task.executeOnExecutor(Executors.newCachedThreadPool(), request);
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, request);
         return task;
+
 
     }
 
@@ -126,7 +127,7 @@ public class FilesBusines {
      */
     public static RequestTask putCheckPlan(Context context,
                                            BusinessResolver.BusinessCallback<BaseResponse> callback,
-                                           int reqType, List checkPlanDetailList, List checkPlanErrorList,List checkPlanDetailDelList) {
+                                           int reqType, List checkPlanDetailList, List checkPlanErrorList, List checkPlanDetailDelList) {
         final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
@@ -153,7 +154,7 @@ public class FilesBusines {
         //        task.showDialog(request);
         //                task.execute(request);
         //        task.executeOnExecutor(Executors.newFixedThreadPool(20), request);//背压问题
-//        task.executeOnExecutor(Executors.newCachedThreadPool(), request);
+        //        task.executeOnExecutor(Executors.newCachedThreadPool(), request);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, request);
         return task;
 
