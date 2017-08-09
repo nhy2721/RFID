@@ -49,7 +49,7 @@ import butterknife.ButterKnife;
 import static com.botongsoft.rfid.R.id.toolbar;
 import static com.botongsoft.rfid.common.db.DBDataUtils.getInfo;
 
-/**
+/**盘点纠错页面
  * Created by pc on 2017/8/2.
  */
 

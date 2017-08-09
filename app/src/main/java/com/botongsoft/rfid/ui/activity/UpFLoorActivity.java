@@ -1,6 +1,8 @@
 package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -105,7 +107,7 @@ public class UpFLoorActivity extends BaseActivity {
     //传递UI前台显示消息队列
     Message mHandlerMessage;
     Bundle mBundle;
-
+    private SoundPool soundPool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -240,6 +242,19 @@ public class UpFLoorActivity extends BaseActivity {
                         break;
                     case UI_ISEXIST:
                         mTextInputEditText.setText("");
+                        soundPool= new SoundPool(10, AudioManager.STREAM_SYSTEM,5);
+                        soundPool.load(mContext,R.raw.beep,1);
+                        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+                            @Override
+                            public void onLoadComplete(SoundPool soundPool, int i, int i2) {
+                                soundPool.play(1,  //声音id
+                                        1, //左声道
+                                        1, //右声道
+                                        1, //优先级
+                                        0, // 0表示不循环，-1表示循环播放
+                                        1);//播放比率，0.5~2，一般为1
+                            }
+                        });
                         String getResult1 = (String) msg.obj;
                         ToastUtils.showShort("该文件已在" + getResult1 + "上过架了");
                         break;

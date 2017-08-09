@@ -45,7 +45,7 @@ import butterknife.OnClick;
 import static com.botongsoft.rfid.R.id.toolbar;
 
 /**
- * 盘点 显示盘点主表
+ * 盘点 显示盘点计划
  * Created by pc on 2017/6/12.
  */
 public class CheckPlanActivity extends BaseActivity {
