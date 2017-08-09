@@ -372,9 +372,9 @@ public class SyncbakActivity extends BaseActivity {
 
                             //第一批次的写进数据库后 再次取得最新的版本号提交服务器取得新一批的数据
                             mCheckMsgHandler.obtainMessage(HAS_NEW_DA).sendToTarget();
-                            tv_oleNsize4.setText("更新完成");
-                            tv_oleNsize4.setTextColor(Color.GREEN);
-                            tv_status4.setText("");
+//                            tv_oleNsize4.setText("更新完成");
+//                            tv_oleNsize4.setTextColor(Color.GREEN);
+//                            tv_status4.setText("");
 //                            if (mDaLocalCount > 0) {
 //                                //接收完服务器数据后再上传本地的数据
 //                                mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
@@ -443,9 +443,9 @@ public class SyncbakActivity extends BaseActivity {
 
 
 
-                            tv_oleNsize3.setText("更新完成");
-                            tv_oleNsize3.setTextColor(Color.GREEN);
-                            tv_status3.setText("");
+//                            tv_oleNsize3.setText("更新完成");
+//                            tv_oleNsize3.setTextColor(Color.GREEN);
+//                            tv_status3.setText("");
                             getMjgflag = false;
                         }
                         break;
@@ -676,6 +676,9 @@ public class SyncbakActivity extends BaseActivity {
                             wrMjgDbThread.setList(mjjgJsonList);
                             wrMjgDbThread.start();
                         } else {
+                            tv_oleNsize3.setText("更新完成");
+                            tv_oleNsize3.setTextColor(Color.GREEN);
+                            tv_status3.setText("");
                             getMjgflag = false;
                         }
                     } catch (JSONException e) {
@@ -695,6 +698,10 @@ public class SyncbakActivity extends BaseActivity {
                             if (mDaLocalCount > 0) {
                                 //接收完服务器数据后再上传本地的数据
                                 mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+                            }else{
+                                tv_oleNsize4.setText("更新完成");
+                                tv_oleNsize4.setTextColor(Color.GREEN);
+                                tv_status4.setText("");
                             }
                         }
                     } catch (JSONException e) {
