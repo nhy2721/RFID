@@ -33,8 +33,8 @@ import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.db.SearchDb;
 import com.botongsoft.rfid.common.utils.ConverJavaBean;
 import com.botongsoft.rfid.common.utils.LogUtils;
+import com.botongsoft.rfid.common.utils.PlaySoundPool;
 import com.botongsoft.rfid.listener.OnItemClickListener;
-import com.botongsoft.rfid.ui.activity.CheckPlanDetailActivity;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanDetailAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
 import com.yanzhenjie.recyclerview.swipe.Closeable;
@@ -71,9 +71,9 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     TextInputEditText mTextInputEditText;
     @BindView(R.id.tv_info)
     TextView mTextView;
-    CheckPlanDetailActivity parentActivity;
+//    CheckPlanDetailActivity parentActivity;
     private static String scanInfoLocal = "";//扫描的格子位置 根据“/”拆分后存入数据库
-    private static String scanInfoNow = "";//扫描的格子位置
+    //    private static String scanInfoNow = "";//扫描的格子位置
     private String editString;
     private List<Mjjgda> mDataLists = new ArrayList<Mjjgda>();
     private List<Mjj> mjjLists = new ArrayList<>();
@@ -100,12 +100,13 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     private int type;
     private int pdid;
     private String fw;
-    private static int size1 = 1;
+    //    private static int size1 = 1;
     private static int oldMjjId;
     private static int oldMjgId;
     private static int oldKfId;
     private static int oldZy;
-
+//    private SoundPool soundPool;
+    private PlaySoundPool soundPool;
     public static ScanCheckPlanDetailFragment newInstance(int type, int pdid, String fw) {
         Bundle args = new Bundle();
         args.putInt("type", type);
@@ -142,7 +143,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         super.onCreate(savedInstanceState);
         //        setCancelable(false);//无法直接点击外部取消dialog
         //        setStyle(DialogFragment.STYLE_NO_FRAME,0); //NO_FRAME就是dialog无边框，0指的是默认系统Theme
-        parentActivity = (CheckPlanDetailActivity) getActivity();
+//        parentActivity = (CheckPlanDetailActivity) getActivity();//目测没用 先注释掉
         initUiHandler();
 
     }
@@ -550,6 +551,9 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                     } catch (Exception e) {
                         save = false;
                         //出错这里要报警，RFID读取要终止。要不读取档案记录的话还会添加进去。
+                        soundPool= new PlaySoundPool(getContext());
+                        soundPool.loadSfx(R.raw.beep,1);
+                        soundPool.play(1,0);
                         mHandlerMessage.what = UI_SAVE_ERROR;
                         saveErrBundele = new Bundle();
                         saveErrBundele.putString("mjg", String.valueOf(mDataList.getMjgid()));
@@ -615,7 +619,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         stringList.clear();
         scanInfoLocal = "";
         super.onDestroyView();
-        Log.e("onDestroyView", "onDestroyView- onDestroyView- --nDestroyView-onDestroyView-onDestroyView");
+
     }
 
     /**
