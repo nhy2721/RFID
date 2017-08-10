@@ -49,6 +49,7 @@ import java.util.List;
 
 import butterknife.BindView;
 
+import static com.botongsoft.rfid.common.db.DBDataUtils.getCount;
 import static com.botongsoft.rfid.common.db.DBDataUtils.getInfo;
 
 /**
@@ -591,6 +592,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
      * @param mjjg
      */
     private void displayTextLocal(Mjjg mjjg) {
+        StringBuilder sb = new StringBuilder();
         String kfname = "";
         String mjjname = "";
         String nLOrR = "";
@@ -604,10 +606,14 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             kfname = kf.getMc() + "/";
         }
         nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-        String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+//        String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+        int countemp = getCount(Mjjgda.class,"mjgid","=", String.valueOf(mjjg.getId()));
+        int outCountTemp = getCount(Mjjgda.class,"mjgid","=", String.valueOf(mjjg.getId()),"flag","=","1");
+        sb.append(kfname).append(mjjname).append(nLOrR).append("/").append(mjjg.getZs()).append("组").append( mjjg.getCs()).append("层").append("\n");
+        sb.append("共").append(countemp).append("案卷,").append("外借").append(outCountTemp).append("卷");
         String temple = kf.getId() + "/" + mjj.getId() + "/" + mjjg.getId();//这里的值用来拆分存放位置存入档案表
         mBundle = new Bundle();
-        mBundle.putString("info", name);
+        mBundle.putString("info", sb.toString());
         scanInfoLocal = temple;
         oldMjjId = mjj.getId();
         oldMjgId = mjjg.getId();

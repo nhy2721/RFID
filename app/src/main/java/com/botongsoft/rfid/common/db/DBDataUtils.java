@@ -52,6 +52,21 @@ public class DBDataUtils {
         return count;
     }
 
+    public static int getCount(Class<?> entityType, String key1, String op1, String value1, String key2, String op2, String value2) {
+        DbUtils db = DataBaseCreator.create();
+        int count = 0;
+        try {
+            List list = db.findAll(Selector.from(entityType).where(key1, op1,
+                    value1).and(key2, op2, value2));
+            if (list != null) {
+                count = list.size();
+            }
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
+
     /****
      * @return
      */
