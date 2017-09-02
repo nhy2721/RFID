@@ -7,38 +7,39 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ProgressBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.Receiver.KeyReceiver;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
+import com.botongsoft.rfid.common.ShareManager;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.db.MjgdaSearchDb;
 import com.botongsoft.rfid.common.service.http.BusinessException;
-import com.botongsoft.rfid.common.utils.PlaySoundPool;
+import com.botongsoft.rfid.common.utils.SoundUtil;
 import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.listener.OnSingleClickListener;
 import com.botongsoft.rfid.ui.adapter.UpfloorAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
+import com.handheld.UHFLonger.UHFLongerManager;
 import com.yanzhenjie.recyclerview.swipe.Closeable;
 import com.yanzhenjie.recyclerview.swipe.OnSwipeMenuItemClickListener;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenu;
@@ -60,6 +61,8 @@ import static com.botongsoft.rfid.R.id.appBarLayout;
  * Created by pc on 2017/6/12.
  */
 public class UpFLoorActivity extends BaseActivity {
+    private static UHFLongerManager manager;
+    private KeyReceiver keyReceiver;
     private static final int UI_SUCCESS = 0;
     private static final int UI_SUBMITSUCCESS = 1;
     private static final int UI_SUBMITERROR = 2;
@@ -75,10 +78,12 @@ public class UpFLoorActivity extends BaseActivity {
     SwipeMenuRecyclerView mSwipeMenuRecyclerView;
     @BindView(R.id.fab)
     FloatingActionButton mFab;
-    @BindView(R.id.tx_layout)
-    TextInputLayout mTextInputLayout;
-    @BindView(R.id.input_tx)
-    TextInputEditText mTextInputEditText;
+//    @BindView(R.id.tx_layout)
+//    TextInputLayout mTextInputLayout;
+//    @BindView(R.id.input_tx)
+//    TextInputEditText mTextInputEditText;
+    @BindView(R.id.st_saoma)
+    Switch mSwitch;
     @BindView(R.id.tv_info)
     TextView mTextView;
     private static String scanInfoLocal = "";//扫描的格子位置 根据“/”拆分后存入数据库
@@ -98,6 +103,8 @@ public class UpFLoorActivity extends BaseActivity {
     private Handler mHandler;
     private boolean isOnScreen;//是否在屏幕上
     private boolean isRun;//是否在RFID读取
+    private boolean runFlag = true;
+    private   boolean startFlag = false;
     private static final int MSG_UPDATE_INFO = 1;
     private static final int MSG_SUBMIT = 2;
     LinearLayoutManager layout;
@@ -106,15 +113,27 @@ public class UpFLoorActivity extends BaseActivity {
     //传递UI前台显示消息队列
     Message mHandlerMessage;
     Bundle mBundle;
-    private PlaySoundPool soundPool;
-
+//    private PlaySoundPool soundPool;
+    Thread thread;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_upfloor);
         ButterKnife.bind(this);
         super.onCreate(savedInstanceState);
         mContext = this;
+        SoundUtil.initSoundPool(this);//
+        try {
+            manager = UHFLongerManager.getInstance();
 
+            int value = ShareManager.getInt(this, "power");
+            if (value == 0) {
+                value = 30;
+            }
+            manager.setOutPower((short) value);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         initUiHandler();
         mAppBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
             @Override
@@ -139,40 +158,40 @@ public class UpFLoorActivity extends BaseActivity {
         mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
 
 
-        mTextInputEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // 输入前的监听
-                //                Log.e("输入前确认执行该方法", "开始输入");
-                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // 输入的内容变化的监听
-                //               Log.e("输入过程中执行该方法", "文字变化");
-                if (mCheckMsgHandler != null) {
-                    mCheckMsgHandler.removeCallbacks(delayRun);
-                }
-                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                // 输入后的监听
-                //                Log.e("输入结束执行该方法", "输入结束");
-                Log.e("Handler textChanged--->", String.valueOf(Thread.currentThread().getName()));
-                if (mTextInputEditText.length() != 0) {
-                    if (mCheckMsgHandler != null) {
-                        mCheckMsgHandler.removeCallbacks(delayRun);
-                    }
-                    //延迟800ms，如果不再输入字符，则执行该线程的run方法 模拟扫描输入
-                    msg = mCheckMsgHandler.obtainMessage();
-                    msg.what = MSG_UPDATE_INFO;
-                    mCheckMsgHandler.sendMessageDelayed(msg, Constant.delayRun);
-                }
-            }
-        });
+//        mTextInputEditText.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//                // 输入前的监听
+//                //                Log.e("输入前确认执行该方法", "开始输入");
+//                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence s, int start, int before, int count) {
+//                // 输入的内容变化的监听
+//                //               Log.e("输入过程中执行该方法", "文字变化");
+//                if (mCheckMsgHandler != null) {
+//                    mCheckMsgHandler.removeCallbacks(delayRun);
+//                }
+//                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//                // 输入后的监听
+//                //                Log.e("输入结束执行该方法", "输入结束");
+//                Log.e("Handler textChanged--->", String.valueOf(Thread.currentThread().getName()));
+//                if (mTextInputEditText.length() != 0) {
+//                    if (mCheckMsgHandler != null) {
+//                        mCheckMsgHandler.removeCallbacks(delayRun);
+//                    }
+//                    //延迟800ms，如果不再输入字符，则执行该线程的run方法 模拟扫描输入
+//                    msg = mCheckMsgHandler.obtainMessage();
+//                    msg.what = MSG_UPDATE_INFO;
+//                    mCheckMsgHandler.sendMessageDelayed(msg, Constant.delayRun);
+//                }
+//            }
+//        });
         // 添加滚动监听。
         //        mSwipeMenuRecyclerView.addOnScrollListener(mOnScrollListener);
         // 设置菜单创建器。
@@ -183,6 +202,8 @@ public class UpFLoorActivity extends BaseActivity {
         mUpfloorAdapter = new UpfloorAdapter(this, mDataList);
         mUpfloorAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mUpfloorAdapter);
+        thread = new ThreadMe();
+        thread.start();
     }
 
     @Override
@@ -190,7 +211,18 @@ public class UpFLoorActivity extends BaseActivity {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
         mDataList = new ArrayList<>();
+        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener(){
 
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // 开启switch，设置提示信息
+                    startFlag = true;
+                } else {
+                    // 关闭swtich，设置提示信息
+                    startFlag = false;
+                }
+            }
+        });
         mProgressBar.setVisibility(View.GONE);
         mFab.setOnClickListener(new OnSingleClickListener() {
             @Override
@@ -223,13 +255,13 @@ public class UpFLoorActivity extends BaseActivity {
                         if (mBundle != null) {
                             mTextView.setText(mBundle.getString("info"));
                         }
-                        mTextInputEditText.setText("");
+//                        mTextInputEditText.setText("");
                         smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
                         mUpfloorAdapter.notifyDataSetChanged();
                         break;
                     case UI_SUBMITSUCCESS:
                         mTextView.setText("");
-                        mTextInputEditText.setText("");
+//                        mTextInputEditText.setText("");
                         mDataList.clear();
                         mUpfloorAdapter.notifyDataSetChanged();
                         mProgressBar.setVisibility(View.GONE);
@@ -238,13 +270,14 @@ public class UpFLoorActivity extends BaseActivity {
                         mFab.setClickable(true);
                         break;
                     case UI_SUBMITERROR:
-                        ToastUtils.showShort("请扫描文件存储位置");
+                        ToastUtils.showShort("请扫描文件上架位置");
                         break;
                     case UI_ISEXIST:
-                        mTextInputEditText.setText("");
-                        soundPool= new PlaySoundPool(mContext);
-                        soundPool.loadSfx(R.raw.beep,1);
-                        soundPool.play(1,0);
+//                        mTextInputEditText.setText("");
+//                        soundPool = new PlaySoundPool(mContext);
+//                        soundPool.loadSfx(R.raw.beep, 1);
+//                        soundPool.play(1, 0);
+                        SoundUtil.play(2, 0);
                         String getResult1 = (String) msg.obj;
                         ToastUtils.showShort("该文件已在" + getResult1 + "上过架了");
                         break;
@@ -362,7 +395,7 @@ public class UpFLoorActivity extends BaseActivity {
     }
 
     private Runnable delayRun = new Runnable() {
-
+//        private List<String> epcList;
         @Override
         public void run() {
             //在这里调用服务器的接口，获取数据
@@ -377,20 +410,22 @@ public class UpFLoorActivity extends BaseActivity {
             //                }
             //            });
             //这里定义发送通知ui更新界面
-            mHandlerMessage = mHandler.obtainMessage();
-            mHandlerMessage.what = UI_SUCCESS;
+//            mHandlerMessage = mHandler.obtainMessage();
+//            mHandlerMessage.what = UI_SUCCESS;
             //在这里读取数据库增加list值，界面显示读取的标签信息
-            editString = mTextInputEditText.getText().toString();
+//            editString = mTextInputEditText.getText().toString();
             //去查询数据库。分两种 一种是输入格子id， 一种是输入档案bm+jlid，如果是格子id就要查询数据库格子表，获取到密集架id，这样才能得到库房名称；最后拼接显示在界面上mBundle。
-            searchDB(editString);
-            mHandler.sendMessage(mHandlerMessage);
+//            searchDB(editString);
+//            mHandler.sendMessage(mHandlerMessage);
 
         }
     };
 
     private void searchDB(String editString) {
         int lx = Constant.getLx(editString);//根据传入的值返回对象类型
-        String temp[] = editString.split("-");
+        String temp[] = "g-4".split("-");
+        temp[0] = "g";
+        temp[1] = "4";
         boolean tempStr = true;
         //防止扫描重复判断
         if (mDataList.size() > 0) {
@@ -413,7 +448,7 @@ public class UpFLoorActivity extends BaseActivity {
                         //没上过架存入页面显示
                         Map map = new HashMap();
                         map.put("id", size1++);
-                        map.put("title", mTextInputEditText.getText());
+                        map.put("title",editString);
                         map.put("bm", temp[0]);
                         map.put("jlid", temp[1]);
                         mDataList.add(map);
@@ -450,8 +485,10 @@ public class UpFLoorActivity extends BaseActivity {
                     Kf kf = null;
                     String kfid = "";
                     String mjjid = "";
+                    String s[]=   Constant.reqDatas(editString);
                     //如果不重复查询密集格表
-                    Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mTextInputEditText.getText().toString());
+                    Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(),"zy",Integer.valueOf(s[3]).toString(),
+                            "cs",Integer.valueOf(s[5]).toString(),"zs",Integer.valueOf(s[4]).toString());
                     if (mjjg != null) {
                         mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
                         if (mjj != null) {
@@ -497,6 +534,8 @@ public class UpFLoorActivity extends BaseActivity {
         //停止查询
         isOnScreen = false;
         mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
+        startFlag = false;
+         thread.interrupt();
 
     }
 
@@ -505,6 +544,8 @@ public class UpFLoorActivity extends BaseActivity {
         super.onDestroy();
         //停止查询
         isOnScreen = false;
+        startFlag = false;
+        runFlag = false;
         size1 = 0;
         //释放资源
         if (mCheckMsgHandler != null) {
@@ -536,15 +577,15 @@ public class UpFLoorActivity extends BaseActivity {
             if (!recyclerView.canScrollVertically(1)) {// 手指不能向上滑动了
                 // TODO 这里有个注意的地方，如果你刚进来时没有数据，但是设置了适配器，这个时候就会触发加载更多，需要开发者判断下是否有数据，如果有数据才去加载更多。
 
-//                Toast.makeText(UpFLoorActivity.this, "滑到最底部了，去加载更多吧！", Toast.LENGTH_SHORT).show();
-//                size += 50;
-//                for (int i = size - 50; i < size; i++) {
-//                    Map map = new HashMap();
-//                    map.put("id", i);
-//                    map.put("title", "我是第" + i + "个。");
-//                    mDataList.add(map);
-//                }
-//                mUpfloorAdapter.notifyDataSetChanged();
+                //                Toast.makeText(UpFLoorActivity.this, "滑到最底部了，去加载更多吧！", Toast.LENGTH_SHORT).show();
+                //                size += 50;
+                //                for (int i = size - 50; i < size; i++) {
+                //                    Map map = new HashMap();
+                //                    map.put("id", i);
+                //                    map.put("title", "我是第" + i + "个。");
+                //                    mDataList.add(map);
+                //                }
+                //                mUpfloorAdapter.notifyDataSetChanged();
             }
         }
 
@@ -692,6 +733,36 @@ public class UpFLoorActivity extends BaseActivity {
             mFab.hide();
         }
     }
+    class ThreadMe extends   Thread{
+        private List<String> epcList;
+        @Override
+        public void run() {
+            super.run();
+            while(runFlag){
 
+                if(startFlag ){
+                    epcList = manager.inventoryRealTime(); //
+                    if(epcList != null && !epcList.isEmpty()){
+                        SoundUtil.play(1, 0);
+                        Message sMessage = mHandler.obtainMessage();
+                        sMessage.what = UI_SUCCESS;
+                        for(String epc:epcList){
+                            searchDB(epc);
+
+                        }
+                        mHandler.sendMessage(sMessage);
+                    }
+                    epcList = null ;
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+    }
 
 }
