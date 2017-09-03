@@ -26,6 +26,7 @@ import android.widget.Toast;
 import com.botongsoft.rfid.BaseApplication;
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.Receiver.KeyReceiver;
+import com.botongsoft.rfid.bean.classity.Epc;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
@@ -429,14 +430,14 @@ public class UpFLoorActivity extends BaseActivity {
 
     private void searchDB(String editString) {
         int lx = Constant.getLx(editString);//根据传入的值返回对象类型
-        String temp[] = "g-4".split("-");
-        temp[0] = "g";
-        temp[1] = "4";
+        //        String temp[] = "g-4".split("-");
+        //        temp[0] = "g";
+        //        temp[1] = "4";
         boolean tempStr = true;
         //防止扫描重复判断
         if (mDataList.size() > 0) {
             for (Map map : mDataList) {
-                if (map.get("title").toString().equals(editString)) {
+                if (map.get("epccode").toString().equals(editString)) {
                     tempStr = false;
                     break;
                 }
@@ -445,43 +446,56 @@ public class UpFLoorActivity extends BaseActivity {
         if (tempStr) {
             switch (lx) {
                 case Constant.LX_MJGDA:
-                    //不是属于密集格再查询档案是否已经上过架了
                     Mjjgda mjjgda = null;
-                    //                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
-                    mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", temp[0] + "",
-                            "jlid", "=", temp[1] + "", "status", "!=", "-1");
-                    if (mjjgda == null) {
-                        //没上过架存入页面显示
-                        Map map = new HashMap();
-                        map.put("id", size1++);
-                        map.put("title", editString);
-                        map.put("bm", temp[0]);
-                        map.put("jlid", temp[1]);
-                        mDataList.add(map);
-                    } else {
-                        //已经上过架了查询文件存放的位置页面通知用户
-                        String kfname1 = "";
-                        String mjjname1 = "";
-                        String nLOrR1 = "";
-                        Mjj mjj1 = null;
-                        Kf kf1 = null;
-                        Mjjg mjjg1 = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
-                        if (mjjg1 != null) {
-                            nLOrR1 = mjjg1.getZy() == 1 ? "左" : "右";
-                            mjj1 = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg1.getMjjid() + "");
-                        }
-                        if (mjj1 != null) {
-                            mjjname1 = mjj1.getMc() + "/";
-                            kf1 = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj1.getKfid() + "");
-                        }
+                    //不是属于密集格再查询档案是否已经上过架了
+                    //这里要先查询一次对照表 获得该扫描记录的bm与jlid
+                    Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
+                    if (ecp != null) {
+                        //                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+                        mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", ecp.getBm() + "",
+                                "jlid", "=",ecp.getJlid() + "", "status", "!=", "-1");
+                        if (mjjgda == null) {
+                            //没上过架存入页面显示
+                            Map map = new HashMap();
+                            map.put("id", size1++);
+                            map.put("title", ecp.getArchiveno());
+                            map.put("epccode", editString);
+                            map.put("bm", ecp.getBm());
+                            map.put("jlid", String.valueOf(ecp.getJlid()));
+                            mDataList.add(map);
+                        } else {
+                            //已经上过架了查询文件存放的位置页面通知用户
+                            String kfname1 = "";
+                            String mjjname1 = "";
+                            String nLOrR1 = "";
+                            Mjj mjj1 = null;
+                            Kf kf1 = null;
+                            Mjjg mjjg1 = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+                            if (mjjg1 != null) {
+                                nLOrR1 = mjjg1.getZy() == 1 ? "左" : "右";
+                                mjj1 = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg1.getMjjid() + "");
+                            }
+                            if (mjj1 != null) {
+                                mjjname1 = mjj1.getMc() + "/";
+                                kf1 = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj1.getKfid() + "");
+                            }
 
-                        if (kf1 != null) {
-                            kfname1 = kf1.getMc() + "/";
+                            if (kf1 != null) {
+                                kfname1 = kf1.getMc() + "/";
+                            }
+                            String name = kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
+                            mHandlerMessage.what = UI_ISEXIST;
+                            mHandlerMessage.obj = name;
                         }
-                        String name = kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
-                        mHandlerMessage.what = UI_ISEXIST;
-                        mHandlerMessage.obj = name;
+                    } else {
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
+                            }
+                        });
                     }
+
+
                     break;
                 case Constant.LX_MJJG:
                     String kfname = "";
@@ -786,11 +800,11 @@ public class UpFLoorActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_Power:
-//                                Intent intent = new Intent(this, SettingPower.class);
-//                                startActivity(intent);
+                //                                Intent intent = new Intent(this, SettingPower.class);
+                //                                startActivity(intent);
                 FragmentTransaction ft = getFragmentManager().beginTransaction();
                 ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                SettingDialogFragment dialogFragment  = SettingDialogFragment.newInstance(R.layout.setting_power_dialog);
+                SettingDialogFragment dialogFragment = SettingDialogFragment.newInstance(R.layout.setting_power_dialog);
                 dialogFragment.show(ft, "settingDialog");
                 return true;
             default:

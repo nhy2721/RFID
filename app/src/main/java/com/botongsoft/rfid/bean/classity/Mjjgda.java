@@ -40,6 +40,18 @@ public class Mjjgda implements java.io.Serializable {
     @Transient
     private String title;//页面拼接的扫描标签
 
+    public String getEpccode() {
+        return epccode;
+    }
+
+    public void setEpccode(String epccode) {
+        this.epccode = epccode;
+    }
+
+    @Transient
+
+    private String epccode;//页面拼接的扫描标签
+
     public String getTitle() {
         return title;
     }
