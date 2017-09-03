@@ -4,12 +4,14 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.botongsoft.rfid.BaseApplication;
 import com.botongsoft.rfid.R;
@@ -33,7 +35,8 @@ public class SettingDialogFragment extends DialogFragment implements View.OnClic
     Button buttonSet;
     @BindView(R.id.editText_power)
     EditText editValues;
-
+    @BindView(R.id.textView1)
+    TextView textView1;
     private int value = 30;//
     private UHFLongerManager manager;
     protected View mRootView;
@@ -54,14 +57,21 @@ public class SettingDialogFragment extends DialogFragment implements View.OnClic
         Dialog dialog = getDialog();
         if (dialog != null) {//有些场景下是获取不到的
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);//设置Dialog没有标题。需在setContentView之前设置，在之后设置会报错
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);//设置Dialog背景透明效果
+//            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);//设置Dialog背景透明效果
             //            dialog.getWindow().setDimAmount(0);//去掉遮罩层
         }
         mRootView = inflater.inflate(getArguments().getInt("layoutId"), null);
         ButterKnife.bind(this, mRootView);
         return mRootView;
     }
-
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        DisplayMetrics dm = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics( dm );
+        getDialog().getWindow().setLayout( dm.widthPixels, getDialog().getWindow().getAttributes().height );
+    }
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);

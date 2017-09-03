@@ -790,7 +790,7 @@ public class UpFLoorActivity extends BaseActivity {
 //                                startActivity(intent);
                 FragmentTransaction ft = getFragmentManager().beginTransaction();
                 ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                SettingDialogFragment dialogFragment  = SettingDialogFragment.newInstance(R.layout.setting_power);
+                SettingDialogFragment dialogFragment  = SettingDialogFragment.newInstance(R.layout.setting_power_dialog);
                 dialogFragment.show(ft, "settingDialog");
                 return true;
             default:
