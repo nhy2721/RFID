@@ -68,6 +68,9 @@ public class SettingDialogFragment extends DialogFragment implements View.OnClic
     public void onStart()
     {
         super.onStart();
+        /*
+        去掉显示的左右留白部分
+         */
         DisplayMetrics dm = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics( dm );
         getDialog().getWindow().setLayout( dm.widthPixels, getDialog().getWindow().getAttributes().height );
