@@ -83,4 +83,6 @@ public class Constant {
 
         String FEMALE = "female";
     }
+
+    public static final int UPFLOOR = 1;
 }

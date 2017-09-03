@@ -5,6 +5,7 @@ import android.content.Context;
 import android.support.v7.app.AppCompatDelegate;
 
 import com.botongsoft.rfid.ui.activity.BaseActivity;
+import com.handheld.UHFLonger.UHFLongerManager;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,9 +21,10 @@ public class BaseApplication extends Application {
     public static String DBNAMESTRING = "kfgl.db";
     public static int DBVERSION = 1;
     public final static boolean DEBUG = true;
-    private static BaseApplication application;
+//    private static BaseApplication application;
     private static int mainTid;
-
+    public static BaseApplication application;
+    private UHFLongerManager manager = null; //
     /**
      * Activity集合，来管理所有的Activity
      */
@@ -39,8 +41,18 @@ public class BaseApplication extends Application {
         application = this;
         mainTid = android.os.Process.myTid();
         this.context = getApplicationContext();
+        try {
+            manager =UHFLongerManager.getInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
+    public UHFLongerManager getmanager() {
+        return manager;
+    }
+    public void setmanager(UHFLongerManager manager) {
+        this.manager = manager;
+    }
     /**
      * 获取application
      *
