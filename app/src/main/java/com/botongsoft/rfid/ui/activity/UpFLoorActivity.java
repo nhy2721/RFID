@@ -209,8 +209,7 @@ public class UpFLoorActivity extends BaseActivity {
         mUpfloorAdapter = new UpfloorAdapter(this, mDataList);
         mUpfloorAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mUpfloorAdapter);
-        thread = new ThreadMe();
-        thread.start();
+
     }
 
     @Override
@@ -546,6 +545,9 @@ public class UpFLoorActivity extends BaseActivity {
             //创建后台线程
             initBackThread();
         }
+        thread = new ThreadMe();
+        thread.start();
+        mSwitch.setChecked(false);
     }
 
     @Override
@@ -802,6 +804,20 @@ public class UpFLoorActivity extends BaseActivity {
             case R.id.action_Power:
                 //                                Intent intent = new Intent(this, SettingPower.class);
                 //                                startActivity(intent);
+                mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                        if (isChecked) {
+                            // 开启switch，设置提示信息
+                            startFlag = true;
+                        } else {
+                            // 关闭swtich，设置提示信息
+                            startFlag = false;
+                        }
+                    }
+                });
+                startFlag = false;
+                mSwitch.setChecked(false);
                 FragmentTransaction ft = getFragmentManager().beginTransaction();
                 ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 SettingDialogFragment dialogFragment = SettingDialogFragment.newInstance(R.layout.setting_power_dialog);

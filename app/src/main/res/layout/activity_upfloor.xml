@@ -99,6 +99,7 @@
                 android:layout_weight="0.21"
                 android:textOff="关闭中"
                 android:textOn="开启中"
+                android:showText="true"
                 android:hint="扫码:"
                 android:textColorHint="@color/white" />
             <!--<android.support.design.widget.TextInputLayout-->
