@@ -6,20 +6,19 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ProgressBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.botongsoft.rfid.BaseApplication;
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.CheckError;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
@@ -33,7 +32,7 @@ import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.db.SearchDb;
 import com.botongsoft.rfid.common.utils.ConverJavaBean;
 import com.botongsoft.rfid.common.utils.LogUtils;
-import com.botongsoft.rfid.common.utils.PlaySoundPool;
+import com.botongsoft.rfid.common.utils.SoundUtil;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanDetailAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
@@ -66,13 +65,15 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     private static final int UI_SAVE_ERROR = 3;
     @BindView(R.id.recycler_view)
     SwipeMenuRecyclerView mSwipeMenuRecyclerView;
-    @BindView(R.id.tx_layout)
-    TextInputLayout mTextInputLayout;
-    @BindView(R.id.input_tx)
-    TextInputEditText mTextInputEditText;
+    //    @BindView(R.id.tx_layout)
+    //    TextInputLayout mTextInputLayout;
+    //    @BindView(R.id.input_tx)
+    //    TextInputEditText mTextInputEditText;
+    @BindView(R.id.st_saoma)
+    Switch mSwitch;
     @BindView(R.id.tv_info)
     TextView mTextView;
-//    CheckPlanDetailActivity parentActivity;
+    //    CheckPlanDetailActivity parentActivity;
     private static String scanInfoLocal = "";//扫描的格子位置 根据“/”拆分后存入数据库
     //    private static String scanInfoNow = "";//扫描的格子位置
     private String editString;
@@ -106,8 +107,12 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     private static int oldMjgId;
     private static int oldKfId;
     private static int oldZy;
-//    private SoundPool soundPool;
-    private PlaySoundPool soundPool;
+    //    private SoundPool soundPool;
+//    private PlaySoundPool soundPool;
+    Thread thread;
+    private boolean runFlag = true;
+    private boolean startFlag = false;
+
     public static ScanCheckPlanDetailFragment newInstance(int type, int pdid, String fw) {
         Bundle args = new Bundle();
         args.putInt("type", type);
@@ -137,6 +142,20 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     @Override
     protected void initEvents() {
 
+        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // 开启switch，设置提示信息
+                    startFlag = true;
+                } else {
+                    // 关闭swtich，设置提示信息
+                    startFlag = false;
+                }
+            }
+        });
+        thread = new ThreadMe();
+        thread.start();
     }
 
     @Override
@@ -144,7 +163,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         super.onCreate(savedInstanceState);
         //        setCancelable(false);//无法直接点击外部取消dialog
         //        setStyle(DialogFragment.STYLE_NO_FRAME,0); //NO_FRAME就是dialog无边框，0指的是默认系统Theme
-//        parentActivity = (CheckPlanDetailActivity) getActivity();//目测没用 先注释掉
+        //        parentActivity = (CheckPlanDetailActivity) getActivity();//目测没用 先注释掉
         initUiHandler();
 
     }
@@ -159,40 +178,40 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         //        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
         mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
 
-        mTextInputEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // 输入前的监听
-                //                Log.e("输入前确认执行该方法", "开始输入");
-                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // 输入的内容变化的监听
-                //               Log.e("输入过程中执行该方法", "文字变化");
-                if (mCheckMsgHandler != null) {
-                    mCheckMsgHandler.removeCallbacks(delayRun);
-                }
-                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                // 输入后的监听
-                //                Log.e("输入结束执行该方法", "输入结束");
-                Log.e("Handler textChanged--->", String.valueOf(Thread.currentThread().getName()));
-                if (mTextInputEditText.length() != 0) {
-                    if (mCheckMsgHandler != null) {
-                        mCheckMsgHandler.removeCallbacks(delayRun);
-                    }
-                    //延迟800ms，如果不再输入字符，则执行该线程的run方法 模拟扫描输入
-                    msg = mCheckMsgHandler.obtainMessage();
-                    msg.what = MSG_UPDATE_INFO;
-                    mCheckMsgHandler.sendMessageDelayed(msg, Constant.delayRun);
-                }
-            }
-        });
+//        mTextInputEditText.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//                // 输入前的监听
+//                //                Log.e("输入前确认执行该方法", "开始输入");
+//                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence s, int start, int before, int count) {
+//                // 输入的内容变化的监听
+//                //               Log.e("输入过程中执行该方法", "文字变化");
+//                if (mCheckMsgHandler != null) {
+//                    mCheckMsgHandler.removeCallbacks(delayRun);
+//                }
+//                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//                // 输入后的监听
+//                //                Log.e("输入结束执行该方法", "输入结束");
+//                Log.e("Handler textChanged--->", String.valueOf(Thread.currentThread().getName()));
+//                if (mTextInputEditText.length() != 0) {
+//                    if (mCheckMsgHandler != null) {
+//                        mCheckMsgHandler.removeCallbacks(delayRun);
+//                    }
+//                    //延迟800ms，如果不再输入字符，则执行该线程的run方法 模拟扫描输入
+//                    msg = mCheckMsgHandler.obtainMessage();
+//                    msg.what = MSG_UPDATE_INFO;
+//                    mCheckMsgHandler.sendMessageDelayed(msg, Constant.delayRun);
+//                }
+//            }
+//        });
         // 添加滚动监听。
         //        mSwipeMenuRecyclerView.addOnScrollListener(mOnScrollListener);
         // 设置菜单创建器。
@@ -203,6 +222,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         scanCheckPlanDetailAdapter = new ScanCheckPlanDetailAdapter(getActivity(), mDataLists);
         scanCheckPlanDetailAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(scanCheckPlanDetailAdapter);
+
     }
 
     private void initUiHandler() {
@@ -215,7 +235,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                         if (mBundle != null) {
                             mTextView.setText(mBundle.getString("info"));
                         }
-                        mTextInputEditText.setText("");
+//                        mTextInputEditText.setText("");
                         //                        smoothMoveToPosition(mSwipeMenuRecyclerView, mDataLists.size() + 1);
 
                         if (msg.obj != null) {
@@ -227,16 +247,16 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                         //                        scanCheckPlanDetailAdapter.notifyDataSetChanged();
                         break;
                     case UI_NOMJG_ERROR:
-                        mTextInputEditText.setText("");
+//                        mTextInputEditText.setText("");
                         Toast.makeText(getContext(), "请先扫描密集格后再进行操作", Toast.LENGTH_SHORT).show();
                         break;
                     case UI_NOSCANFW_ERROR:
-                        mTextInputEditText.setText("");
+//                        mTextInputEditText.setText("");
                         Toast.makeText(getContext(), "该密集格不在盘点范围内", Toast.LENGTH_SHORT).show();
                         break;
                     case UI_SAVE_ERROR:
                         if (saveErrBundele != null) {
-                            mTextInputEditText.setText("");
+//                            mTextInputEditText.setText("");
                             String bm = (saveErrBundele.getString("bm"));
                             String jlid = (saveErrBundele.getString("jlid"));
                             String mjg = (saveErrBundele.getString("mjg"));
@@ -350,11 +370,11 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             //            });
             //在这里读取数据库增加list值，界面显示读取的标签信息
             //这里定义发送通知ui更新界面
-            mHandlerMessage = mHandler.obtainMessage();
-            mHandlerMessage.what = UI_SUCCESS;
-            editString = mTextInputEditText.getText().toString();
-            searchDB(editString);
-            mHandler.sendMessage(mHandlerMessage);
+//            mHandlerMessage = mHandler.obtainMessage();
+//            mHandlerMessage.what = UI_SUCCESS;
+//            editString = mTextInputEditText.getText().toString();
+//            searchDB(editString);
+//            mHandler.sendMessage(mHandlerMessage);
         }
     };
     private static int text = 0;
@@ -366,7 +386,8 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     private void searchDB(String editString) {
         boolean tempStr = true;//防止重复扫描状态标记
         boolean temp = true;//是否在盘点方位标记
-
+        mHandlerMessage = mHandler.obtainMessage();
+        mHandler.sendMessage(mHandlerMessage);
         int lx = Constant.getLx(editString);//根据传入的值返回对象类型
         switch (lx) {
             case Constant.LX_MJGDA:
@@ -410,9 +431,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                             mjjgda.setKfid(nowKfId);
                             mjjgda.setMjgid(nowMjjgId);
                             mDataLists.add(mjjgda);
-                            soundPool= new PlaySoundPool(getContext());
-                            soundPool.loadSfx(R.raw.beep,1);
-                            soundPool.play(1,0);
+                            SoundUtil.play(1, 0);
                         }
                         stringList.add(editString);
                     }
@@ -555,9 +574,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                     } catch (Exception e) {
                         save = false;
                         //出错这里要报警，RFID读取要终止。要不读取档案记录的话还会添加进去。
-                        soundPool= new PlaySoundPool(getContext());
-                        soundPool.loadSfx(R.raw.beep,1);
-                        soundPool.play(1,0);
+                        SoundUtil.play(2, 0);
                         mHandlerMessage.what = UI_SAVE_ERROR;
                         saveErrBundele = new Bundle();
                         saveErrBundele.putString("mjg", String.valueOf(mDataList.getMjgid()));
@@ -606,10 +623,10 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             kfname = kf.getMc() + "/";
         }
         nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-//        String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-        int countemp = getCount(Mjjgda.class,"mjgid","=", String.valueOf(mjjg.getId()));
-        int outCountTemp = getCount(Mjjgda.class,"mjgid","=", String.valueOf(mjjg.getId()),"flag","=","1");
-        sb.append(kfname).append(mjjname).append(nLOrR).append("/").append(mjjg.getZs()).append("组").append( mjjg.getCs()).append("层").append("\n");
+        //        String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+        int countemp = getCount(Mjjgda.class, "mjgid", "=", String.valueOf(mjjg.getId()));
+        int outCountTemp = getCount(Mjjgda.class, "mjgid", "=", String.valueOf(mjjg.getId()), "flag", "=", "1");
+        sb.append(kfname).append(mjjname).append(nLOrR).append("/").append(mjjg.getZs()).append("组").append(mjjg.getCs()).append("层").append("\n");
         sb.append("共").append(countemp).append("案卷,").append("外借").append(outCountTemp).append("卷");
         String temple = kf.getId() + "/" + mjj.getId() + "/" + mjjg.getId();//这里的值用来拆分存放位置存入档案表
         mBundle = new Bundle();
@@ -627,6 +644,8 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
         savePdjl(mDataLists, pdid);
         stringList.clear();
         scanInfoLocal = "";
+        startFlag = false;
+        runFlag = false;
         super.onDestroyView();
 
     }
@@ -768,4 +787,36 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
 
         }
     };
+    class ThreadMe extends Thread {
+        private List<String> epcList;
+
+        @Override
+        public void run() {
+            super.run();
+            while (runFlag) {
+
+                if (startFlag) {
+                    epcList = BaseApplication.application.getmanager().inventoryRealTime(); //
+                    if (epcList != null && !epcList.isEmpty()) {
+                        SoundUtil.play(1, 0);
+                        Message sMessage = mHandler.obtainMessage();
+                        sMessage.what = UI_SUCCESS;
+                        for (String epc : epcList) {
+                            searchDB(epc);
+
+                        }
+                        mHandler.sendMessage(sMessage);
+                    }
+                    epcList = null;
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+    }
 }

@@ -2,6 +2,7 @@ package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
 import android.app.FragmentTransaction;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -200,6 +201,10 @@ public class DownFLoorActivity extends BaseActivity {
         mDownFloorAdapter = new DownFloorAdapter(this, mDataList);
         mDownFloorAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mDownFloorAdapter);
+        keyReceiver = new KeyReceiver(manager,false,mSwitch);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("android.rfid.FUN_KEY");
+        registerReceiver(keyReceiver, intentFilter);
     }
 
     @Override
@@ -462,6 +467,9 @@ public class DownFLoorActivity extends BaseActivity {
             //创建后台线程
             initBackThread();
         }
+        if (manager != null) {
+            manager.clearSelect();
+        }
         thread = new ThreadMe();
         thread.start();
         mSwitch.setChecked(false);
@@ -491,6 +499,7 @@ public class DownFLoorActivity extends BaseActivity {
             mCheckMsgThread.quit();
         }
         mCheckMsgHandler.removeCallbacksAndMessages(null);
+        unregisterReceiver(keyReceiver);
         finish();
     }
 

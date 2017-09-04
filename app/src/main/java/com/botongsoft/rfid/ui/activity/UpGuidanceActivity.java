@@ -3,6 +3,7 @@ package com.botongsoft.rfid.ui.activity;
 import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -183,6 +184,10 @@ public class UpGuidanceActivity extends BaseActivity {
         mUpGuidanceAdapter = new UpGuidanceAdapter(this, mDataList);
         mUpGuidanceAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mUpGuidanceAdapter);
+        keyReceiver = new KeyReceiver(manager,false,mSwitch);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("android.rfid.FUN_KEY");
+        registerReceiver(keyReceiver, intentFilter);
     }
 
     @Override
@@ -356,6 +361,9 @@ public class UpGuidanceActivity extends BaseActivity {
             thread.start();
             mSwitch.setChecked(false);
         }
+        if (manager != null) {
+            manager.clearSelect();
+        }
 
     }
 
@@ -382,6 +390,7 @@ public class UpGuidanceActivity extends BaseActivity {
             mCheckMsgThread.quit();
         }
         mCheckMsgHandler.removeCallbacksAndMessages(null);
+        unregisterReceiver(keyReceiver);
         finish();
     }
 

@@ -1,20 +1,27 @@
 package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
+import android.app.FragmentTransaction;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 
+import com.botongsoft.rfid.BaseApplication;
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.utils.LogUtils;
+import com.botongsoft.rfid.common.utils.SoundUtil;
 import com.botongsoft.rfid.ui.adapter.CheckPlanFragmentAdapter;
 import com.botongsoft.rfid.ui.fragment.BaseFragment;
 import com.botongsoft.rfid.ui.fragment.ScanCheckPlanDetailFragment;
 import com.botongsoft.rfid.ui.fragment.ScanCheckPlanListFragment;
+import com.botongsoft.rfid.ui.fragment.SettingDialogFragment;
+import com.handheld.UHFLonger.UHFLongerManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +48,7 @@ public class CheckPlanDetailActivity extends BaseActivity {
     private Activity mContext;
     private List<BaseFragment> fragments;
     CheckPlanFragmentAdapter checkPlanFragmentAdapter;
-
+    private static UHFLongerManager manager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_checkplandetail);
@@ -63,6 +70,20 @@ public class CheckPlanDetailActivity extends BaseActivity {
         mTabLayout.setupWithViewPager(mViewPager);
         setPageChangeListener();
         mTabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.white));
+        SoundUtil.initSoundPool(BaseApplication.application);//
+        try {
+            manager = BaseApplication.application.getmanager();
+            SharedPreferences sp = BaseApplication.application.getSharedPreferences("power", 0);
+            //            int value = ShareManager.getInt(this, "power");
+            int value = sp.getInt("value", 0);
+            if (value == 0) {
+                value = 30;
+            }
+            manager.setOutPower((short) value);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void setPageChangeListener() {
@@ -123,5 +144,28 @@ public class CheckPlanDetailActivity extends BaseActivity {
     public void onError(BusinessException e, int act) {
 
     }
+    @Override
+    protected int getMenuID() {
+        return R.menu.menu_set_power;
+    }
 
+
+    MenuItem menuItem;
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_Power:
+                //                                Intent intent = new Intent(this, SettingPower.class);
+                //                                startActivity(intent);
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                SettingDialogFragment dialogFragment  = SettingDialogFragment.newInstance(R.layout.setting_power_dialog);
+                dialogFragment.show(ft, "settingDialog");
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 }

@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.view.KeyEvent;
+import android.widget.Switch;
 
 import com.handheld.UHFLonger.UHFLongerManager;
 
@@ -15,8 +16,11 @@ public class KeyReceiver extends BroadcastReceiver {
     private String TAG = "KeyReceiver";
     private UHFLongerManager manager = null; //
     private boolean startFlag = false;
-
-    public KeyReceiver() {
+    Switch mSwitch;
+    public KeyReceiver(UHFLongerManager manager, boolean startFlag, Switch mSwitch) {
+        this.manager = manager;
+        this.startFlag = startFlag;
+        this.mSwitch = mSwitch;
     }
 
     public KeyReceiver(UHFLongerManager manager, boolean startFlag) {
@@ -32,20 +36,20 @@ public class KeyReceiver extends BroadcastReceiver {
         //			Log.e("down", ""+keyDown);
         if (keyDown) {
             switch (keyCode) {
-                case KeyEvent.KEYCODE_F1:
-                    Scan();
+                case KeyEvent.KEYCODE_F1: //按键F1
+//                    Scan();
                     break;
-                case KeyEvent.KEYCODE_F2:
-                    Scan();
+                case KeyEvent.KEYCODE_F2://按键F2
+//                    Scan();
                     break;
-                case KeyEvent.KEYCODE_F3:
+                case KeyEvent.KEYCODE_F3:  //手枪按钮
                     Scan();
                     break;
                 case KeyEvent.KEYCODE_F4:
-                    Scan();
+//                    Scan();
                     break;
                 case KeyEvent.KEYCODE_F5:
-                    Scan();
+//                    Scan();
                     break;
             }
         }
@@ -55,10 +59,11 @@ public class KeyReceiver extends BroadcastReceiver {
         if (manager == null) return;
         if (!startFlag) {
             startFlag = true;
-            //            buttonStart.setText(getString(R.string.stop_inventory));
+            mSwitch.setChecked(true);
         } else {
             startFlag = false;
-            //            buttonStart.setText(getString(R.string.inventory));
+            mSwitch.setChecked(false);
         }
+
     }
 }

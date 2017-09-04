@@ -38,7 +38,7 @@ public class Constant {
     public static final int LX_MJGDA = 2;
 
     public static String[] reqDatas(String value) {
-        //value = "B001000121111"
+        //value = "B,001,000121,1,1,1"
         String[] s = new String[6];
         s[0]=value.substring(0,1);//B  标签头
         s[1]=value.substring(1,4);//001 库房ID 前面补0

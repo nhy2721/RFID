@@ -2,6 +2,7 @@ package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
 import android.app.FragmentTransaction;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -209,7 +210,10 @@ public class UpFLoorActivity extends BaseActivity {
         mUpfloorAdapter = new UpfloorAdapter(this, mDataList);
         mUpfloorAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mUpfloorAdapter);
-
+        keyReceiver = new KeyReceiver(manager,false,mSwitch);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("android.rfid.FUN_KEY");
+        registerReceiver(keyReceiver, intentFilter);
     }
 
     @Override
@@ -452,7 +456,7 @@ public class UpFLoorActivity extends BaseActivity {
                     if (ecp != null) {
                         //                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
                         mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", ecp.getBm() + "",
-                                "jlid", "=",ecp.getJlid() + "", "status", "!=", "-1");
+                                "jlid", "=", ecp.getJlid() + "", "status", "!=", "-1");
                         if (mjjgda == null) {
                             //没上过架存入页面显示
                             Map map = new HashMap();
@@ -525,6 +529,7 @@ public class UpFLoorActivity extends BaseActivity {
                         mBundle = new Bundle();
                         mBundle.putString("info", name);
                         scanInfoLocal = temple;
+                        mHandlerMessage = mHandler.obtainMessage();
                         mHandlerMessage.setData(mBundle);
                     }
                     break;
@@ -545,6 +550,9 @@ public class UpFLoorActivity extends BaseActivity {
             //创建后台线程
             initBackThread();
         }
+        if (manager != null) {
+            manager.clearSelect();
+        }
         thread = new ThreadMe();
         thread.start();
         mSwitch.setChecked(false);
@@ -563,6 +571,7 @@ public class UpFLoorActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+
         super.onDestroy();
         //停止查询
         isOnScreen = false;
@@ -574,6 +583,10 @@ public class UpFLoorActivity extends BaseActivity {
             mCheckMsgThread.quit();
         }
         mCheckMsgHandler.removeCallbacksAndMessages(null);
+        unregisterReceiver(keyReceiver);
+ /*       if (manager != null) {
+            manager.close();
+        }*/
         finish();
     }
 
