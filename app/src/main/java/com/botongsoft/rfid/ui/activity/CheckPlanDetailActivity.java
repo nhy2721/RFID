@@ -2,7 +2,6 @@ package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
 import android.app.FragmentTransaction;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -21,7 +20,6 @@ import com.botongsoft.rfid.ui.fragment.BaseFragment;
 import com.botongsoft.rfid.ui.fragment.ScanCheckPlanDetailFragment;
 import com.botongsoft.rfid.ui.fragment.ScanCheckPlanListFragment;
 import com.botongsoft.rfid.ui.fragment.SettingDialogFragment;
-import com.handheld.UHFLonger.UHFLongerManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +46,8 @@ public class CheckPlanDetailActivity extends BaseActivity {
     private Activity mContext;
     private List<BaseFragment> fragments;
     CheckPlanFragmentAdapter checkPlanFragmentAdapter;
-    private static UHFLongerManager manager;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_checkplandetail);
@@ -56,6 +55,7 @@ public class CheckPlanDetailActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         mContext = this;
         initView();
+
     }
 
     private void initView() {
@@ -71,19 +71,7 @@ public class CheckPlanDetailActivity extends BaseActivity {
         setPageChangeListener();
         mTabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.white));
         SoundUtil.initSoundPool(BaseApplication.application);//
-        try {
-            manager = BaseApplication.application.getmanager();
-            SharedPreferences sp = BaseApplication.application.getSharedPreferences("power", 0);
-            //            int value = ShareManager.getInt(this, "power");
-            int value = sp.getInt("value", 0);
-            if (value == 0) {
-                value = 30;
-            }
-            manager.setOutPower((short) value);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private void setPageChangeListener() {

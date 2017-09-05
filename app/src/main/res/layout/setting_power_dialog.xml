@@ -32,6 +32,7 @@
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/button_min"
         android:layout_toRightOf="@+id/button_min"
+        android:gravity="center"
         android:focusable="false"
         android:ems="5" >
     </EditText>
