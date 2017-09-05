@@ -280,7 +280,8 @@ public class UpFLoorActivity extends BaseActivity {
                         mFab.setClickable(true);
                         break;
                     case UI_SUBMITERROR:
-                        ToastUtils.showShort("请扫描文件上架位置");
+//                        ToastUtils.showShort("请扫描文件上架位置");
+                        ToastUtils.showToast("请扫描文件上架位置" ,500);
                         break;
                     case UI_ISEXIST:
                         //                        mTextInputEditText.setText("");
@@ -289,7 +290,8 @@ public class UpFLoorActivity extends BaseActivity {
                         //                        soundPool.play(1, 0);
                         SoundUtil.play(2, 0);
                         String getResult1 = (String) msg.obj;
-                        ToastUtils.showShort("该文件已在" + getResult1 + "上过架了");
+//                        ToastUtils.showShort( getResult1 + "上过架了");
+                        ToastUtils.showToast(getResult1 + "上过架了",500);
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -447,6 +449,7 @@ public class UpFLoorActivity extends BaseActivity {
             }
         }
         if (tempStr) {
+            mHandlerMessage = mHandler.obtainMessage();
             switch (lx) {
                 case Constant.LX_MJGDA:
                     Mjjgda mjjgda = null;
@@ -486,14 +489,16 @@ public class UpFLoorActivity extends BaseActivity {
                             if (kf1 != null) {
                                 kfname1 = kf1.getMc() + "/";
                             }
-                            String name = kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
+                            String name = "档号"+ecp.getArchiveno()+"已经在"+kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
                             mHandlerMessage.what = UI_ISEXIST;
                             mHandlerMessage.obj = name;
+                            mHandler.sendMessage(mHandlerMessage);
                         }
                     } else {
                         runOnUiThread(new Runnable() {
                             public void run() {
-                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
+//                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
+                                ToastUtils.showToast("没查询到该条扫描记录" + editString,500);
                             }
                         });
                     }
@@ -529,7 +534,7 @@ public class UpFLoorActivity extends BaseActivity {
                         mBundle = new Bundle();
                         mBundle.putString("info", name);
                         scanInfoLocal = temple;
-                        mHandlerMessage = mHandler.obtainMessage();
+
                         mHandlerMessage.setData(mBundle);
                     }
                     break;

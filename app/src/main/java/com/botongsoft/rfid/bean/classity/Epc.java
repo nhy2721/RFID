@@ -22,9 +22,18 @@ public class Epc implements java.io.Serializable {
     private String archiveno;
     @Column
     private long anchor;
-
+    @Column
+    private int status;
     public int getLid() {
         return lid;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 
     public void setLid(int lid) {

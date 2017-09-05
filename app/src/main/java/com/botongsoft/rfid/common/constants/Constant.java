@@ -112,4 +112,5 @@ public class Constant {
     public static final int BackThread_PUT_CHECKDETAIL_SUCCESS_PB = 5002;
     public static final int BackThread_PUT_CHECKERROR_SUCCESS_PB = 5003;
     public static final int BackThread_PUTDA_SUCCESS_PB = 5004;
+    public static final int BackThread_GETEPC_SUCCESS_PB = 5005;
 }

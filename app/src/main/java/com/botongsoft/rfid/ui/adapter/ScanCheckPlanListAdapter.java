@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.Mjj;
-import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.listener.OnSingleClickListener;
 import com.botongsoft.rfid.ui.fragment.MyDialogFragment;
 
@@ -113,7 +112,7 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
                 @Override
                 protected void onSingleClick(View view) {
 
-                    ToastUtils.showShort("textView1");
+
                     MyDialogFragment mdf = MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment, mjj, "left", pdid);
                     FragmentTransaction ft = fm.beginTransaction();
                     ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -123,7 +122,7 @@ public class ScanCheckPlanListAdapter extends RecyclerView.Adapter<RecyclerView.
             ((EBookListHolder) holder).tView2.setOnClickListener(new OnSingleClickListener(200) {
                 @Override
                 protected void onSingleClick(View view) {
-                    ToastUtils.showShort("textView2");
+
                     MyDialogFragment mdf = MyDialogFragment.newInstance(R.layout.checkplan_mjjglist_fragment, mjj, "right", pdid);
                     FragmentTransaction ft = fm.beginTransaction();
                     ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);

@@ -30,6 +30,7 @@ import com.botongsoft.rfid.bean.classity.CheckError;
 import com.botongsoft.rfid.bean.classity.CheckPlan;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
+import com.botongsoft.rfid.bean.classity.Epc;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
@@ -48,6 +49,7 @@ import com.botongsoft.rfid.ui.Thread.WriteCheckDetailDBDelThread;
 import com.botongsoft.rfid.ui.Thread.WriteCheckDetailDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteCheckErrorDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteCheckPlanDBThread;
+import com.botongsoft.rfid.ui.Thread.WriteEpcDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteKfDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjgDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjgDaDBThread;
@@ -73,6 +75,7 @@ import static com.botongsoft.rfid.common.constants.Constant.BackThread_PUT_CHECK
 public class SyncbakActivity extends BaseActivity {
     private static final int HAS_NEW_MJJG = 8888;
     private static final int HAS_NEW_DA = 8889;
+    private static final int HAS_NEW_EPC = 8890;
     private Activity mContext;
     @BindView(appBarLayout)
     AppBarLayout mAppBarLayout;
@@ -152,6 +155,16 @@ public class SyncbakActivity extends BaseActivity {
     @BindView(R.id.pb7)
     ProgressBar pb7;
 
+    @BindView(R.id.tv_name8)
+    TextView tv_name8;
+    @BindView(R.id.bt_action8)
+    Button bt_action8;
+    @BindView(R.id.tv_oleNsize8)
+    TextView tv_oleNsize8;
+    @BindView(R.id.tv_status8)
+    TextView tv_status8;
+    @BindView(R.id.pb8)
+    ProgressBar pb8;
 
     private static final int CONN_SUCCESS = 0;
     private static final int CONN_UNSUCCESS = 1;
@@ -174,6 +187,7 @@ public class SyncbakActivity extends BaseActivity {
     private static final int BackThread_GETCHECKPLAN = 1007;
     private static final int BackThread_PUTCHECKERRORPLAN = 1008;
     private static final int BackThread_PUTCHECKDETAILPLAN = 1009;
+    private static final int BackThread_GETEPC = 1010;
     //传递后台运行消息队列
     private Message backThreadmsg;
     private Message uiMsg;
@@ -187,12 +201,14 @@ public class SyncbakActivity extends BaseActivity {
     private WriteCheckErrorDBThread writeCheckErrorDBThread;
     private WriteCheckDetailDBThread writeCheckDetailDBThread;
     private WriteCheckDetailDBDelThread writeCheckDetailDBDelThread;
+    private WriteEpcDBThread wrEpcDbThread;//数据库操作相关
     private static int temple = 0;//服务器更新的档案条目数
     private Long kfAnchor;
     private Long mjjAnchor;
     private Long mjjgAnchor;
     private Long mjjgdaAnchor;
     private Long checkPlanAnchor;
+    private Long epcAnchor;
     private Long serverCheckDetailAnchor = 0L;
     private Long serverCheckErrorAnchor = 0L;
     private long mCheckDetailCount;//盘点错误记录本地提交服务器总数量=提交数据量+删除数量
@@ -211,12 +227,14 @@ public class SyncbakActivity extends BaseActivity {
     private boolean getCheckPlanFLag = false;
     private boolean putCheckDetailFLag = false;
     private boolean putCheckErrorFLag = false;
+    private boolean getEpcFlag = false;
     private boolean isPause;
     private List<Mjjgda> getMjjgdaJsonList;
     private List<Mjjgda> putMjjgdaJsonList;
     private List<Mjjg> mjjgJsonList;
     private List<Mjj> mjjJsonList;
     private List<Kf> kfJsonList;
+    private List<Epc> epcJsonList;
     private List<CheckPlan> checkPlanJsonList;
     private List<CheckError> checkErrorJsonList;
     private List<CheckPlanDeatil> checkDetailJsonList;
@@ -227,6 +245,7 @@ public class SyncbakActivity extends BaseActivity {
     private int putNewDaCountTemp = 0;
     private Mjjg mjjgInfo;
     private Mjjgda mjjgdaInfo;
+    private Epc epcInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -251,7 +270,7 @@ public class SyncbakActivity extends BaseActivity {
                         mCheckMsgHandler.sendMessage(backThreadmsg);
                         break;
                     case INIT_DOWORK:
-                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, mjjAnchor, mjjgAnchor, mjjgdaAnchor, checkPlanAnchor);
+                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, mjjAnchor, mjjgAnchor, mjjgdaAnchor, checkPlanAnchor, epcAnchor);
                         break;
                     case CONN_UNSUCCESS:
                         new AlertDialog.Builder(mContext)
@@ -265,6 +284,7 @@ public class SyncbakActivity extends BaseActivity {
                         bt_action5.setEnabled(false);
                         bt_action6.setEnabled(false);
                         bt_action7.setEnabled(false);
+                        bt_action8.setEnabled(false);
                         isOnLine = false;
                         break;
                     case CONN_UNSUCCESS1:
@@ -372,13 +392,13 @@ public class SyncbakActivity extends BaseActivity {
 
                             //第一批次的写进数据库后 再次取得最新的版本号提交服务器取得新一批的数据
                             mCheckMsgHandler.obtainMessage(HAS_NEW_DA).sendToTarget();
-//                            tv_oleNsize4.setText("更新完成");
-//                            tv_oleNsize4.setTextColor(Color.GREEN);
-//                            tv_status4.setText("");
-//                            if (mDaLocalCount > 0) {
-//                                //接收完服务器数据后再上传本地的数据
-//                                mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
-//                            }
+                            //                            tv_oleNsize4.setText("更新完成");
+                            //                            tv_oleNsize4.setTextColor(Color.GREEN);
+                            //                            tv_status4.setText("");
+                            //                            if (mDaLocalCount > 0) {
+                            //                                //接收完服务器数据后再上传本地的数据
+                            //                                mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+                            //                            }
                             getDaFLag = false;
                         }
                         temple = 0;
@@ -430,6 +450,24 @@ public class SyncbakActivity extends BaseActivity {
                             }
                         }
                         break;
+                    case Constant.BackThread_GETEPC_SUCCESS_PB:
+                        int epc = data.getInt("epc");
+                        LogUtils.d("BackThread_GETMJG_SUCCESS_PB--> Get密集格进度条" + epc);
+                        pb8.setMax(epcJsonList.size());
+                        pb8.setProgress(epc);
+                        tv_status8.setText("正在写入数据库");
+                        tv_status8.setTextColor(Color.RED);
+                        if (epc == epcJsonList.size()) {
+                            //第一批次的写进数据库后 再次取得最新的版本号提交服务器取得新一批的数据
+                            mCheckMsgHandler.obtainMessage(HAS_NEW_EPC).sendToTarget();
+
+
+                            //                            tv_oleNsize3.setText("更新完成");
+                            //                            tv_oleNsize3.setTextColor(Color.GREEN);
+                            //                            tv_status3.setText("");
+                            getEpcFlag = false;
+                        }
+                        break;
                     case Constant.BackThread_GETMJG_SUCCESS_PB:
                         int mjjg = data.getInt("mjg");
                         LogUtils.d("BackThread_GETMJG_SUCCESS_PB--> Get密集格进度条" + mjjg);
@@ -442,10 +480,9 @@ public class SyncbakActivity extends BaseActivity {
                             mCheckMsgHandler.obtainMessage(HAS_NEW_MJJG).sendToTarget();
 
 
-
-//                            tv_oleNsize3.setText("更新完成");
-//                            tv_oleNsize3.setTextColor(Color.GREEN);
-//                            tv_status3.setText("");
+                            //                            tv_oleNsize3.setText("更新完成");
+                            //                            tv_oleNsize3.setTextColor(Color.GREEN);
+                            //                            tv_status3.setText("");
                             getMjgflag = false;
                         }
                         break;
@@ -505,9 +542,10 @@ public class SyncbakActivity extends BaseActivity {
         tv_name5.setText("盘点计划");
         tv_name6.setText("盘点记录");
         tv_name7.setText("盘点纠错");
+        tv_name8.setText("档号对照表");
     }
 
-    @OnClick({R.id.bt_action1, R.id.bt_action2, R.id.bt_action3, R.id.bt_action4, R.id.bt_action5, R.id.bt_action6, R.id.bt_action7})
+    @OnClick({R.id.bt_action1, R.id.bt_action2, R.id.bt_action3, R.id.bt_action4, R.id.bt_action5, R.id.bt_action6, R.id.bt_action7, R.id.bt_action8})
     public void click(Button button) {
         switch (button.getId()) {
             case R.id.bt_action1:
@@ -562,6 +600,13 @@ public class SyncbakActivity extends BaseActivity {
                 backThreadmsg = mCheckMsgHandler.obtainMessage();
                 LogUtils.d("BackThread_PUTCHECKDETAILPLAN;");
                 backThreadmsg.what = BackThread_PUTCHECKDETAILPLAN;
+                mCheckMsgHandler.sendMessage(backThreadmsg);
+                break;
+            case R.id.bt_action8:
+                bt_action8.setEnabled(false);
+                backThreadmsg = mCheckMsgHandler.obtainMessage();
+                LogUtils.d("BackThread_GETEPC;");
+                backThreadmsg.what = BackThread_GETEPC;
                 mCheckMsgHandler.sendMessage(backThreadmsg);
                 break;
             default:
@@ -631,7 +676,11 @@ public class SyncbakActivity extends BaseActivity {
                         //                            serverCheckDetailAnchor = Long.valueOf(countJsons.get(0).checkDetailNum);
                         //                        }
 
-
+                        if (Integer.valueOf(countJsons.get(0).epcNum) > 0) {
+                            tv_oleNsize8.setText("服务器新数据：" + countJsons.get(0).epcNum + "条记录");
+                        } else {
+                            tv_oleNsize8.setText("无更新内容");
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -698,7 +747,7 @@ public class SyncbakActivity extends BaseActivity {
                             if (mDaLocalCount > 0) {
                                 //接收完服务器数据后再上传本地的数据
                                 mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
-                            }else{
+                            } else {
                                 tv_oleNsize4.setText("更新完成");
                                 tv_oleNsize4.setTextColor(Color.GREEN);
                                 tv_status4.setText("");
@@ -783,6 +832,24 @@ public class SyncbakActivity extends BaseActivity {
                         e.printStackTrace();
                     }
                 }
+            }else if (act == BackThread_GETEPC) {
+                if (response.isSuccess()) {
+                    try {
+                        epcJsonList = JSON.parseArray(response.res.rows, Epc.class);
+                        if (epcJsonList != null && !epcJsonList.isEmpty()) {
+                            wrEpcDbThread = new WriteEpcDBThread(mHandler, uiMsg);
+                            wrEpcDbThread.setList(epcJsonList);
+                            wrEpcDbThread.start();
+                        } else {
+                            tv_oleNsize8.setText("更新完成");
+                            tv_oleNsize8.setTextColor(Color.GREEN);
+                            tv_status8.setText("");
+                            getEpcFlag = false;
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }
@@ -801,6 +868,17 @@ public class SyncbakActivity extends BaseActivity {
             public void handleMessage(Message msg) {
                 Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
                 switch (msg.what) {
+                    case HAS_NEW_EPC:
+                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                        epcInfo = (Epc) DBDataUtils.getInfoHasOp(Epc.class, "anchor", ">=", "0");
+                        if (epcInfo == null) {
+                            epcAnchor = 0L;
+                        } else {
+                            epcAnchor = Long.valueOf(epcInfo.getAnchor());
+                            getEpcFlag = false;
+                            mCheckMsgHandler.obtainMessage(BackThread_GETEPC).sendToTarget();
+                        }
+                        break;
                     case HAS_NEW_MJJG:
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
                         mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
@@ -892,6 +970,13 @@ public class SyncbakActivity extends BaseActivity {
                         } catch (DbException e) {
                             e.printStackTrace();
                         }
+                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                        Epc epcInfo = (Epc) DBDataUtils.getInfoHasOp(Epc.class, "anchor", ">=", "0");
+                        if (epcInfo == null) {
+                            epcAnchor = 0L;
+                        } else {
+                            epcAnchor = Long.valueOf(epcInfo.getAnchor());
+                        }
                         mHandler.sendMessage(uiMsg);
                         //                        mHandler.obtainMessage(INIT_DOWORK).sendToTarget();
                         break;
@@ -982,6 +1067,14 @@ public class SyncbakActivity extends BaseActivity {
                         List<CheckPlanDeatil> checkDetailList = (List<CheckPlanDeatil>) CheckDetailSearchDb.getInfosHasOp(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">", "0", limit);
                         List<CheckPlanDeatilDel> checkDetailDelList = (List<CheckPlanDeatilDel>) DBDataUtils.getInfosHasOp(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
                         FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKDETAILPLAN, checkDetailList, null, checkDetailDelList);
+                        break;
+                    case BackThread_GETEPC:
+                        if (getEpcFlag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        getEpcFlag = true;
+                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, epcAnchor, BackThread_GETEPC);
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -1103,35 +1196,39 @@ public class SyncbakActivity extends BaseActivity {
             case KeyEvent.KEYCODE_BACK:
                 LogUtils.d("KEYCODE_BACK");
                 if (getKfFlag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (getMjjFlag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (getMjgflag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (getDaFLag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (putDaFLag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (getCheckPlanFLag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (putCheckDetailFLag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (putCheckErrorFLag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    return false;
+                }
+                if (getEpcFlag == true) {
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 break;
@@ -1166,35 +1263,39 @@ public class SyncbakActivity extends BaseActivity {
             case android.R.id.home:
                 LogUtils.d("我按了返回键盘");
                 if (getKfFlag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (getMjjFlag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (getMjgflag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (getDaFLag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (putDaFLag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (getCheckPlanFLag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (putCheckDetailFLag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (putCheckErrorFLag == true) {
-                    ToastUtils.showShort("正在更新数据库，请勿返回");
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    return false;
+                }
+                if (getEpcFlag == true) {
+                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
                     return false;
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -1229,7 +1330,8 @@ public class SyncbakActivity extends BaseActivity {
                     mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKERRORPLAN).sendToTarget();
                     bt_action7.setEnabled(false);
                     mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
-
+                    bt_action8.setEnabled(false);
+                    mCheckMsgHandler.obtainMessage(BackThread_GETEPC).sendToTarget();
                     //                    hideAnimate();
                 }
 

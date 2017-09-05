@@ -88,10 +88,12 @@ public class SettingPower extends Activity implements OnClickListener {
 			value = Integer.parseInt(editValues.getText().toString());
 			if(manager.setOutPower((short) value)){
 				saveSharedValue(value);
-				ToastUtils.showShort("保存成功");
+//				ToastUtils.showShort("保存成功");
+				ToastUtils.showToast("保存成功" ,500);
                 finish();
 			}else{
-				ToastUtils.showShort("保存失败");
+//				ToastUtils.showShort("保存失败");
+				ToastUtils.showToast("保存失败" ,500);
 			}
 			break;
 

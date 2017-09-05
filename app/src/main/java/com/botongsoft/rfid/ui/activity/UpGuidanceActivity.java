@@ -335,7 +335,8 @@ public class UpGuidanceActivity extends BaseActivity {
                     }else {
                         runOnUiThread(new Runnable() {
                             public void run() {
-                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
+//                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
+                                ToastUtils.showToast("没查询到该条扫描记录" + editString,500);
                             }
                         });
                     }

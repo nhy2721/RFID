@@ -29,5 +29,6 @@
         <item>盘点计划</item>
         <item>盘点记录</item>
         <item>盘点纠错</item>
+        <item>编码对照</item>
     </string-array>
 </resources>

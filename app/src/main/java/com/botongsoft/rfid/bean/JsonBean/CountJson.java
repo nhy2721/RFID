@@ -14,4 +14,5 @@ public class CountJson implements Serializable {
     public String checkplan;//盘点计划
     public String checkErrorNum;//盘点计划
     public String checkDetailNum;//盘点计划
+    public String epcNum;//盘点计划
 }
