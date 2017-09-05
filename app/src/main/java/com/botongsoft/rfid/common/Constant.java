@@ -37,6 +37,12 @@ public class Constant {
      */
     public static final int LX_MJGDA = 2;
 
+    /**
+     * 根据传入的RFID条码分解成数组 如果这个分界方法变了，所有有使用这个方法的地方需要
+     * 重新检查新获得的数组位置是否正确
+     * @param value "B001000121111"
+     * @return
+     */
     public static String[] reqDatas(String value) {
         //value = "B,001,000121,1,1,1"
         String[] s = new String[6];
@@ -47,6 +53,19 @@ public class Constant {
         s[4]=value.substring(11,12);//组数
         s[5]=value.substring(12,13);//层数
         System.out.println(Integer.valueOf(s[2]).toString());
+        return s;
+    }
+
+    /**
+     * 自动补0
+     * @param value
+     * @return
+     */
+    public static String coverNum(String value) {
+        String pattern="000000000000";
+        java.text.DecimalFormat df = new java.text.DecimalFormat(pattern);
+        int te = Integer.valueOf(value);
+        String s =df.format(te);
         return s;
     }
 

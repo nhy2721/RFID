@@ -106,9 +106,11 @@ public class ScanCheckPlanDetailAdapter extends SwipeMenuAdapter<ScanCheckPlanDe
         public void setData(Mjjgda map, int position) {
             this.tvId.setText(String.valueOf(position + 1));
             if(map.getFlag()==1){
-                this.tvTitle.setText(String.valueOf(map.getBm()+"-"+map.getJlid()+"  外借"));
+//                this.tvTitle.setText(String.valueOf(map.getBm()+"-"+map.getJlid()+"  外借"));
+                this.tvTitle.setText(String.valueOf(map.getTitle()+"  外借"));
             }else{
-                this.tvTitle.setText(String.valueOf(map.getBm()+"-"+map.getJlid()));
+//                this.tvTitle.setText(String.valueOf(map.getBm()+"-"+map.getJlid()));
+                this.tvTitle.setText(String.valueOf(map.getTitle()));
             }
             if (map.getColor() == 2) {
                 this.imageViewStyle.setImageResource(R.drawable.yuan_true);
