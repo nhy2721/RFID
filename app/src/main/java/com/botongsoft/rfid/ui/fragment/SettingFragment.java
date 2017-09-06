@@ -8,6 +8,8 @@ import android.preference.PreferenceFragment;
 
 import com.botongsoft.rfid.BaseApplication;
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.common.utils.StringFormatUtil;
+import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.lidroid.xutils.util.LogUtils;
 
 /**
@@ -57,13 +59,19 @@ public class SettingFragment extends PreferenceFragment implements SharedPrefere
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 String value = newValue.toString();
-                de.setSummary(value);
-                SharedPreferences shared = BaseApplication.application.getSharedPreferences("ipaddress", 0);
-                SharedPreferences.Editor editor = shared.edit();
-                editor.putString("value", value);
-                editor.commit();
-                LogUtils.d("onPreferenceChange");
-                return true;
+               if(!StringFormatUtil.ipCheck(value)){
+                   ToastUtils.showLong("ip 地址不符合规范");
+                   return  false;
+               }else {
+                   de.setSummary(value);
+                   SharedPreferences shared = BaseApplication.application.getSharedPreferences("ipaddress", 0);
+                   SharedPreferences.Editor editor = shared.edit();
+                   editor.putString("value", value);
+                   editor.commit();
+                   LogUtils.d("onPreferenceChange");
+                   return true;
+               }
+
             }
         });
         de.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {

@@ -1023,7 +1023,7 @@ public class SyncbakActivity extends BaseActivity {
                         //新上架子
                         //                        List<Mjjgda> tempList = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
                         List<Mjjgda> tempList = (List<Mjjgda>) CheckDetailSearchDb.getInfosHasOp(Mjjgda.class, "status", "=", "0", "anchor", "=", "0", limit);
-                        boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
+                        boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST());// 先判断对方服务器是否存在
                         if (st) {
                             if ((tempList != null && !tempList.isEmpty()) || (tempList1 != null && !tempList1.isEmpty())) {
                                 //                                task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
@@ -1097,7 +1097,7 @@ public class SyncbakActivity extends BaseActivity {
             uiMsg = mHandler.obtainMessage();
             Bundle data = new Bundle();
 
-            boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST);// 先判断对方服务器是否存在
+            boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST());// 先判断对方服务器是否存在
             if (st) {
                 uiMsg.what = CONN_SUCCESS;
             } else {

@@ -40,18 +40,18 @@ public class Constant {
     /**
      * 根据传入的RFID条码分解成数组 如果这个分界方法变了，所有有使用这个方法的地方需要
      * 重新检查新获得的数组位置是否正确
-     * @param value "B001000121111"
+     * @param value "B000100000121111"
      * @return
      */
     public static String[] reqDatas(String value) {
-        //value = "B,001,000121,1,1,1"
+        //value = "B,0001,00000121,1,1,1"
         String[] s = new String[6];
         s[0]=value.substring(0,1);//B  标签头
-        s[1]=value.substring(1,4);//001 库房ID 前面补0
-        s[2]=value.substring(4,10);//000121 密集架ID 前面补0
-        s[3]=value.substring(10,11);//1或2 左或右
-        s[4]=value.substring(11,12);//组数
-        s[5]=value.substring(12,13);//层数
+        s[1]=value.substring(1,5);//001 库房ID 前面补0
+        s[2]=value.substring(5,13);//000121 密集架ID 前面补0
+        s[3]=value.substring(13,14);//1或2 左或右
+        s[4]=value.substring(14,15);//组数
+        s[5]=value.substring(15,16);//层数
         System.out.println(Integer.valueOf(s[2]).toString());
         return s;
     }

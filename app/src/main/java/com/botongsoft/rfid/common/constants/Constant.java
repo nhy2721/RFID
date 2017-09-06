@@ -11,15 +11,15 @@ public class Constant {
     public static final String THEME_MODEL = "theme_model";
     /*** 服务器地址 **/
     public static String DOMAIN = "http://www.zzdanganguan.gov.cn/servlet/zzdajServlet";// ?clientType=0&message=
-    public static String DOMAINTEST;// ?clientType=0&message=
 
-    static {
+    public static String DOMAINTEST()// ?clientType=0&message=
+    {
         String DOAMIN_A = "http://";
         String DOAMIN_B = getSpIpaddress("ipaddress");
         String DOAMIN_C = "/servlet/appServlet";
-        DOMAINTEST = new StringBuilder().append(DOAMIN_A).append(DOAMIN_B).append(DOAMIN_C).toString();
+        String add = new StringBuilder().append(DOAMIN_A).append(DOAMIN_B).append(DOAMIN_C).toString();
+        return add;
     }
-
 
     /**
      * 数据编码
