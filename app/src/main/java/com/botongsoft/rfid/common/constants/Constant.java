@@ -1,5 +1,7 @@
 package com.botongsoft.rfid.common.constants;
 
+import static com.botongsoft.rfid.common.utils.SPUtils.getSpIpaddress;
+
 /**
  * 公用的常用参数
  *
@@ -9,7 +11,15 @@ public class Constant {
     public static final String THEME_MODEL = "theme_model";
     /*** 服务器地址 **/
     public static String DOMAIN = "http://www.zzdanganguan.gov.cn/servlet/zzdajServlet";// ?clientType=0&message=
-    public static String DOMAINTEST = "http://192.168.0.66:8086/servlet/appServlet";// ?clientType=0&message=
+    public static String DOMAINTEST;// ?clientType=0&message=
+
+    static {
+        String DOAMIN_A = "http://";
+        String DOAMIN_B = getSpIpaddress("ipaddress");
+        String DOAMIN_C = "/servlet/appServlet";
+        DOMAINTEST = new StringBuilder().append(DOAMIN_A).append(DOAMIN_B).append(DOAMIN_C).toString();
+    }
+
 
     /**
      * 数据编码

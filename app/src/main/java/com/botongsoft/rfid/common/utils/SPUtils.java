@@ -3,6 +3,8 @@ package com.botongsoft.rfid.common.utils;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.botongsoft.rfid.BaseApplication;
+
 /**
  * Created by hymanme on 2015/8/26.
  */
@@ -13,7 +15,7 @@ public class SPUtils {
     }
 
     private static SharedPreferences getSharedPreferences() {
-        return PreferenceManager.getDefaultSharedPreferences( UIUtils.getContext());
+        return PreferenceManager.getDefaultSharedPreferences(UIUtils.getContext());
     }
 
     public static String getPrefString(String key, final String defaultValue) {
@@ -64,5 +66,14 @@ public class SPUtils {
         final SharedPreferences.Editor editor = getSharedPreferences().edit();
         editor.clear();
         editor.commit();
+    }
+
+    /*/
+    "ipaddress"
+     */
+    public static String getSpIpaddress(String key) {
+        SharedPreferences sp = BaseApplication.application.getSharedPreferences(key, 0);
+        String value = sp.getString("value", "");
+        return value;
     }
 }

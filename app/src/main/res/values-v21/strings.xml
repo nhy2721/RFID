@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="request_hint_register">正在努力加载中~</string>
+    <string name="ipaddress">服务器IP</string>
 </resources>

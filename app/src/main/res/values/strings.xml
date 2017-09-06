@@ -53,4 +53,7 @@
     <string name="recommend_book_list">推荐书单</string>
     <string name="pro_base_loading">加载中</string>
     <string name="request_hint_register">正在努力加载中~</string>
+    <string name="save_net_mode">save_net_mode</string>
+    <string name="clear">clear</string>
+    <string name="ipaddress">服务器IP</string>
 </resources>

@@ -1,52 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="com.botongsoft.rfid.ui.activity.SettingActivity"
+    >
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true"
-        android:text="功率大小" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical"
+        >
 
-    <Button
-        android:id="@+id/button_min"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_centerVertical="true"
-        android:layout_toRightOf="@+id/textView1"
-        android:text="减小"
-         />
+        <android.support.design.widget.AppBarLayout
+            android:id="@+id/appBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            >
 
-    <EditText
-        android:id="@+id/editText_power"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/button_min"
-        android:layout_toRightOf="@+id/button_min"
-        android:focusable="false"
-        android:ems="5" >
-    </EditText>
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorPrimary"
+                android:minHeight="?attr/actionBarSize"
+                app:layout_scrollFlags="scroll|enterAlways"
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                app:titleTextColor="#ffffff"
+                />
 
-    <Button
-        android:id="@+id/button_plus"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_alignBottom="@+id/button_min"
-        android:layout_marginLeft="19dp"
-        android:layout_toRightOf="@+id/editText_power"
-        android:text="增大"
-         />
 
-    <Button
-        android:id="@+id/button_set"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/button_plus"
-        android:layout_marginTop="41dp"
-        android:layout_toRightOf="@+id/editText_power"
-        android:text="保存" />
+        </android.support.design.widget.AppBarLayout>
 
-</RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/content_frame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+    </LinearLayout>
+</android.support.design.widget.CoordinatorLayout>
