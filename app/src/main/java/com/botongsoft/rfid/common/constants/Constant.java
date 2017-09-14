@@ -10,7 +10,7 @@ import static com.botongsoft.rfid.common.utils.SPUtils.getSpIpaddress;
 public class Constant {
     public static final String THEME_MODEL = "theme_model";
     /*** 服务器地址 **/
-    public static String DOMAIN = "http://www.zzdanganguan.gov.cn/servlet/zzdajServlet";// ?clientType=0&message=
+
 
     public static String DOMAINTEST()// ?clientType=0&message=
     {
