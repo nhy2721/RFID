@@ -523,10 +523,22 @@ public class UpFLoorActivity extends BaseActivity {
                             mjjname = mjj.getMc() + "/";
                             mjjid = mjj.getId() + "/";
                             kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                        }else {
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    ToastUtils.showToast("没查询到密集架表记录",500);
+                                }
+                            });
                         }
                         if (kf != null) {
                             kfname = kf.getMc() + "/";
                             kfid = kf.getId() + "/";
+                        }else {
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    ToastUtils.showToast("没查询到库房表记录",500);
+                                }
+                            });
                         }
                         nLOrR = mjjg.getZy() == 1 ? "左" : "右";
                         String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
@@ -536,6 +548,12 @@ public class UpFLoorActivity extends BaseActivity {
                         scanInfoLocal = temple;
 
                         mHandlerMessage.setData(mBundle);
+                    }else {
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                ToastUtils.showToast("没查询到格子记录 密集架ID："+Integer.valueOf(s[2]).toString()+"左/右:"+Integer.valueOf(s[3]).toString()+"层数："+Integer.valueOf(s[5]).toString() ,500);
+                            }
+                        });
                     }
                     break;
             }

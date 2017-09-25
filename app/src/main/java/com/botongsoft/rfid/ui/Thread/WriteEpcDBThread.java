@@ -44,7 +44,7 @@ public class WriteEpcDBThread extends Thread {
             uiMsg.setData(b);
             uiMsg.what = BackThread_GETEPC_SUCCESS_PB;
             mhandler.sendMessage(uiMsg);
-           epcOld  = (Epc) DBDataUtils.getInfo(Epc.class, "id", epc.getEpccode() + "");
+           epcOld  = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", epc.getEpccode() + "");
             if (epcOld != null) {
                 epcOld.setAnchor(epc.getAnchor());
                 epcOld.setArchiveno(epc.getArchiveno());

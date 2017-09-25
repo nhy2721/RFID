@@ -56,4 +56,7 @@
     <string name="save_net_mode">save_net_mode</string>
     <string name="clear">clear</string>
     <string name="ipaddress">服务器IP</string>
+    <string name="recove">档号</string>
+    <string name="number">序号</string>
+    <string name="location">存放位置</string>
 </resources>

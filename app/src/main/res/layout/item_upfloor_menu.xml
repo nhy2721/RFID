@@ -31,7 +31,7 @@
         android:layout_margin="3dp"
         android:layout_weight="0.33"
         android:gravity="center"
-        android:text="序号"
+        android:text="@string/number"
         />
 
     <TextView
@@ -40,7 +40,7 @@
         android:layout_margin="3dp"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="编码"
+        android:text="@string/recove"
         />
 
     <com.balysv.materialripple.MaterialRippleLayout
