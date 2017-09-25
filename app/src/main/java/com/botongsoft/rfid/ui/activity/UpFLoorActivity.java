@@ -513,45 +513,54 @@ public class UpFLoorActivity extends BaseActivity {
                     Kf kf = null;
                     String kfid = "";
                     String mjjid = "";
-                    String s[] = Constant.reqDatas(editString);
-                    //如果不重复查询密集格表
-                    Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
-                            "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
-                    if (mjjg != null) {
-                        mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
-                        if (mjj != null) {
-                            mjjname = mjj.getMc() + "/";
-                            mjjid = mjj.getId() + "/";
-                            kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                        }else {
-                            runOnUiThread(new Runnable() {
-                                public void run() {
-                                    ToastUtils.showToast("没查询到密集架表记录",500);
-                                }
-                            });
-                        }
-                        if (kf != null) {
-                            kfname = kf.getMc() + "/";
-                            kfid = kf.getId() + "/";
-                        }else {
-                            runOnUiThread(new Runnable() {
-                                public void run() {
-                                    ToastUtils.showToast("没查询到库房表记录",500);
-                                }
-                            });
-                        }
-                        nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-                        String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                        String temple = kfid + mjjid + mjjg.getId();//这里的值用来拆分存放位置存入档案表
-                        mBundle = new Bundle();
-                        mBundle.putString("info", name);
-                        scanInfoLocal = temple;
+                    try {
+                        String s[] = Constant.reqDatas(editString);
+                        //如果不重复查询密集格表
+                        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
+                                "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
+                        if (mjjg != null) {
+                            mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                            if (mjj != null) {
+                                mjjname = mjj.getMc() + "/";
+                                mjjid = mjj.getId() + "/";
+                                kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                            }else {
+                                runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        ToastUtils.showToast("没查询到密集架表记录",500);
+                                    }
+                                });
+                            }
+                            if (kf != null) {
+                                kfname = kf.getMc() + "/";
+                                kfid = kf.getId() + "/";
+                            }else {
+                                runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        ToastUtils.showToast("没查询到库房表记录",500);
+                                    }
+                                });
+                            }
+                            nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                            String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+                            String temple = kfid + mjjid + mjjg.getId();//这里的值用来拆分存放位置存入档案表
+                            mBundle = new Bundle();
+                            mBundle.putString("info", name);
+                            scanInfoLocal = temple;
 
-                        mHandlerMessage.setData(mBundle);
-                    }else {
+                            mHandlerMessage.setData(mBundle);
+                        }else {
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    ToastUtils.showToast("没查询到格子记录 密集架ID："+Integer.valueOf(s[2]).toString()+"左/右:"+Integer.valueOf(s[3]).toString()+"层数："+Integer.valueOf(s[5]).toString() ,500);
+                                }
+                            });
+                        }
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
                         runOnUiThread(new Runnable() {
                             public void run() {
-                                ToastUtils.showToast("没查询到格子记录 密集架ID："+Integer.valueOf(s[2]).toString()+"左/右:"+Integer.valueOf(s[3]).toString()+"层数："+Integer.valueOf(s[5]).toString() ,500);
+                                ToastUtils.showToast(e.getMessage(),500);
                             }
                         });
                     }
