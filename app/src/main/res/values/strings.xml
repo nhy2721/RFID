@@ -59,4 +59,9 @@
     <string name="recove">档号</string>
     <string name="number">序号</string>
     <string name="location">存放位置</string>
+    <string name="initdb">初始化数据库</string>
+    <string name="initdb_title_dialog">是否初始化数据库</string>
+    <string name="dialog_initdb_message">点击确定将清空该机内的所有数据内容</string>
+    <string name="postive_button">确认</string>
+    <string name="negative_button">取消</string>
 </resources>

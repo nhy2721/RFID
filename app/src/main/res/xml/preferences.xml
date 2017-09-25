@@ -21,7 +21,13 @@
             android:summary=""
             android:textSize="@dimen/textsize_16"
             android:title="服务器地址设置" />
+        <Preference
+            android:key="@string/initdb"
+            android:layout="@layout/preference_item"
+            android:summary="点击该选项将清空该机内的所有数据"
+            android:title="初始化数据库" />
     </PreferenceCategory>
+
 
     <!--<PreferenceCategory-->
         <!--android:layout="@layout/preference_category_widget"-->
