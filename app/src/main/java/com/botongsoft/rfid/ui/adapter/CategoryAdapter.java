@@ -9,11 +9,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.ui.activity.CheckPlanActivity;
+import com.botongsoft.rfid.ui.activity.DirectionalSearchActivity;
 import com.botongsoft.rfid.ui.activity.DownFLoorActivity;
 import com.botongsoft.rfid.ui.activity.SettingActivity;
 import com.botongsoft.rfid.ui.activity.SyncbakActivity;
@@ -53,49 +54,64 @@ public class CategoryAdapter extends RecyclerView.Adapter {
             public void onClick(View v) {
                 switch (position) {
                     case 0:
-                        Toast.makeText(UIUtils.getContext(), "上架", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(UIUtils.getContext(), "上架", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showToast("上架"  , 500);
                         intent = new Intent(UIUtils.getContext(), UpFLoorActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
                         UIUtils.startActivity(intent);
                         break;
                     case 1:
-                        Toast.makeText(UIUtils.getContext(), "下架", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showToast("下架"  , 500);
+//                        Toast.makeText(UIUtils.getContext(), "下架", Toast.LENGTH_SHORT).show();
                         intent = new Intent(UIUtils.getContext(), DownFLoorActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
                         UIUtils.startActivity(intent);
                         break;
                     case 2:
-                        Toast.makeText(UIUtils.getContext(), "盘点计划", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showToast("盘点计划"  , 500);
+//                        Toast.makeText(UIUtils.getContext(), "盘点计划", Toast.LENGTH_SHORT).show();
                         intent = new Intent(UIUtils.getContext(), CheckPlanActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
                         UIUtils.startActivity(intent);
                         break;
                     case 3:
-                        Toast.makeText(UIUtils.getContext(), "盘点计划", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showToast("盘点计划"  , 500);
+//                        Toast.makeText(UIUtils.getContext(), "盘点计划", Toast.LENGTH_SHORT).show();
                         intent = new Intent(UIUtils.getContext(), CheckPlanActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
                         UIUtils.startActivity(intent);
                         break;
                     case 4:
-                        Toast.makeText(UIUtils.getContext(), "上架引导", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showToast("上架引导"  , 500);
+//                        Toast.makeText(UIUtils.getContext(), "上架引导", Toast.LENGTH_SHORT).show();
                         intent = new Intent(UIUtils.getContext(), UpGuidanceActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
                         UIUtils.startActivity(intent);
                         break;
                     case 5:
-                        Toast.makeText(UIUtils.getContext(), "设置", Toast.LENGTH_SHORT).show();
-                        intent = new Intent(UIUtils.getContext(), SettingActivity.class);
+                        ToastUtils.showToast("定向查找"  , 500);
+//                        Toast.makeText(UIUtils.getContext(), "定向查找", Toast.LENGTH_SHORT).show();
+                        intent = new Intent(UIUtils.getContext(), DirectionalSearchActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
                         UIUtils.startActivity(intent);
                         break;
                     case 6:
-                        Toast.makeText(UIUtils.getContext(), "同步", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showToast("设置"  , 500);
+//                        Toast.makeText(UIUtils.getContext(), "设置", Toast.LENGTH_SHORT).show();
+                        intent = new Intent(UIUtils.getContext(), SettingActivity.class);
+                        intent.putExtra("index", position);
+                        intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
+                        UIUtils.startActivity(intent);
+                        break;
+                    case 7:
+                        ToastUtils.showToast("同步"  , 500);
+//                        Toast.makeText(UIUtils.getContext(), "同步", Toast.LENGTH_SHORT).show();
                         intent = new Intent(UIUtils.getContext(), SyncbakActivity.class);
                         intent.putExtra("index", position);
                         intent.putExtra("title", mCategory[holder.getAdapterPosition()]);
@@ -143,20 +159,22 @@ public class CategoryAdapter extends RecyclerView.Adapter {
             case 4:
                 return R.mipmap.ic_category_management;
             case 5:
-                return R.mipmap.ic_category_technology;
-            case 6:
-                return R.mipmap.ic_category_country;
-            case 7:
-                return R.mipmap.ic_category_subject;
-            case 8:
-                return R.mipmap.ic_category_author;
-            case 9:
                 return R.mipmap.ic_category_publisher;
+            case 6:
+                return R.mipmap.ic_category_technology;
+            case 7:
+                return R.mipmap.ic_category_country;
+            case 8:
+                return R.mipmap.ic_category_subject;
+            case 9:
+                return R.mipmap.ic_category_author;
             case 10:
-                return R.mipmap.ic_category_throng;
+                return R.mipmap.ic_category_publisher;
             case 11:
-                return R.mipmap.ic_category_religion;
+                return R.mipmap.ic_category_throng;
             case 12:
+                return R.mipmap.ic_category_religion;
+            case 13:
                 return R.mipmap.ic_category_other;
             default:
                 return R.mipmap.ic_category_literature;

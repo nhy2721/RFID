@@ -37,6 +37,7 @@ import com.botongsoft.rfid.common.db.SearchDb;
 import com.botongsoft.rfid.common.utils.ConverJavaBean;
 import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.common.utils.SoundUtil;
+import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.ui.adapter.ScanCheckPlanDetailAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
@@ -811,24 +812,35 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             while (runFlag) {
 
                 if (startFlag) {
-                    epcList = BaseApplication.application.getmanager().inventoryRealTime(); //
-                    if (epcList != null && !epcList.isEmpty()) {
-                        SoundUtil.play(1, 0);
-                        Message sMessage = mHandler.obtainMessage();
-                        sMessage.what = UI_SUCCESS;
-                        for (String epc : epcList) {
-                            searchDB(epc);
+                    if (BaseApplication.application.getmanager() != null) {
+                        epcList = BaseApplication.application.getmanager().inventoryRealTime(); //
+                        if (epcList != null && !epcList.isEmpty()) {
+                            SoundUtil.play(1, 0);
+                            Message sMessage = mHandler.obtainMessage();
+                            sMessage.what = UI_SUCCESS;
+                            for (String epc : epcList) {
+                                searchDB(epc);
 
+                            }
+                            mHandler.sendMessage(sMessage);
                         }
-                        mHandler.sendMessage(sMessage);
+                        epcList = null;
+                        try {
+                            Thread.sleep(200);
+                        } catch (InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    } else {
+                        runFlag = false;
+                        startFlag = false;
+                        getActivity().runOnUiThread(new Runnable() {
+                            public void run() {
+                                ToastUtils.showLong("硬件链接失败");
+                            }
+                        });
                     }
-                    epcList = null;
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
+
                 }
             }
         }

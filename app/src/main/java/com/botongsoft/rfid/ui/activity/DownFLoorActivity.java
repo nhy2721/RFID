@@ -77,10 +77,10 @@ public class DownFLoorActivity extends BaseActivity {
     SwipeMenuRecyclerView mSwipeMenuRecyclerView;
     @BindView(R.id.fab)
     FloatingActionButton mFab;
-//    @BindView(R.id.tx_layout)
-//    TextInputLayout mTextInputLayout;
-//    @BindView(R.id.input_tx)
-//    TextInputEditText mTextInputEditText;
+    //    @BindView(R.id.tx_layout)
+    //    TextInputLayout mTextInputLayout;
+    //    @BindView(R.id.input_tx)
+    //    TextInputEditText mTextInputEditText;
     //    @BindView(R.id.tv_info)
     //    TextView mTextView;
     @BindView(R.id.st_saoma)
@@ -90,7 +90,7 @@ public class DownFLoorActivity extends BaseActivity {
     private int index;
     private String editString;
     private List<Mjjgda> mDataList;
-//    private List<MjjgdaDelInfos> delInfosesList;//下架删除的记录存入MjjgdaDelInfos表
+    //    private List<MjjgdaDelInfos> delInfosesList;//下架删除的记录存入MjjgdaDelInfos表
     private DownFloorAdapter mDownFloorAdapter;
     private int size = 50;
     private static int size1 = 1;
@@ -109,12 +109,13 @@ public class DownFLoorActivity extends BaseActivity {
     //传递UI前台显示消息队列
     Message mHandlerMessage;
     Bundle mBundle;
-//    private PlaySoundPool soundPool;
+    //    private PlaySoundPool soundPool;
     Thread thread;
     private static UHFLongerManager manager;
     private KeyReceiver keyReceiver;
     private boolean runFlag = true;
     private boolean startFlag = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_downfloor);
@@ -157,40 +158,40 @@ public class DownFLoorActivity extends BaseActivity {
         //        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
         mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
 
-//        mTextInputEditText.addTextChangedListener(new TextWatcher() {
-//            @Override
-//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-//                // 输入前的监听
-//                //                Log.e("输入前确认执行该方法", "开始输入");
-//                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
-//            }
-//
-//            @Override
-//            public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                // 输入的内容变化的监听
-//                //               Log.e("输入过程中执行该方法", "文字变化");
-//                if (mCheckMsgHandler != null) {
-//                    mCheckMsgHandler.removeCallbacks(delayRun);
-//                }
-//                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
-//            }
-//
-//            @Override
-//            public void afterTextChanged(Editable editable) {
-//                // 输入后的监听
-//                //                Log.e("输入结束执行该方法", "输入结束");
-//                Log.e("Handler textChanged--->", String.valueOf(Thread.currentThread().getName()));
-//                if (mTextInputEditText.length() != 0) {
-//                    if (mCheckMsgHandler != null) {
-//                        mCheckMsgHandler.removeCallbacks(delayRun);
-//                    }
-//                    //延迟800ms，如果不再输入字符，则执行该线程的run方法 模拟扫描输入
-//                    msg = mCheckMsgHandler.obtainMessage();
-//                    msg.what = MSG_UPDATE_INFO;
-//                    mCheckMsgHandler.sendMessageDelayed(msg, Constant.delayRun);
-//                }
-//            }
-//        });
+        //        mTextInputEditText.addTextChangedListener(new TextWatcher() {
+        //            @Override
+        //            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        //                // 输入前的监听
+        //                //                Log.e("输入前确认执行该方法", "开始输入");
+        //                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
+        //            }
+        //
+        //            @Override
+        //            public void onTextChanged(CharSequence s, int start, int before, int count) {
+        //                // 输入的内容变化的监听
+        //                //               Log.e("输入过程中执行该方法", "文字变化");
+        //                if (mCheckMsgHandler != null) {
+        //                    mCheckMsgHandler.removeCallbacks(delayRun);
+        //                }
+        //                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
+        //            }
+        //
+        //            @Override
+        //            public void afterTextChanged(Editable editable) {
+        //                // 输入后的监听
+        //                //                Log.e("输入结束执行该方法", "输入结束");
+        //                Log.e("Handler textChanged--->", String.valueOf(Thread.currentThread().getName()));
+        //                if (mTextInputEditText.length() != 0) {
+        //                    if (mCheckMsgHandler != null) {
+        //                        mCheckMsgHandler.removeCallbacks(delayRun);
+        //                    }
+        //                    //延迟800ms，如果不再输入字符，则执行该线程的run方法 模拟扫描输入
+        //                    msg = mCheckMsgHandler.obtainMessage();
+        //                    msg.what = MSG_UPDATE_INFO;
+        //                    mCheckMsgHandler.sendMessageDelayed(msg, Constant.delayRun);
+        //                }
+        //            }
+        //        });
         // 添加滚动监听。
         //        mSwipeMenuRecyclerView.addOnScrollListener(mOnScrollListener);
         // 设置菜单创建器。
@@ -201,7 +202,7 @@ public class DownFLoorActivity extends BaseActivity {
         mDownFloorAdapter = new DownFloorAdapter(this, mDataList);
         mDownFloorAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mDownFloorAdapter);
-        keyReceiver = new KeyReceiver(manager,false,mSwitch);
+        keyReceiver = new KeyReceiver(manager, false, mSwitch);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.rfid.FUN_KEY");
         registerReceiver(keyReceiver, intentFilter);
@@ -224,7 +225,7 @@ public class DownFLoorActivity extends BaseActivity {
                 }
             }
         });
-//        delInfosesList = new ArrayList<>();
+        //        delInfosesList = new ArrayList<>();
         mProgressBar.setVisibility(View.GONE);
         mFab.setOnClickListener(new OnSingleClickListener() {
             @Override
@@ -248,14 +249,14 @@ public class DownFLoorActivity extends BaseActivity {
                 super.handleMessage(msg);
                 switch (msg.what) {
                     case UI_SUCCESS:
-//                        mTextInputEditText.setText("");
+                        //                        mTextInputEditText.setText("");
                         smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
                         mDownFloorAdapter.notifyDataSetChanged();
                         break;
                     case UI_SUBMITSUCCESS:
-//                        mTextInputEditText.setText("");
+                        //                        mTextInputEditText.setText("");
                         mDataList.clear();
-//                        delInfosesList.clear();
+                        //                        delInfosesList.clear();
                         mDownFloorAdapter.notifyDataSetChanged();
                         mProgressBar.setVisibility(View.GONE);
                         Toast.makeText(UIUtils.getContext(), "下架成功", Toast.LENGTH_SHORT).show();
@@ -264,19 +265,19 @@ public class DownFLoorActivity extends BaseActivity {
                         break;
                     case UI_SUBMITSENDFAILUREMSG:
                         SoundUtil.play(2, 0);
-//                        soundPool= new SoundPool(10, AudioManager.STREAM_SYSTEM,5);
-//                        soundPool.load(mContext,R.raw.beep,1);
-//                        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-//                            @Override
-//                            public void onLoadComplete(SoundPool soundPool, int i, int i2) {
-//                                soundPool.play(1,  //声音id
-//                                        1, //左声道
-//                                        1, //右声道
-//                                        1, //优先级
-//                                        0, // 0表示不循环，-1表示循环播放
-//                                        1);//播放比率，0.5~2，一般为1
-//                            }
-//                        });
+                        //                        soundPool= new SoundPool(10, AudioManager.STREAM_SYSTEM,5);
+                        //                        soundPool.load(mContext,R.raw.beep,1);
+                        //                        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+                        //                            @Override
+                        //                            public void onLoadComplete(SoundPool soundPool, int i, int i2) {
+                        //                                soundPool.play(1,  //声音id
+                        //                                        1, //左声道
+                        //                                        1, //右声道
+                        //                                        1, //优先级
+                        //                                        0, // 0表示不循环，-1表示循环播放
+                        //                                        1);//播放比率，0.5~2，一般为1
+                        //                            }
+                        //                        });
                         Toast.makeText(UIUtils.getContext(), "更新数据失败", Toast.LENGTH_SHORT).show();
                         break;
                     default:
@@ -366,19 +367,19 @@ public class DownFLoorActivity extends BaseActivity {
             //                }
             //            });
             //这里定义发送通知ui更新界面
-//            mHandlerMessage = mHandler.obtainMessage();
-//            mHandlerMessage.what = UI_SUCCESS;
+            //            mHandlerMessage = mHandler.obtainMessage();
+            //            mHandlerMessage.what = UI_SUCCESS;
             //在这里读取数据库增加list值，界面显示读取的标签信息
-//            editString = mTextInputEditText.getText().toString();
-//            searchDB(editString);
-//            mHandler.sendMessage(mHandlerMessage);
+            //            editString = mTextInputEditText.getText().toString();
+            //            searchDB(editString);
+            //            mHandler.sendMessage(mHandlerMessage);
         }
     };
 
     private void searchDB(String editString) {
         boolean tempStr = true;
         int lx = Constant.getLx(editString);//根据传入的值返回对象类型
-//        String temp[] = editString.split("-");
+        //        String temp[] = editString.split("-");
         //防止扫描重复判断
         if (mDataList.size() > 0) {
             for (Mjjgda mjjgda : mDataList) {
@@ -442,11 +443,11 @@ public class DownFLoorActivity extends BaseActivity {
                             //                        MjjgdaDelInfos ms = (MjjgdaDelInfos) JSON.parseObject(jsonObj, MjjgdaDelInfos.class);
                             //                        delInfosesList.add(ms);
                         }
-                    }else {
+                    } else {
                         runOnUiThread(new Runnable() {
                             public void run() {
-//                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
-                                ToastUtils.showToast("没查询到该条扫描记录" + editString ,500);
+                                //                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
+                                ToastUtils.showToast("没查询到该条扫描记录" + editString, 500);
                             }
                         });
                     }
@@ -618,10 +619,10 @@ public class DownFLoorActivity extends BaseActivity {
         public void onItemClick(int position, int listSize) {
             Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
             if (position != -1) {
-//                delInfosesList.remove(position);
+                //                delInfosesList.remove(position);
                 mDataList.remove(position);
                 mDownFloorAdapter.notifyItemRemoved(position);
-//                mDownFloorAdapter.notifyItemRangeChanged(position, listSize);
+                mDownFloorAdapter.notifyItemRangeChanged(position, listSize);
             }
         }
 
@@ -656,7 +657,7 @@ public class DownFLoorActivity extends BaseActivity {
             // TODO 推荐调用Adapter.notifyItemRemoved(position)，也可以Adapter.notifyDataSetChanged();
             if (menuPosition == 0) {// 删除按钮被点击。
                 mDataList.remove(adapterPosition);
-//                delInfosesList.remove(adapterPosition);
+                //                delInfosesList.remove(adapterPosition);
                 mDownFloorAdapter.notifyItemRemoved(adapterPosition);
             }
         }
@@ -684,6 +685,7 @@ public class DownFLoorActivity extends BaseActivity {
             mFab.hide();
         }
     }
+
     class ThreadMe extends Thread {
         private List<String> epcList;
 
@@ -693,28 +695,37 @@ public class DownFLoorActivity extends BaseActivity {
             while (runFlag) {
 
                 if (startFlag) {
-                    epcList = manager.inventoryRealTime(); //
-                    if (epcList != null && !epcList.isEmpty()) {
-                        SoundUtil.play(1, 0);
-                        Message sMessage = mHandler.obtainMessage();
-                        sMessage.what = UI_SUCCESS;
-                        for (String epc : epcList) {
-                            searchDB(epc);
+                    if (manager != null) {
+                        epcList = manager.inventoryRealTime(); //
+                        if (epcList != null && !epcList.isEmpty()) {
+                            SoundUtil.play(1, 0);
+                            Message sMessage = mHandler.obtainMessage();
+                            sMessage.what = UI_SUCCESS;
+                            for (String epc : epcList) {
+                                searchDB(epc);
 
+                            }
+                            mHandler.sendMessage(sMessage);
                         }
-                        mHandler.sendMessage(sMessage);
-                    }
-                    epcList = null;
-                    try {
-                        Thread.sleep(20);
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                        epcList = null;
+                        try {
+                            Thread.sleep(20);
+                        } catch (InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }else{
+                        runFlag = false;
+                        startFlag = false;
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                ToastUtils.showLong("硬件链接失败");
+                            }
+                        });
                     }
                 }
             }
         }
-
     }
 
     @Override
@@ -748,7 +759,7 @@ public class DownFLoorActivity extends BaseActivity {
                 mSwitch.setChecked(false);
                 FragmentTransaction ft = getFragmentManager().beginTransaction();
                 ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                SettingDialogFragment dialogFragment  = SettingDialogFragment.newInstance(R.layout.setting_power_dialog);
+                SettingDialogFragment dialogFragment = SettingDialogFragment.newInstance(R.layout.setting_power_dialog);
                 dialogFragment.show(ft, "settingDialog");
                 return true;
             default:

@@ -1,27 +1,35 @@
 package com.botongsoft.rfid.ui.activity;
 
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.support.customtabs.CustomTabsIntent;
 import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.widget.DefaultItemAnimator;
+import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.CompoundButton;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.botongsoft.rfid.BaseApplication;
@@ -37,14 +45,17 @@ import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.db.MjgdaSearchDb;
 import com.botongsoft.rfid.common.service.http.BusinessException;
+import com.botongsoft.rfid.common.utils.KeyBoardUtils;
+import com.botongsoft.rfid.common.utils.ScreenUtils;
 import com.botongsoft.rfid.common.utils.SoundUtil;
 import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.common.utils.UIUtils;
+import com.botongsoft.rfid.hodler.SearchViewHolder;
 import com.botongsoft.rfid.listener.OnItemClickListener;
-import com.botongsoft.rfid.listener.OnSingleClickListener;
-import com.botongsoft.rfid.ui.adapter.UpfloorAdapter;
+import com.botongsoft.rfid.ui.adapter.DownFloorAdapter;
 import com.botongsoft.rfid.ui.fragment.SettingDialogFragment;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
+import com.botongsoft.rfid.utils.customtabs.CustomTabActivityHelper;
 import com.handheld.UHFLonger.UHFLongerManager;
 import com.yanzhenjie.recyclerview.swipe.Closeable;
 import com.yanzhenjie.recyclerview.swipe.OnSwipeMenuItemClickListener;
@@ -53,52 +64,48 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuCreator;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.botongsoft.rfid.R.id.appBarLayout;
+import static com.botongsoft.rfid.R.id.toolbar;
 
 /**
- * 上架
- * Created by pc on 2017/6/12.
+ * 定向查找
  */
-public class UpFLoorActivity extends BaseActivity {
-    private static UHFLongerManager manager;
-    private KeyReceiver keyReceiver;
+public class DirectionalSearchActivity extends BaseActivity {
     private static final int UI_SUCCESS = 0;
     private static final int UI_SUBMITSUCCESS = 1;
-    private static final int UI_SUBMITERROR = 2;
-    private static final int UI_ISEXIST = 3;
-
+    private static final int UI_SUBMITSENDFAILUREMSG = 2;
+    static final int SEND_SEARCHRESULT_REQUEST = 0;
+    static final int CALL_REQUEST = 1;
     @BindView(appBarLayout)
     AppBarLayout mAppBarLayout;
-    @BindView(R.id.toolbar)
+    @BindView(toolbar)
     Toolbar mToolbar;
     //    @BindView(R.id.swipe_layout)
     //    SwipeRefreshLayout mSwipeRefreshLayout;
     @BindView(R.id.recycler_view)
     SwipeMenuRecyclerView mSwipeMenuRecyclerView;
-    @BindView(R.id.fab)
-    FloatingActionButton mFab;
+    //    @BindView(R.id.fab)
+    //    FloatingActionButton mFab;
     //    @BindView(R.id.tx_layout)
     //    TextInputLayout mTextInputLayout;
     //    @BindView(R.id.input_tx)
     //    TextInputEditText mTextInputEditText;
+    //    @BindView(R.id.tv_info)
+    //    TextView mTextView;
     @BindView(R.id.st_saoma)
     Switch mSwitch;
-    @BindView(R.id.tv_info)
-    TextView mTextView;
-    private static String scanInfoLocal = "";//扫描的格子位置 根据“/”拆分后存入数据库
     @BindView(R.id.progressBar)
     ProgressBar mProgressBar;
     private int index;
     private String editString;
-    private List<Map> mDataList;
-    private UpfloorAdapter mUpfloorAdapter;
+    private   List<Mjjgda> mDataList = new ArrayList<>();;
+    //    private List<MjjgdaDelInfos> delInfosesList;//下架删除的记录存入MjjgdaDelInfos表
+    private DownFloorAdapter mDownFloorAdapter;
     private int size = 50;
     private static int size1 = 1;
     private Activity mContext;
@@ -109,11 +116,8 @@ public class UpFLoorActivity extends BaseActivity {
     private Handler mHandler;
     private boolean isOnScreen;//是否在屏幕上
     private boolean isRun;//是否在RFID读取
-    private boolean runFlag = true;
-    private boolean startFlag = false;
     private static final int MSG_UPDATE_INFO = 1;
     private static final int MSG_SUBMIT = 2;
-    LinearLayoutManager layout;
     //传递后台运行消息队列
     Message msg;
     //传递UI前台显示消息队列
@@ -121,10 +125,16 @@ public class UpFLoorActivity extends BaseActivity {
     Bundle mBundle;
     //    private PlaySoundPool soundPool;
     Thread thread;
+    private static UHFLongerManager manager;
+    private KeyReceiver keyReceiver;
+    private boolean runFlag = true;
+    private boolean startFlag = false;
+    private PopupWindow mPopupWindow;
+    private SearchViewHolder holder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setContentView(R.layout.activity_upfloor);
+        setContentView(R.layout.activity_directionalsearch);
         ButterKnife.bind(this);
         super.onCreate(savedInstanceState);
         mContext = this;
@@ -149,22 +159,20 @@ public class UpFLoorActivity extends BaseActivity {
                 int scrollRangle = appBarLayout.getTotalScrollRange();
                 //初始verticalOffset为0，不能参与计算。
                 if (verticalOffset == 0) {
-                    mFab.show();
+                    //                    mFab.show();
                 } else {
-                    mFab.hide();
+                    //                    mFab.hide();
                 }
             }
         });
-
         //        mSwipeRefreshLayout.setOnRefreshListener(mOnRefreshListener); //滑动布局的滑动监听
-        layout = new LinearLayoutManager(this);
+        LinearLayoutManager layout = new LinearLayoutManager(this);
         mSwipeMenuRecyclerView.setLayoutManager(layout);// 布局管理器。
         layout.setStackFromEnd(true);//列表再底部开始展示，反转后由上面开始展示
         layout.setReverseLayout(true);//列表翻转
         mSwipeMenuRecyclerView.setHasFixedSize(true);// 如果Item够简单，高度是确定的，打开FixSize将提高性能。
-        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
+        //        mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
         mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
-
 
         //        mTextInputEditText.addTextChangedListener(new TextWatcher() {
         //            @Override
@@ -203,14 +211,14 @@ public class UpFLoorActivity extends BaseActivity {
         // 添加滚动监听。
         //        mSwipeMenuRecyclerView.addOnScrollListener(mOnScrollListener);
         // 设置菜单创建器。
-        mSwipeMenuRecyclerView.setSwipeMenuCreator(swipeMenuCreator);
+        //        mSwipeMenuRecyclerView.setSwipeMenuCreator(swipeMenuCreator);
         // 设置菜单Item点击监听。
         mSwipeMenuRecyclerView.setSwipeMenuItemClickListener(menuItemClickListener);
 
-        mUpfloorAdapter = new UpfloorAdapter(this, mDataList);
-        mUpfloorAdapter.setOnItemClickListener(onItemClickListener);
-        mSwipeMenuRecyclerView.setAdapter(mUpfloorAdapter);
-        keyReceiver = new KeyReceiver(manager,false,mSwitch);
+        mDownFloorAdapter = new DownFloorAdapter(this, mDataList);
+        mDownFloorAdapter.setOnItemClickListener(onItemClickListener);
+        mSwipeMenuRecyclerView.setAdapter(mDownFloorAdapter);
+        keyReceiver = new KeyReceiver(manager, false, mSwitch);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.rfid.FUN_KEY");
         registerReceiver(keyReceiver, intentFilter);
@@ -220,7 +228,7 @@ public class UpFLoorActivity extends BaseActivity {
     protected void initEvents() {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
-        mDataList = new ArrayList<>();
+//        mDataList = new ArrayList<>();
         mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -233,26 +241,32 @@ public class UpFLoorActivity extends BaseActivity {
                 }
             }
         });
+        //        delInfosesList = new ArrayList<>();
         mProgressBar.setVisibility(View.GONE);
-        mFab.setOnClickListener(new OnSingleClickListener() {
-            @Override
-            protected void onSingleClick(View view) {
-                if (scanInfoLocal.equals("") || scanInfoLocal == null) {
-                    mHandlerMessage = mHandler.obtainMessage();
-                    mHandlerMessage.what = UI_SUBMITERROR;
-                    mHandler.sendMessage(mHandlerMessage);
-                } else {
-                    if (mDataList.size() > 0) {
-                        Toast.makeText(UIUtils.getContext(), "开始保存", Toast.LENGTH_SHORT).show();
-                        view.setClickable(false);
-                        mProgressBar.setVisibility(View.VISIBLE);
-                        msg = mCheckMsgHandler.obtainMessage();
-                        msg.what = MSG_SUBMIT;//发送消息保存界面数据
-                        mCheckMsgHandler.sendMessage(msg);
-                    }
-                }
-            }
-        });
+        //        mFab.setOnClickListener(new OnSingleClickListener() {
+        //            @Override
+        //            protected void onSingleClick(View view) {
+        //                final DirectionalSearchEditorHolder bookShelfHolder = new DirectionalSearchEditorHolder(mContext, "");
+        ////                final int inputSpace = DensityUtils.dp2px(getActivity(), 16);
+        //                final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        //                builder.setCancelable(false)
+        //
+        //                        .setTitle(UIUtils.getContext().getString(R.string.add_bookshelf))
+        //                        .setNegativeButton(R.string.cancel, (dialog, which) -> {
+        //                            dialog.dismiss();
+        ////                            KeyBoardUtils.closeKeyBord(bookShelfHolder.et_bookshelf_name, getActivity());
+        //                        })
+        //                        .setPositiveButton(R.string.ok, (dialog, which) -> {
+        ////                            if (!bookShelfHolder.check()) {
+        ////                                Snackbar.make(BaseActivity.activity.getToolbar(), R.string.bookshelf_name_is_empty, Snackbar.LENGTH_SHORT).show();
+        ////                            } else {
+        ////                                mBookshelfPresenter.addBookshelf(bookShelfHolder.getName(), bookShelfHolder.getRemark(), TimeUtils.getCurrentTime());
+        ////                            }
+        ////                            KeyBoardUtils.closeKeyBord(bookShelfHolder.et_bookshelf_name, getActivity());
+        //                        }).create().show();
+        //
+        //            }
+        //        });
     }
 
     private void initUiHandler() {
@@ -262,36 +276,23 @@ public class UpFLoorActivity extends BaseActivity {
                 super.handleMessage(msg);
                 switch (msg.what) {
                     case UI_SUCCESS:
-                        if (mBundle != null) {
-                            mTextView.setText(mBundle.getString("info"));
-                        }
                         //                        mTextInputEditText.setText("");
                         smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
-                        mUpfloorAdapter.notifyDataSetChanged();
+                        mDownFloorAdapter.notifyDataSetChanged();
                         break;
                     case UI_SUBMITSUCCESS:
-                        mTextView.setText("");
                         //                        mTextInputEditText.setText("");
                         mDataList.clear();
-                        mUpfloorAdapter.notifyDataSetChanged();
+                        //                        delInfosesList.clear();
+                        mDownFloorAdapter.notifyDataSetChanged();
                         mProgressBar.setVisibility(View.GONE);
-                        Toast.makeText(UIUtils.getContext(), "保存成功", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UIUtils.getContext(), "下架成功", Toast.LENGTH_SHORT).show();
                         size1 = 1;
-                        mFab.setClickable(true);
+                        //                        mFab.setClickable(true);
                         break;
-                    case UI_SUBMITERROR:
-//                        ToastUtils.showShort("请扫描文件上架位置");
-                        ToastUtils.showToast("请扫描文件上架位置" ,500);
-                        break;
-                    case UI_ISEXIST:
-                        //                        mTextInputEditText.setText("");
-                        //                        soundPool = new PlaySoundPool(mContext);
-                        //                        soundPool.loadSfx(R.raw.beep, 1);
-                        //                        soundPool.play(1, 0);
+                    case UI_SUBMITSENDFAILUREMSG:
                         SoundUtil.play(2, 0);
-                        String getResult1 = (String) msg.obj;
-//                        ToastUtils.showShort( getResult1 + "上过架了");
-                        ToastUtils.showToast(getResult1 + "上过架了",500);
+                        Toast.makeText(UIUtils.getContext(), "更新数据失败", Toast.LENGTH_SHORT).show();
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -308,12 +309,11 @@ public class UpFLoorActivity extends BaseActivity {
                 Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
                 switch (msg.what) {
                     case MSG_UPDATE_INFO:
-                        checkForUpdate();
+                        checkForUpdate();//
                         break;
                     case MSG_SUBMIT:
-                        doSubmit();//保存数据
+                        doSubmit();//保存数据库
                         break;
-
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
                         break;
@@ -330,73 +330,32 @@ public class UpFLoorActivity extends BaseActivity {
 
         @Override
         public void run() {
-            String temp[] = scanInfoLocal.split("/");//拆分上架的位置
-            //保存数据库
-            for (Map map : mDataList) {
-                //                Mjjgda oldMjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", map.get("bm").toString(), "jlid", map.get("jlid").toString());
-                //                Mjjgda oldMjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", temp[0] + "",
-                //                        "jlid", "=", temp[1] + "", "status", "!=", "-1");
-                //                if (oldMjjgda != null) {
-                //先删除没同步过的版本号为0的重复数据 直接删是因为一个id编码只会有一个位置
-                DBDataUtils.deleteInfos(Mjjgda.class, "bm", "=", map.get("bm").toString(),
-                        "jlid", "=", map.get("jlid").toString(), "anchor", "=", "0", "status", "=", "-1");
-                //如果上架的位置与表里有同步过的位置相等 要删除已下架的数据才能保存新的位置
-                Mjjgda delMjjgda = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "bm", "=",
-                        map.get("bm").toString(), "jlid", "=", map.get("jlid").toString(), "status", "=", "-1", "anchor", ">", "0");
-                if (delMjjgda != null) {
-                    if (delMjjgda.getKfid() == Integer.valueOf(temp[0])
-                            && delMjjgda.getMjjid() == Integer.valueOf(temp[1])
-                            && delMjjgda.getMjgid() == Integer.valueOf(temp[2])) {
-                        //判断如果位置相等删除需要提交同步的旧数据，保存一个新数据
-                        DBDataUtils.deleteInfo(delMjjgda);
-                    }
-                }
-                //                    if (oldMjjgda.getAnchor() > 0) {//判断是否有同步过该条数据，有的话做更新位置操作
-                //                        if (temp.length == 3) {
-                //                            oldMjjgda.setKfid(Integer.valueOf(temp[0]));
-                //                            oldMjjgda.setMjjid(Integer.valueOf(temp[1]));
-                //                            oldMjjgda.setMjgid(Integer.valueOf(temp[2]));
-                //                        } else if (temp.length == 2) {
-                //                            oldMjjgda.setMjjid(Integer.valueOf(temp[0]));
-                //                            oldMjjgda.setMjgid(Integer.valueOf(temp[1]));
-                //                        } else if (temp.length == 1) {
-                //                            oldMjjgda.setMjgid(Integer.valueOf(temp[0]));
-                //                        }
-                //                        oldMjjgda.setBm((map.get("bm").toString()));
-                //                        oldMjjgda.setJlid((map.get("jlid").toString()));
-                //                        DBDataUtils.update(oldMjjgda);
-                //                    }
-
-                //                } else {
-                Mjjgda mjjgda = new Mjjgda();
-                mjjgda.setScanInfo(map.get("title").toString());//保存到档案表的扫描信息字段
-                if (temp.length == 3) {
-                    mjjgda.setKfid(Integer.valueOf(temp[0]));
-                    mjjgda.setMjjid(Integer.valueOf(temp[1]));
-                    mjjgda.setMjgid(Integer.valueOf(temp[2]));
-                } else if (temp.length == 2) {
-                    mjjgda.setMjjid(Integer.valueOf(temp[0]));
-                    mjjgda.setMjgid(Integer.valueOf(temp[1]));
-                } else if (temp.length == 1) {
-                    mjjgda.setMjgid(Integer.valueOf(temp[0]));
-                }
-                mjjgda.setBm((map.get("bm").toString()));
-                mjjgda.setJlid((map.get("jlid").toString()));
-                mjjgda.setStatus(0);//数据库新增
-                mjjgda.setAnchor(0L);//数据新增默认版本号为0，等同步完获得服务器的版本号更新本地
-                DBDataUtils.save(mjjgda);
-                //删除未同步的下架数据
-                //                DBDataUtils.deleteInfo(MjjgdaDelInfos.class,"bm",mjjgda.getBm(),"jlid",mjjgda.getJlid(),"status","=","0");
-                //                }
-
-            }
+            //保存数据库 根据list中的更新档案表信息
+            boolean str = saveDB(mDataList);
             //这里发送通知ui更新界面
-            scanInfoLocal = "";//上过架后清空该变量
             mHandlerMessage = mHandler.obtainMessage();
-            mHandlerMessage.what = UI_SUBMITSUCCESS;
+            if (str) {
+                mHandlerMessage.what = UI_SUBMITSUCCESS;
+            } else {
+                mHandlerMessage.what = UI_SUBMITSENDFAILUREMSG;
+            }
+
             mHandler.sendMessage(mHandlerMessage);
         }
     };
+
+    private boolean saveDB(List<Mjjgda> mDataList) {
+        boolean str = true;
+        //        操作内容是根据选中的条目删除密集架档案表数据，完成下架。
+        //        str = MjgdaSearchDb.delInfo(mDataList);//旧操作是直接删除下架List对象
+        //        if (str) {//保存下架记录到delInfo表
+        //            DBDataUtils.saveAll(delInfsesList);
+        //        }
+        //新操作改成更新这些数据
+        DBDataUtils.updateAll(mDataList);
+        return str;
+
+    }
 
     /**
      * 延迟线程，看是否还有下一个字符输入
@@ -407,7 +366,7 @@ public class UpFLoorActivity extends BaseActivity {
     }
 
     private Runnable delayRun = new Runnable() {
-        //        private List<String> epcList;
+
         @Override
         public void run() {
             //在这里调用服务器的接口，获取数据
@@ -426,149 +385,91 @@ public class UpFLoorActivity extends BaseActivity {
             //            mHandlerMessage.what = UI_SUCCESS;
             //在这里读取数据库增加list值，界面显示读取的标签信息
             //            editString = mTextInputEditText.getText().toString();
-            //去查询数据库。分两种 一种是输入格子id， 一种是输入档案bm+jlid，如果是格子id就要查询数据库格子表，获取到密集架id，这样才能得到库房名称；最后拼接显示在界面上mBundle。
             //            searchDB(editString);
             //            mHandler.sendMessage(mHandlerMessage);
-
         }
     };
 
     private void searchDB(String editString) {
-        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
-        //        String temp[] = "g-4".split("-");
-        //        temp[0] = "g";
-        //        temp[1] = "4";
         boolean tempStr = true;
+        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
+        //        String temp[] = editString.split("-");
         //防止扫描重复判断
         if (mDataList.size() > 0) {
-            for (Map map : mDataList) {
-                if (map.get("epccode").toString().equals(editString)) {
+            for (Mjjgda mjjgda : mDataList) {
+                //                if (map.get("title").toString().equals(editString)) {
+                if (mjjgda.getEpccode().equals(editString)) {
                     tempStr = false;
                     break;
                 }
             }
         }
         if (tempStr) {
-            mHandlerMessage = mHandler.obtainMessage();
             switch (lx) {
                 case Constant.LX_MJGDA:
-                    Mjjgda mjjgda = null;
-                    //不是属于密集格再查询档案是否已经上过架了
-                    //这里要先查询一次对照表 获得该扫描记录的bm与jlid
-                    Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
-                    if (ecp != null) {
-                        //                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
-                        mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", ecp.getBm() + "",
-                                "jlid", "=", ecp.getJlid() + "", "status", "!=", "-1");
-                        if (mjjgda == null) {
-                            //没上过架存入页面显示
-                            Map map = new HashMap();
-                            map.put("id", size1++);
-                            map.put("title", ecp.getArchiveno());
-                            map.put("epccode", editString);
-                            map.put("bm", ecp.getBm());
-                            map.put("jlid", String.valueOf(ecp.getJlid()));
-                            mDataList.add(map);
-                        } else {
-                            //已经上过架了查询文件存放的位置页面通知用户
-                            String kfname1 = "";
-                            String mjjname1 = "";
-                            String nLOrR1 = "";
-                            Mjj mjj1 = null;
-                            Kf kf1 = null;
-                            Mjjg mjjg1 = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
-                            if (mjjg1 != null) {
-                                nLOrR1 = mjjg1.getZy() == 1 ? "左" : "右";
-                                mjj1 = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg1.getMjjid() + "");
-                            }
-                            if (mjj1 != null) {
-                                mjjname1 = mjj1.getMc() + "/";
-                                kf1 = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj1.getKfid() + "");
-                            }
-
-                            if (kf1 != null) {
-                                kfname1 = kf1.getMc() + "/";
-                            }
-                            String name = "档号"+ecp.getArchiveno()+"已经在"+kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
-                            mHandlerMessage.what = UI_ISEXIST;
-                            mHandlerMessage.obj = name;
-                            mHandler.sendMessage(mHandlerMessage);
-                        }
-                    } else {
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-//                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
-                                ToastUtils.showToast("没查询到该条扫描记录" + editString,500);
-                            }
-                        });
-                    }
-
-
-                    break;
-                case Constant.LX_MJJG:
                     String kfname = "";
                     String mjjname = "";
                     String nLOrR = "";
                     Mjj mjj = null;
                     Kf kf = null;
-                    String kfid = "";
-                    String mjjid = "";
-                    try {
-                        String s[] = Constant.reqDatas(editString);
-                        //如果不重复查询密集格表
-                        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
-                                "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
-                        if (mjjg != null) {
-                            mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                    Mjjgda mjjgda = null;
+                    //这里要先查询一次对照表 获得该扫描记录的bm与jlid
+                    Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
+                    if (ecp != null) {
+                        // 查询文件存放的位置
+
+                        //                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
+                        mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", ecp.getBm() + "",
+                                "jlid", "=", ecp.getJlid() + "", "status", "!=", "-1");//下架只查不属于被删除的数据
+                        if (mjjgda != null) {
+                            mjjgda.setTitle(ecp.getArchiveno());
+                            mjjgda.setEpccode(editString);
+                            //                        Map map = new HashMap();
+                            //                        map.put("id", mjjgda.getLid());
+                            //                        map.put("title", mjjgda.getBm() + "-" + mjjgda.getJlid());
+                            //                        map.put("bm", mjjgda.getBm());
+                            //                        map.put("jlid", mjjgda.getJlid());
+                            Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+                            if (mjjg != null) {
+                                nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                                mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                            }
                             if (mjj != null) {
                                 mjjname = mjj.getMc() + "/";
-                                mjjid = mjj.getId() + "/";
                                 kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                            }else {
-                                runOnUiThread(new Runnable() {
-                                    public void run() {
-                                        ToastUtils.showToast("没查询到密集架表记录",500);
-                                    }
-                                });
                             }
+
                             if (kf != null) {
                                 kfname = kf.getMc() + "/";
-                                kfid = kf.getId() + "/";
-                            }else {
-                                runOnUiThread(new Runnable() {
-                                    public void run() {
-                                        ToastUtils.showToast("没查询到库房表记录",500);
-                                    }
-                                });
                             }
-                            nLOrR = mjjg.getZy() == 1 ? "左" : "右";
                             String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                            String temple = kfid + mjjid + mjjg.getId();//这里的值用来拆分存放位置存入档案表
-                            mBundle = new Bundle();
-                            mBundle.putString("info", name);
-                            scanInfoLocal = temple;
-
-                            mHandlerMessage.setData(mBundle);
-                        }else {
-                            runOnUiThread(new Runnable() {
-                                public void run() {
-                                    ToastUtils.showToast("没查询到格子记录 密集架ID："+Integer.valueOf(s[2]).toString()+"左/右:"+Integer.valueOf(s[3]).toString()+"层数："+Integer.valueOf(s[5]).toString() ,500);
-                                }
-                            });
+                            //                        map.put("local", name);//界面显示存放位置
+                            mjjgda.setScanInfo(name);
+                            mjjgda.setStatus(-1);
+                            mDataList.add(mjjgda);
+                            //                        //将下架记录存一份到delInfosesList集合中后保存数据
+                            //                        if (mjjgda.getStatus() == 9) {//有同步过的下架要提交服务器 状态9(已同步过)-->>-1
+                            //                            mjjgda.setStatus(-1);
+                            //                        } else {
+                            //                            mjjgda.setStatus(0);
+                            //                        }
+                            //                        String jsonObj = JSON.toJSONString(mjjgda);
+                            //                        MjjgdaDelInfos ms = (MjjgdaDelInfos) JSON.parseObject(jsonObj, MjjgdaDelInfos.class);
+                            //                        delInfosesList.add(ms);
                         }
-                    } catch (NumberFormatException e) {
-                        e.printStackTrace();
+                    } else {
                         runOnUiThread(new Runnable() {
                             public void run() {
-                                ToastUtils.showToast(e.getMessage(),500);
+                                //                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
+                                ToastUtils.showToast("没查询到该条扫描记录" + editString, 500);
                             }
                         });
                     }
+
                     break;
             }
         }
     }
-
 
     @Override
     protected void onResume() {
@@ -598,13 +499,15 @@ public class UpFLoorActivity extends BaseActivity {
         mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
         startFlag = false;
         thread.interrupt();
-
+        if (mPopupWindow != null) {
+            mPopupWindow.dismiss();
+            mPopupWindow = null;
+        }
     }
 
     @Override
     protected void onDestroy() {
 
-        super.onDestroy();
         //停止查询
         isOnScreen = false;
         startFlag = false;
@@ -616,10 +519,8 @@ public class UpFLoorActivity extends BaseActivity {
         }
         mCheckMsgHandler.removeCallbacksAndMessages(null);
         unregisterReceiver(keyReceiver);
- /*       if (manager != null) {
-            manager.close();
-        }*/
-        finish();
+        //  finish();//finish结束后就无法获得返回值了
+        super.onDestroy();
     }
 
     /**
@@ -644,7 +545,7 @@ public class UpFLoorActivity extends BaseActivity {
             if (!recyclerView.canScrollVertically(1)) {// 手指不能向上滑动了
                 // TODO 这里有个注意的地方，如果你刚进来时没有数据，但是设置了适配器，这个时候就会触发加载更多，需要开发者判断下是否有数据，如果有数据才去加载更多。
 
-                //                Toast.makeText(UpFLoorActivity.this, "滑到最底部了，去加载更多吧！", Toast.LENGTH_SHORT).show();
+                Toast.makeText(DirectionalSearchActivity.this, "滑到最底部了，去加载更多吧！", Toast.LENGTH_SHORT).show();
                 //                size += 50;
                 //                for (int i = size - 50; i < size; i++) {
                 //                    Map map = new HashMap();
@@ -652,7 +553,7 @@ public class UpFLoorActivity extends BaseActivity {
                 //                    map.put("title", "我是第" + i + "个。");
                 //                    mDataList.add(map);
                 //                }
-                //                mUpfloorAdapter.notifyDataSetChanged();
+                //                mDownFloorAdapter.notifyDataSetChanged();
             }
         }
 
@@ -734,11 +635,12 @@ public class UpFLoorActivity extends BaseActivity {
 
         @Override
         public void onItemClick(int position, int listSize) {
-            //            Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
             if (position != -1) {
+                //                delInfosesList.remove(position);
                 mDataList.remove(position);
-                mUpfloorAdapter.notifyItemRemoved(position);
-                mUpfloorAdapter.notifyItemRangeChanged(position, listSize);
+                mDownFloorAdapter.notifyItemRemoved(position);
+                mDownFloorAdapter.notifyItemRangeChanged(position, listSize);
             }
         }
 
@@ -773,7 +675,8 @@ public class UpFLoorActivity extends BaseActivity {
             // TODO 推荐调用Adapter.notifyItemRemoved(position)，也可以Adapter.notifyDataSetChanged();
             if (menuPosition == 0) {// 删除按钮被点击。
                 mDataList.remove(adapterPosition);
-                mUpfloorAdapter.notifyItemRemoved(adapterPosition);
+                //                delInfosesList.remove(adapterPosition);
+                mDownFloorAdapter.notifyItemRemoved(adapterPosition);
             }
         }
     };
@@ -788,17 +691,39 @@ public class UpFLoorActivity extends BaseActivity {
 
     }
 
+    // 回调方法，从第二个页面回来的时候会执行这个方法
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //String change01 = data.getStringExtra("change01");
+        //        String change02 = data.getStringExtra("change02");
+        // 根据上面发送过去的请求吗来区别
+        if (requestCode == SEND_SEARCHRESULT_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Toast.makeText(this, "Send SEARCHRESULT RESULT_OK", Toast.LENGTH_SHORT).show();
+            } else if (resultCode == RESULT_CANCELED) {
+                Bundle bundle = data.getExtras();
 
-    public void showFloatingBar() {
-        if (mFab != null) {
-            mFab.show();
+                List list = (List) bundle.getSerializable("list");
+                mDataList.addAll(list);
+
+            }
+        } else if (requestCode == CALL_REQUEST) {
+            if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, "Call RESULT_CANCELED", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
+    public void showFloatingBar() {
+        //        if (mFab != null) {
+        //            mFab.show();
+        //        }
+    }
+
     public void hideFloatingBar() {
-        if (mFab != null) {
-            mFab.hide();
-        }
+        //        if (mFab != null) {
+        //            mFab.hide();
+        //        }
     }
 
     class ThreadMe extends Thread {
@@ -808,6 +733,7 @@ public class UpFLoorActivity extends BaseActivity {
         public void run() {
             super.run();
             while (runFlag) {
+
                 if (startFlag) {
                     if (manager != null) {
                         epcList = manager.inventoryRealTime(); //
@@ -828,7 +754,7 @@ public class UpFLoorActivity extends BaseActivity {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
-                    }else{
+                    } else {
                         runFlag = false;
                         startFlag = false;
                         runOnUiThread(new Runnable() {
@@ -837,14 +763,16 @@ public class UpFLoorActivity extends BaseActivity {
                             }
                         });
                     }
+
                 }
             }
         }
+
     }
 
     @Override
     protected int getMenuID() {
-        return R.menu.menu_set_power;
+        return R.menu.menu_search;
     }
 
 
@@ -876,8 +804,89 @@ public class UpFLoorActivity extends BaseActivity {
                 SettingDialogFragment dialogFragment = SettingDialogFragment.newInstance(R.layout.setting_power_dialog);
                 dialogFragment.show(ft, "settingDialog");
                 return true;
+            case R.id.action_search:
+                ToastUtils.showLong("search");
+                showSearchView();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    private void showSearchView() {
+
+        final WindowManager.LayoutParams lp = getWindow().getAttributes();
+        if (mPopupWindow == null) {
+            holder = new SearchViewHolder(this, code -> {
+                switch (code) {
+                    case SearchViewHolder.RESULT_SEARCH_EMPTY_KEYWORD:
+                        Snackbar.make(mAppBarLayout, R.string.keyword_is_empty, Snackbar.LENGTH_SHORT).show();
+                        break;
+                    case SearchViewHolder.RESULT_SEARCH_SEARCH:
+                        String searchString = holder.et_search_content.getText().toString();
+                        if (searchString.startsWith("@")) {
+                            CustomTabActivityHelper.openCustomTab(//用函数打开一个网址效果速度比webview更好
+                                    this,
+                                    new CustomTabsIntent.Builder()
+                                            .setShowTitle(true)
+                                            .setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary))
+                                            .addDefaultShareMenuItem()
+                                            .build(),
+                                    Uri.parse(searchString.replace("@", "")));
+                        } else {
+                            Intent intent = new Intent(this, SearchResultActivity.class);
+                            intent.putExtra("q", searchString);
+                            startActivityForResult(intent, SEND_SEARCHRESULT_REQUEST);
+                        }
+                        break;
+
+                    case SearchViewHolder.RESULT_SEARCH_CANCEL:
+                        mPopupWindow.dismiss();
+                        break;
+                }
+            });
+            mPopupWindow = new PopupWindow(holder.getContentView(),
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT, true);
+            mPopupWindow.setBackgroundDrawable(new BitmapDrawable());
+            mPopupWindow.setFocusable(true);
+            mPopupWindow.setOutsideTouchable(true);
+            // 设置popWindow的显示和消失动画
+            //                mPopupWindow.setAnimationStyle(R.style.PopupWindowStyle);
+            mPopupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+                @Override
+                public void onDismiss() {
+                    holder.et_search_content.setText("");
+                    KeyBoardUtils.closeKeyBord(holder.et_search_content, DirectionalSearchActivity.this);
+                    ValueAnimator animator = ValueAnimator.ofFloat(0.7f, 1f);
+                    animator.setDuration(500);
+                    animator.addUpdateListener(animation -> {
+                        lp.alpha = (float) animation.getAnimatedValue();
+                        lp.dimAmount = (float) animation.getAnimatedValue();
+                        getWindow().setAttributes(lp);
+                        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+                    });
+                    animator.start();
+                }
+            });
+            mPopupWindow.setTouchInterceptor(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    return false;
+                }
+            });
+        }
+        KeyBoardUtils.openKeyBord(holder.et_search_content, DirectionalSearchActivity.this);
+        ValueAnimator animator = ValueAnimator.ofFloat(1f, 0.7f);
+        animator.setDuration(500);
+        animator.addUpdateListener(animation -> {
+            lp.alpha = (float) animation.getAnimatedValue();
+            lp.dimAmount = (float) animation.getAnimatedValue();
+            getWindow().setAttributes(lp);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        });
+        mPopupWindow.showAtLocation(mToolbar, Gravity.NO_GRAVITY, 0, ScreenUtils.getStatusHeight(activity));
+        animator.start();
+    }
+
 }

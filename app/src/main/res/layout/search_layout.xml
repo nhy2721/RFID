@@ -29,15 +29,7 @@
                 android:src="@drawable/ic_arrow_back_light"
                 android:tint="?attr/searchIconColor" />
 
-            <ImageView
-                android:id="@+id/iv_scan"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:foreground="?attr/selectableItemBackground"
-                android:padding="0dp"
-                android:src="@drawable/ic_scan_light"
-                android:tint="?attr/searchIconColor" />
+
 
             <EditText
                 android:id="@+id/et_search_content"
