@@ -346,6 +346,7 @@ public class DirectionalSearchActivity extends BaseActivity {
                         .getEpccode())).equals(editString)) {
                     SoundUtil.play(1, 0);
                     mjjgda.setColor(1);
+                    mjjgda.setStatus(999);
                     sMessage.what = UI_SUCCESS;
                     sMessage.arg1 = i;
                     LogUtils.d("put_su", String.valueOf(i));

@@ -16,6 +16,7 @@
 package com.botongsoft.rfid.ui.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -109,8 +110,12 @@ public class DirectionalSearchAdapter extends SwipeMenuAdapter<DirectionalSearch
             this.tvLocal.setText(mjjgda.getScanInfo());
             if (mjjgda.getColor()==1){
                 this.imageViewStyle.setImageResource(R.drawable.yuan_true);
+
             }else if (mjjgda.getColor() == 0) {
                 this.imageViewStyle.setImageResource(R.drawable.yuan_default);
+            }
+            if(mjjgda.getStatus()==999){
+                this.tvTitle.setTextColor(Color.RED);
             }
         }
 
