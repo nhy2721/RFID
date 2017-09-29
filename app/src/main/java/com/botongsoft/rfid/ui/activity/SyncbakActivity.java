@@ -1028,6 +1028,16 @@ public class SyncbakActivity extends BaseActivity {
                             if ((tempList != null && !tempList.isEmpty()) || (tempList1 != null && !tempList1.isEmpty())) {
                                 //                                task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
                                 FilesBusines.putDa(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, tempList, tempList1);
+                            }else{
+                                putDaFLag = false;
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        tv_oleNsize4.setText("更新完成");
+                                        tv_oleNsize4.setTextColor(Color.GREEN);
+                                        tv_status4.setText("");
+                                    }
+                                });
                             }
 
                         }
