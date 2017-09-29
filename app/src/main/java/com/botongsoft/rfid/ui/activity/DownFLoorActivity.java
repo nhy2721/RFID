@@ -115,6 +115,7 @@ public class DownFLoorActivity extends BaseActivity {
     private KeyReceiver keyReceiver;
     private boolean runFlag = true;
     private boolean startFlag = false;
+    private Message sMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -378,7 +379,7 @@ public class DownFLoorActivity extends BaseActivity {
 
     private void searchDB(String editString) {
         boolean tempStr = true;
-        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
+
         //        String temp[] = editString.split("-");
         //防止扫描重复判断
         if (mDataList.size() > 0) {
@@ -391,6 +392,8 @@ public class DownFLoorActivity extends BaseActivity {
             }
         }
         if (tempStr) {
+
+            int lx = Constant.getLx(editString);//根据传入的值返回对象类型
             switch (lx) {
                 case Constant.LX_MJGDA:
                     String kfname = "";
@@ -403,8 +406,6 @@ public class DownFLoorActivity extends BaseActivity {
                     Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
                     if (ecp != null) {
                         // 查询文件存放的位置
-
-                        //                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
                         mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", ecp.getBm() + "",
                                 "jlid", "=", ecp.getJlid() + "", "status", "!=", "-1");//下架只查不属于被删除的数据
                         if (mjjgda != null) {
@@ -432,7 +433,9 @@ public class DownFLoorActivity extends BaseActivity {
                             //                        map.put("local", name);//界面显示存放位置
                             mjjgda.setScanInfo(name);
                             mjjgda.setStatus(-1);
+                            SoundUtil.play(1, 0);
                             mDataList.add(mjjgda);
+                            sMessage.what = UI_SUCCESS;
                             //                        //将下架记录存一份到delInfosesList集合中后保存数据
                             //                        if (mjjgda.getStatus() == 9) {//有同步过的下架要提交服务器 状态9(已同步过)-->>-1
                             //                            mjjgda.setStatus(-1);
@@ -698,23 +701,20 @@ public class DownFLoorActivity extends BaseActivity {
                     if (manager != null) {
                         epcList = manager.inventoryRealTime(); //
                         if (epcList != null && !epcList.isEmpty()) {
-                            SoundUtil.play(1, 0);
-                            Message sMessage = mHandler.obtainMessage();
-                            sMessage.what = UI_SUCCESS;
                             for (String epc : epcList) {
+                                sMessage = mHandler.obtainMessage();
                                 searchDB(epc);
-
+                                mHandler.sendMessage(sMessage);
                             }
-                            mHandler.sendMessage(sMessage);
                         }
                         epcList = null;
                         try {
-                            Thread.sleep(20);
+                            Thread.sleep(200);
                         } catch (InterruptedException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
-                    }else{
+                    } else {
                         runFlag = false;
                         startFlag = false;
                         runOnUiThread(new Runnable() {

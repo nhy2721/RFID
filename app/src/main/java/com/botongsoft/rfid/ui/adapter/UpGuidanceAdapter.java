@@ -24,11 +24,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuAdapter;
 
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -38,11 +38,11 @@ import butterknife.ButterKnife;
  */
 public class UpGuidanceAdapter extends SwipeMenuAdapter<UpGuidanceAdapter.DefaultViewHolder> {
     private Context mContext;
-    private static List<Map> list;
+    private static List<Mjjgda> list;
 
     private OnItemClickListener mOnItemClickListener;
 
-    public UpGuidanceAdapter(Context context, List<Map> list) {
+    public UpGuidanceAdapter(Context context, List<Mjjgda> list) {
         super();
         this.mContext = context;
         this.list = list;
@@ -101,10 +101,10 @@ public class UpGuidanceAdapter extends SwipeMenuAdapter<UpGuidanceAdapter.Defaul
             imageView.setOnClickListener(this);
         }
 
-        public void setData(Map map, int position) {
+        public void setData(Mjjgda map, int position) {
             this.tvId.setText(String.valueOf(position + 1));
-            this.tvTitle.setText(String.valueOf(map.get("title")));
-            this.tvLocal.setText(String.valueOf(map.get("local")));
+            this.tvTitle.setText(String.valueOf(map.getTitle()));
+            this.tvLocal.setText(String.valueOf(map.getScanInfo()));
         }
 
         @Override
