@@ -444,8 +444,11 @@ public class UpGuidanceActivity extends BaseActivity {
         public void onItemClick(int position) {
             //详细信息
             StringBuilder sb = new StringBuilder();
-            sb.append("Title:").append(mDataList.get(position).getTitle()).append("\n");
+            sb.append("档号:").append(mDataList.get(position).getTitle()).append("\n");
             sb.append("位置:").append(mDataList.get(position).getScanInfo()).append("\n");
+            sb.append("表名:").append(mDataList.get(position).getBm()).append("\n");
+            sb.append("jlid:").append(mDataList.get(position).getJlid()).append("\n");
+            sb.append("EPC编号:").append(mDataList.get(position).getEpccode()).append("\n");
             new AlertDialog.Builder(BaseActivity.activity)
                     .setTitle("详细信息：")
                     .setMessage(sb)

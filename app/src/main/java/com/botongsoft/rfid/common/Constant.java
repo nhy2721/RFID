@@ -47,8 +47,8 @@ public class Constant {
         //value = "B,0001,00000121,1,1,1"
         String[] s = new String[6];
         s[0]=value.substring(0,1);//B  标签头
-        s[1]=value.substring(1,5);//001 库房ID 前面补0
-        s[2]=value.substring(5,13);//000121 密集架ID 前面补0
+        s[1]=value.substring(1,5);//0001 库房ID 前面补0
+        s[2]=value.substring(5,13);//00000121 密集架ID 前面补0
         s[3]=value.substring(13,14);//1或2 左或右
         s[4]=value.substring(14,15);//组数
         s[5]=value.substring(15,16);//层数
