@@ -21,6 +21,6 @@
         android:layout_gravity="center_vertical"
         android:text="条目"
         android:textAlignment="center"
-        android:textSize="15sp"
+        android:textSize="16sp"
         />
 </LinearLayout>

@@ -10,7 +10,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Message;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.design.widget.AppBarLayout;
@@ -19,7 +18,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -35,24 +33,19 @@ import android.widget.Toast;
 import com.botongsoft.rfid.BaseApplication;
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.Receiver.KeyReceiver;
-import com.botongsoft.rfid.bean.classity.Epc;
-import com.botongsoft.rfid.bean.classity.Kf;
-import com.botongsoft.rfid.bean.classity.Mjj;
-import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
-import com.botongsoft.rfid.common.Constant;
-import com.botongsoft.rfid.common.db.DBDataUtils;
-import com.botongsoft.rfid.common.db.MjgdaSearchDb;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.utils.KeyBoardUtils;
+import com.botongsoft.rfid.common.utils.ListUtils;
+import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.common.utils.ScreenUtils;
 import com.botongsoft.rfid.common.utils.SoundUtil;
 import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.hodler.SearchViewHolder;
 import com.botongsoft.rfid.listener.OnItemClickListener;
-import com.botongsoft.rfid.ui.adapter.DownFloorAdapter;
+import com.botongsoft.rfid.ui.adapter.DirectionalSearchAdapter;
 import com.botongsoft.rfid.ui.fragment.SettingDialogFragment;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
 import com.botongsoft.rfid.utils.customtabs.CustomTabActivityHelper;
@@ -65,6 +58,8 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -103,13 +98,14 @@ public class DirectionalSearchActivity extends BaseActivity {
     ProgressBar mProgressBar;
     private int index;
     private String editString;
-    private   List<Mjjgda> mDataList = new ArrayList<>();;
+    private List<Mjjgda> mDataList = new ArrayList<>();
+    ;
     //    private List<MjjgdaDelInfos> delInfosesList;//下架删除的记录存入MjjgdaDelInfos表
-    private DownFloorAdapter mDownFloorAdapter;
+    private DirectionalSearchAdapter mDirectionalSearchAdapter;
     private int size = 50;
-    private static int size1 = 1;
+
     private Activity mContext;
-    private HandlerThread mCheckMsgThread;//Handler线程池
+    Message sMessage;
     //后台运行的handler
     private Handler mCheckMsgHandler;
     //与UI线程管理的handler
@@ -131,6 +127,8 @@ public class DirectionalSearchActivity extends BaseActivity {
     private boolean startFlag = false;
     private PopupWindow mPopupWindow;
     private SearchViewHolder holder;
+    private Bundle saveBundele;
+    private Timer mTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,20 +213,21 @@ public class DirectionalSearchActivity extends BaseActivity {
         // 设置菜单Item点击监听。
         mSwipeMenuRecyclerView.setSwipeMenuItemClickListener(menuItemClickListener);
 
-        mDownFloorAdapter = new DownFloorAdapter(this, mDataList);
-        mDownFloorAdapter.setOnItemClickListener(onItemClickListener);
-        mSwipeMenuRecyclerView.setAdapter(mDownFloorAdapter);
+        mDirectionalSearchAdapter = new DirectionalSearchAdapter(this, mDataList);
+        mDirectionalSearchAdapter.setOnItemClickListener(onItemClickListener);
+        mSwipeMenuRecyclerView.setAdapter(mDirectionalSearchAdapter);
         keyReceiver = new KeyReceiver(manager, false, mSwitch);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.rfid.FUN_KEY");
         registerReceiver(keyReceiver, intentFilter);
+        mTimer = new Timer();
     }
 
     @Override
     protected void initEvents() {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
-//        mDataList = new ArrayList<>();
+        //        mDataList = new ArrayList<>();
         mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -269,6 +268,8 @@ public class DirectionalSearchActivity extends BaseActivity {
         //        });
     }
 
+    int t = 0;
+
     private void initUiHandler() {
         mHandler = new Handler() {
             @Override
@@ -276,19 +277,36 @@ public class DirectionalSearchActivity extends BaseActivity {
                 super.handleMessage(msg);
                 switch (msg.what) {
                     case UI_SUCCESS:
-                        //                        mTextInputEditText.setText("");
-                        smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
-                        mDownFloorAdapter.notifyDataSetChanged();
+                        if (!ListUtils.isEmpty(mDataList)) {
+                            t = msg.arg1;
+                            com.botongsoft.rfid.common.utils.LogUtils.d("UI_SUCCESS", String.valueOf(t));
+                            //                            ToastUtils.showToast("序号位置："+position,500);
+                            smoothMoveToPosition(mSwipeMenuRecyclerView, t);
+                            //                        mDirectionalSearchAdapter.notifyItemChanged(t);
+                            mDirectionalSearchAdapter.notifyDataSetChanged();
+
+
+                            Message msg1 = mHandler.obtainMessage();
+                            msg1.what = UI_SUBMITSUCCESS;
+                            msg1.arg2=t;
+                                                    mHandler.sendMessage(msg1);
+//                                                    mHandler.sendMessageAtTime(msg1, 20);
+//                            mHandler.sendMessageDelayed(msg1, 3);
+                            //                        timerConnect();
+                            //                            mDataList.get(position).setColor(0);
+                            //                            mDirectionalSearchAdapter.notifyItemChanged(position);
+                        }
                         break;
                     case UI_SUBMITSUCCESS:
-                        //                        mTextInputEditText.setText("");
-                        mDataList.clear();
-                        //                        delInfosesList.clear();
-                        mDownFloorAdapter.notifyDataSetChanged();
-                        mProgressBar.setVisibility(View.GONE);
-                        Toast.makeText(UIUtils.getContext(), "下架成功", Toast.LENGTH_SHORT).show();
-                        size1 = 1;
-                        //                        mFab.setClickable(true);
+                        if (!ListUtils.isEmpty(mDataList)) {
+                           int t2 = msg.arg2;
+                            com.botongsoft.rfid.common.utils.LogUtils.d("UI_SUBMIT", String.valueOf(t2));
+                            smoothMoveToPosition(mSwipeMenuRecyclerView, t2);
+                            mDataList.get(t2).setColor(0);
+                            //                        mDirectionalSearchAdapter.notifyItemChanged(t);
+                            mDirectionalSearchAdapter.notifyDataSetChanged();
+                        }
+
                         break;
                     case UI_SUBMITSENDFAILUREMSG:
                         SoundUtil.play(2, 0);
@@ -302,174 +320,44 @@ public class DirectionalSearchActivity extends BaseActivity {
         };
     }
 
-    private void initBackThread() {
-        mCheckMsgHandler = new Handler(mCheckMsgThread.getLooper()) {
+    /*
+        * 定时重连，延时300ms
+        */
+    private void timerConnect() {
+        mTimer.schedule(new TimerTask() {
             @Override
-            public void handleMessage(Message msg) {
-                Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
-                switch (msg.what) {
-                    case MSG_UPDATE_INFO:
-                        checkForUpdate();//
-                        break;
-                    case MSG_SUBMIT:
-                        doSubmit();//保存数据库
-                        break;
-                    default:
-                        super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
-                        break;
-                }
+            public void run() {
+                //初始化模块信息发送
+                Message msg = mHandler.obtainMessage();
+                msg.what = UI_SUBMITSUCCESS;
+                mHandler.sendMessage(msg);
             }
-        };
+        }, 200);
     }
-
-    private void doSubmit() {
-        mCheckMsgHandler.post(submitRun);
-    }
-
-    private Runnable submitRun = new Runnable() {
-
-        @Override
-        public void run() {
-            //保存数据库 根据list中的更新档案表信息
-            boolean str = saveDB(mDataList);
-            //这里发送通知ui更新界面
-            mHandlerMessage = mHandler.obtainMessage();
-            if (str) {
-                mHandlerMessage.what = UI_SUBMITSUCCESS;
-            } else {
-                mHandlerMessage.what = UI_SUBMITSENDFAILUREMSG;
-            }
-
-            mHandler.sendMessage(mHandlerMessage);
-        }
-    };
-
-    private boolean saveDB(List<Mjjgda> mDataList) {
-        boolean str = true;
-        //        操作内容是根据选中的条目删除密集架档案表数据，完成下架。
-        //        str = MjgdaSearchDb.delInfo(mDataList);//旧操作是直接删除下架List对象
-        //        if (str) {//保存下架记录到delInfo表
-        //            DBDataUtils.saveAll(delInfsesList);
-        //        }
-        //新操作改成更新这些数据
-        DBDataUtils.updateAll(mDataList);
-        return str;
-
-    }
-
-    /**
-     * 延迟线程，看是否还有下一个字符输入
-     */
-
-    private void checkForUpdate() {
-        mCheckMsgHandler.post(delayRun);
-    }
-
-    private Runnable delayRun = new Runnable() {
-
-        @Override
-        public void run() {
-            //在这里调用服务器的接口，获取数据
-            Log.e("Handler delayRun--->", String.valueOf(Thread.currentThread().getName()));
-            //            mHandler.obtainMessage(UI_SUCCESS).sendToTarget();
-            //            mTextView.post(new Runnable() {
-            //                @Override
-            //                public void run() {
-            //                    Log.e("setText--->", String.valueOf(Thread.currentThread().getName()));
-            //                    mTextView.setText(mTextInputEditText.getText());
-            //                    mTextInputEditText.setText("");
-            //                }
-            //            });
-            //这里定义发送通知ui更新界面
-            //            mHandlerMessage = mHandler.obtainMessage();
-            //            mHandlerMessage.what = UI_SUCCESS;
-            //在这里读取数据库增加list值，界面显示读取的标签信息
-            //            editString = mTextInputEditText.getText().toString();
-            //            searchDB(editString);
-            //            mHandler.sendMessage(mHandlerMessage);
-        }
-    };
 
     private void searchDB(String editString) {
         boolean tempStr = true;
-        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
-        //        String temp[] = editString.split("-");
-        //防止扫描重复判断
+        //        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
+        Mjjgda mjjgda = null;
         if (mDataList.size() > 0) {
-            for (Mjjgda mjjgda : mDataList) {
-                //                if (map.get("title").toString().equals(editString)) {
-                if (mjjgda.getEpccode().equals(editString)) {
-                    tempStr = false;
-                    break;
+            for (int i = 0; i < mDataList.size(); i++) {
+                mjjgda = mDataList.get(i);
+                if (String.format("%016d", Integer.valueOf(mjjgda
+                        .getEpccode())).equals(editString)) {
+                    SoundUtil.play(1, 0);
+                    mjjgda.setColor(1);
+                    sMessage.what = UI_SUCCESS;
+                    sMessage.arg1 = i;
+                    LogUtils.d("put_su", String.valueOf(i));
+                    int _position = i + 1;
+                    ToastUtils.showToast("序号：" + _position, 500);
                 }
             }
-        }
-        if (tempStr) {
-            switch (lx) {
-                case Constant.LX_MJGDA:
-                    String kfname = "";
-                    String mjjname = "";
-                    String nLOrR = "";
-                    Mjj mjj = null;
-                    Kf kf = null;
-                    Mjjgda mjjgda = null;
-                    //这里要先查询一次对照表 获得该扫描记录的bm与jlid
-                    Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
-                    if (ecp != null) {
-                        // 查询文件存放的位置
 
-                        //                    mjjgda = MjgdaSearchDb.getInfo(Mjjgda.class, "bm", temp[0] + "", "jlid", temp[1] + "");
-                        mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", ecp.getBm() + "",
-                                "jlid", "=", ecp.getJlid() + "", "status", "!=", "-1");//下架只查不属于被删除的数据
-                        if (mjjgda != null) {
-                            mjjgda.setTitle(ecp.getArchiveno());
-                            mjjgda.setEpccode(editString);
-                            //                        Map map = new HashMap();
-                            //                        map.put("id", mjjgda.getLid());
-                            //                        map.put("title", mjjgda.getBm() + "-" + mjjgda.getJlid());
-                            //                        map.put("bm", mjjgda.getBm());
-                            //                        map.put("jlid", mjjgda.getJlid());
-                            Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
-                            if (mjjg != null) {
-                                nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-                                mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
-                            }
-                            if (mjj != null) {
-                                mjjname = mjj.getMc() + "/";
-                                kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                            }
 
-                            if (kf != null) {
-                                kfname = kf.getMc() + "/";
-                            }
-                            String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                            //                        map.put("local", name);//界面显示存放位置
-                            mjjgda.setScanInfo(name);
-                            mjjgda.setStatus(-1);
-                            mDataList.add(mjjgda);
-                            //                        //将下架记录存一份到delInfosesList集合中后保存数据
-                            //                        if (mjjgda.getStatus() == 9) {//有同步过的下架要提交服务器 状态9(已同步过)-->>-1
-                            //                            mjjgda.setStatus(-1);
-                            //                        } else {
-                            //                            mjjgda.setStatus(0);
-                            //                        }
-                            //                        String jsonObj = JSON.toJSONString(mjjgda);
-                            //                        MjjgdaDelInfos ms = (MjjgdaDelInfos) JSON.parseObject(jsonObj, MjjgdaDelInfos.class);
-                            //                        delInfosesList.add(ms);
-                        }
-                    } else {
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-                                //                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
-                                ToastUtils.showToast("没查询到该条扫描记录" + editString, 500);
-                            }
-                        });
-                    }
-
-                    break;
-            }
         }
     }
+
 
     @Override
     protected void onResume() {
@@ -477,11 +365,8 @@ public class DirectionalSearchActivity extends BaseActivity {
         isOnScreen = true;
         //        if(isOnScreen && isRun) {
         if (isOnScreen) {
-            //开启新进程
-            mCheckMsgThread = new HandlerThread("BackThread");// 创建一个BackHandlerThread对象，它是一个线程
-            mCheckMsgThread.start();// 启动线程
-            //创建后台线程
-            initBackThread();
+
+
         }
         if (manager != null) {
             manager.clearSelect();
@@ -496,7 +381,7 @@ public class DirectionalSearchActivity extends BaseActivity {
         super.onPause();
         //停止查询
         isOnScreen = false;
-        mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
+
         startFlag = false;
         thread.interrupt();
         if (mPopupWindow != null) {
@@ -512,12 +397,8 @@ public class DirectionalSearchActivity extends BaseActivity {
         isOnScreen = false;
         startFlag = false;
         runFlag = false;
-        size1 = 0;
-        //释放资源
-        if (mCheckMsgHandler != null) {
-            mCheckMsgThread.quit();
-        }
-        mCheckMsgHandler.removeCallbacksAndMessages(null);
+
+
         unregisterReceiver(keyReceiver);
         //  finish();//finish结束后就无法获得返回值了
         super.onDestroy();
@@ -635,12 +516,12 @@ public class DirectionalSearchActivity extends BaseActivity {
 
         @Override
         public void onItemClick(int position, int listSize) {
-            Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
+            //            Toast.makeText(mContext, "我是第" + position + "条。", Toast.LENGTH_SHORT).show();
             if (position != -1) {
                 //                delInfosesList.remove(position);
                 mDataList.remove(position);
-                mDownFloorAdapter.notifyItemRemoved(position);
-                mDownFloorAdapter.notifyItemRangeChanged(position, listSize);
+                mDirectionalSearchAdapter.notifyItemRemoved(position);
+                mDirectionalSearchAdapter.notifyItemRangeChanged(position, listSize);
             }
         }
 
@@ -676,7 +557,7 @@ public class DirectionalSearchActivity extends BaseActivity {
             if (menuPosition == 0) {// 删除按钮被点击。
                 mDataList.remove(adapterPosition);
                 //                delInfosesList.remove(adapterPosition);
-                mDownFloorAdapter.notifyItemRemoved(adapterPosition);
+                mDirectionalSearchAdapter.notifyItemRemoved(adapterPosition);
             }
         }
     };
@@ -702,8 +583,8 @@ public class DirectionalSearchActivity extends BaseActivity {
                 Toast.makeText(this, "Send SEARCHRESULT RESULT_OK", Toast.LENGTH_SHORT).show();
             } else if (resultCode == RESULT_CANCELED) {
                 Bundle bundle = data.getExtras();
-
                 List list = (List) bundle.getSerializable("list");
+                mDataList.clear();
                 mDataList.addAll(list);
 
             }
@@ -738,18 +619,20 @@ public class DirectionalSearchActivity extends BaseActivity {
                     if (manager != null) {
                         epcList = manager.inventoryRealTime(); //
                         if (epcList != null && !epcList.isEmpty()) {
-                            SoundUtil.play(1, 0);
-                            Message sMessage = mHandler.obtainMessage();
-                            sMessage.what = UI_SUCCESS;
-                            for (String epc : epcList) {
-                                searchDB(epc);
 
+                            //                              sMessage = mHandler.obtainMessage();
+                            //                            sMessage.what = UI_SUCCESS;
+
+                            for (String epc : epcList) {
+                                sMessage = mHandler.obtainMessage();
+                                searchDB(epc);
+                                mHandler.sendMessage(sMessage);
                             }
-                            mHandler.sendMessage(sMessage);
+
                         }
                         epcList = null;
                         try {
-                            Thread.sleep(20);
+                            Thread.sleep(200);
                         } catch (InterruptedException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();

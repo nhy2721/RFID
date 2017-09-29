@@ -36,13 +36,13 @@ import butterknife.ButterKnife;
 /**
  * Created by YOLANDA on 2016/7/22.
  */
-public class DownFloorAdapter extends SwipeMenuAdapter<DownFloorAdapter.DefaultViewHolder> {
+public class DirectionalSearchAdapter extends SwipeMenuAdapter<DirectionalSearchAdapter.DefaultViewHolder> {
     private Context mContext;
     private static List<Mjjgda> list;
 
     private OnItemClickListener mOnItemClickListener;
 
-    public DownFloorAdapter(Context context, List<Mjjgda> list) {
+    public DirectionalSearchAdapter(Context context, List<Mjjgda> list) {
         super();
         this.mContext = context;
         this.list = list;
@@ -59,18 +59,18 @@ public class DownFloorAdapter extends SwipeMenuAdapter<DownFloorAdapter.DefaultV
 
     @Override
     public View onCreateContentView(ViewGroup parent, int viewType) {
-        return LayoutInflater.from(parent.getContext()).inflate(R.layout.item_downfloor_menu, parent, false);
+        return LayoutInflater.from(parent.getContext()).inflate(R.layout.item_diectionalsearch_menu, parent, false);
     }
 
     @Override
-    public DownFloorAdapter.DefaultViewHolder onCompatCreateViewHolder(View realContentView, int viewType) {
+    public DirectionalSearchAdapter.DefaultViewHolder onCompatCreateViewHolder(View realContentView, int viewType) {
         DefaultViewHolder viewHolder = new DefaultViewHolder(realContentView);
         viewHolder.mOnItemClickListener = mOnItemClickListener;
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(DownFloorAdapter.DefaultViewHolder holder, int position) {
+    public void onBindViewHolder(DirectionalSearchAdapter.DefaultViewHolder holder, int position) {
         holder.setData(list.get(position), position);
     }
     // 在指定位置添加一个新的Item
@@ -88,6 +88,8 @@ public class DownFloorAdapter extends SwipeMenuAdapter<DownFloorAdapter.DefaultV
         TextView tvTitle;
         @BindView(R.id.tv_id)
         TextView tvId;
+        @BindView(R.id.imageViewStyle)
+        ImageView imageViewStyle;
         @BindView(R.id.imageView)
         ImageView imageView;
         OnItemClickListener mOnItemClickListener;
@@ -103,10 +105,13 @@ public class DownFloorAdapter extends SwipeMenuAdapter<DownFloorAdapter.DefaultV
 
         public void setData(Mjjgda mjjgda, int position) {
             this.tvId.setText(String.valueOf(position + 1));
-//            this.tvTitle.setText(String.valueOf(map.get("title")));
-//            this.tvLocal.setText(String.valueOf(map.get("local")));
             this.tvTitle.setText(mjjgda.getTitle());
             this.tvLocal.setText(mjjgda.getScanInfo());
+            if (mjjgda.getColor()==1){
+                this.imageViewStyle.setImageResource(R.drawable.yuan_true);
+            }else if (mjjgda.getColor() == 0) {
+                this.imageViewStyle.setImageResource(R.drawable.yuan_default);
+            }
         }
 
         @Override
