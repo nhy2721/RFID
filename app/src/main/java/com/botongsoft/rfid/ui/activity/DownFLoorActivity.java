@@ -434,6 +434,7 @@ public class DownFLoorActivity extends BaseActivity {
                             //                        map.put("local", name);//界面显示存放位置
                             mjjgda.setScanInfo(name);
                             mjjgda.setStatus(-1);
+//                            mjjgda.setDownTime(getCurrentTimeAll());
                             SoundUtil.play(1, 0);
                             mDataList.add(mjjgda);
                             Collections.sort(mDataList, Mjjgda.nameComparator);//根据页面传入的档号排序

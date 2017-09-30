@@ -20,6 +20,10 @@ public class TimeUtils {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         return format.format(Calendar.getInstance().getTime());
     }
+    public static String getCurrentTimeAll() {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return format.format(Calendar.getInstance().getTime());
+    }
 
     public static long getCurrentTimeStamp() {
         return System.currentTimeMillis();
