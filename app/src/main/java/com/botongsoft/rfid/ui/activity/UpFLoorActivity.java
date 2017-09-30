@@ -53,9 +53,8 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuCreator;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -97,7 +96,7 @@ public class UpFLoorActivity extends BaseActivity {
     ProgressBar mProgressBar;
     private int index;
     private String editString;
-    private List<Map> mDataList;
+    private List<Mjjgda> mDataList;
     private UpfloorAdapter mUpfloorAdapter;
     private int size = 50;
     private static int size1 = 1;
@@ -121,6 +120,7 @@ public class UpFLoorActivity extends BaseActivity {
     Bundle mBundle;
     //    private PlaySoundPool soundPool;
     Thread thread;
+    private Message sMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -210,7 +210,7 @@ public class UpFLoorActivity extends BaseActivity {
         mUpfloorAdapter = new UpfloorAdapter(this, mDataList);
         mUpfloorAdapter.setOnItemClickListener(onItemClickListener);
         mSwipeMenuRecyclerView.setAdapter(mUpfloorAdapter);
-        keyReceiver = new KeyReceiver(manager,false,mSwitch);
+        keyReceiver = new KeyReceiver(manager, false, mSwitch);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.rfid.FUN_KEY");
         registerReceiver(keyReceiver, intentFilter);
@@ -275,23 +275,17 @@ public class UpFLoorActivity extends BaseActivity {
                         mDataList.clear();
                         mUpfloorAdapter.notifyDataSetChanged();
                         mProgressBar.setVisibility(View.GONE);
-                        Toast.makeText(UIUtils.getContext(), "保存成功", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showToast("保存成功", 500);
                         size1 = 1;
                         mFab.setClickable(true);
                         break;
                     case UI_SUBMITERROR:
-//                        ToastUtils.showShort("请扫描文件上架位置");
-                        ToastUtils.showToast("请扫描文件上架位置" ,500);
+                        ToastUtils.showToast("请扫描文件上架位置", 500);
                         break;
                     case UI_ISEXIST:
-                        //                        mTextInputEditText.setText("");
-                        //                        soundPool = new PlaySoundPool(mContext);
-                        //                        soundPool.loadSfx(R.raw.beep, 1);
-                        //                        soundPool.play(1, 0);
-                        SoundUtil.play(2, 0);
+                        //                        SoundUtil.play(2, 0);
                         String getResult1 = (String) msg.obj;
-//                        ToastUtils.showShort( getResult1 + "上过架了");
-                        ToastUtils.showToast(getResult1 + "上过架了",500);
+                        ToastUtils.showToast(getResult1 + "上过架了", 500);
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -332,17 +326,17 @@ public class UpFLoorActivity extends BaseActivity {
         public void run() {
             String temp[] = scanInfoLocal.split("/");//拆分上架的位置
             //保存数据库
-            for (Map map : mDataList) {
+            for (Mjjgda mjjgda : mDataList) {
                 //                Mjjgda oldMjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", map.get("bm").toString(), "jlid", map.get("jlid").toString());
                 //                Mjjgda oldMjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", temp[0] + "",
                 //                        "jlid", "=", temp[1] + "", "status", "!=", "-1");
                 //                if (oldMjjgda != null) {
                 //先删除没同步过的版本号为0的重复数据 直接删是因为一个id编码只会有一个位置
-                DBDataUtils.deleteInfos(Mjjgda.class, "bm", "=", map.get("bm").toString(),
-                        "jlid", "=", map.get("jlid").toString(), "anchor", "=", "0", "status", "=", "-1");
+                DBDataUtils.deleteInfos(Mjjgda.class, "bm", "=", mjjgda.getBm(),
+                        "jlid", "=", mjjgda.getJlid(), "anchor", "=", "0", "status", "=", "-1");
                 //如果上架的位置与表里有同步过的位置相等 要删除已下架的数据才能保存新的位置
                 Mjjgda delMjjgda = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "bm", "=",
-                        map.get("bm").toString(), "jlid", "=", map.get("jlid").toString(), "status", "=", "-1", "anchor", ">", "0");
+                        mjjgda.getBm(), "jlid", "=", mjjgda.getJlid(), "status", "=", "-1", "anchor", ">", "0");
                 if (delMjjgda != null) {
                     if (delMjjgda.getKfid() == Integer.valueOf(temp[0])
                             && delMjjgda.getMjjid() == Integer.valueOf(temp[1])
@@ -368,23 +362,23 @@ public class UpFLoorActivity extends BaseActivity {
                 //                    }
 
                 //                } else {
-                Mjjgda mjjgda = new Mjjgda();
-                mjjgda.setScanInfo(map.get("title").toString());//保存到档案表的扫描信息字段
+                Mjjgda saveMjjgda = new Mjjgda();
+                saveMjjgda.setScanInfo(mjjgda.getTitle());//保存到档案表的扫描信息字段
                 if (temp.length == 3) {
-                    mjjgda.setKfid(Integer.valueOf(temp[0]));
-                    mjjgda.setMjjid(Integer.valueOf(temp[1]));
-                    mjjgda.setMjgid(Integer.valueOf(temp[2]));
+                    saveMjjgda.setKfid(Integer.valueOf(temp[0]));
+                    saveMjjgda.setMjjid(Integer.valueOf(temp[1]));
+                    saveMjjgda.setMjgid(Integer.valueOf(temp[2]));
                 } else if (temp.length == 2) {
-                    mjjgda.setMjjid(Integer.valueOf(temp[0]));
-                    mjjgda.setMjgid(Integer.valueOf(temp[1]));
+                    saveMjjgda.setMjjid(Integer.valueOf(temp[0]));
+                    saveMjjgda.setMjgid(Integer.valueOf(temp[1]));
                 } else if (temp.length == 1) {
-                    mjjgda.setMjgid(Integer.valueOf(temp[0]));
+                    saveMjjgda.setMjgid(Integer.valueOf(temp[0]));
                 }
-                mjjgda.setBm((map.get("bm").toString()));
-                mjjgda.setJlid((map.get("jlid").toString()));
-                mjjgda.setStatus(0);//数据库新增
-                mjjgda.setAnchor(0L);//数据新增默认版本号为0，等同步完获得服务器的版本号更新本地
-                DBDataUtils.save(mjjgda);
+                saveMjjgda.setBm(mjjgda.getBm());
+                saveMjjgda.setJlid(mjjgda.getJlid());
+                saveMjjgda.setStatus(0);//数据库新增
+                saveMjjgda.setAnchor(0L);//数据新增默认版本号为0，等同步完获得服务器的版本号更新本地
+                DBDataUtils.save(saveMjjgda);
                 //删除未同步的下架数据
                 //                DBDataUtils.deleteInfo(MjjgdaDelInfos.class,"bm",mjjgda.getBm(),"jlid",mjjgda.getJlid(),"status","=","0");
                 //                }
@@ -434,21 +428,19 @@ public class UpFLoorActivity extends BaseActivity {
     };
 
     private void searchDB(String editString) {
-        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
-        //        String temp[] = "g-4".split("-");
-        //        temp[0] = "g";
-        //        temp[1] = "4";
         boolean tempStr = true;
         //防止扫描重复判断
         if (mDataList.size() > 0) {
-            for (Map map : mDataList) {
-                if (map.get("epccode").toString().equals(editString)) {
+            for (Mjjgda mjjgda : mDataList) {
+                if (mjjgda.getEpccode().equals(editString)) {
                     tempStr = false;
                     break;
                 }
             }
         }
         if (tempStr) {
+            SoundUtil.play(1, 0);
+            int lx = Constant.getLx(editString);//根据传入的值返回对象类型
             mHandlerMessage = mHandler.obtainMessage();
             switch (lx) {
                 case Constant.LX_MJGDA:
@@ -462,13 +454,19 @@ public class UpFLoorActivity extends BaseActivity {
                                 "jlid", "=", ecp.getJlid() + "", "status", "!=", "-1");
                         if (mjjgda == null) {
                             //没上过架存入页面显示
-                            Map map = new HashMap();
-                            map.put("id", size1++);
-                            map.put("title", ecp.getArchiveno());
-                            map.put("epccode", editString);
-                            map.put("bm", ecp.getBm());
-                            map.put("jlid", String.valueOf(ecp.getJlid()));
-                            mDataList.add(map);
+                            //                            Map map = new HashMap();
+                            //                            map.put("id", size1++);
+                            //                            map.put("title", ecp.getArchiveno());
+                            //                            map.put("epccode", editString);
+                            //                            map.put("bm", ecp.getBm());
+                            //                            map.put("jlid", String.valueOf(ecp.getJlid()));
+                            Mjjgda newMjjgda = new Mjjgda();
+                            newMjjgda.setTitle(ecp.getArchiveno());
+                            newMjjgda.setEpccode(editString);
+                            newMjjgda.setBm(ecp.getBm());
+                            newMjjgda.setJlid(String.valueOf(ecp.getJlid()));
+                            mDataList.add(newMjjgda);
+                            Collections.sort(mDataList, Mjjgda.nameComparator);//根据页面传入的档号排序
                         } else {
                             //已经上过架了查询文件存放的位置页面通知用户
                             String kfname1 = "";
@@ -489,7 +487,7 @@ public class UpFLoorActivity extends BaseActivity {
                             if (kf1 != null) {
                                 kfname1 = kf1.getMc() + "/";
                             }
-                            String name = "档号"+ecp.getArchiveno()+"已经在"+kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
+                            String name = "档号" + ecp.getArchiveno() + "已经在" + kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
                             mHandlerMessage.what = UI_ISEXIST;
                             mHandlerMessage.obj = name;
                             mHandler.sendMessage(mHandlerMessage);
@@ -497,8 +495,8 @@ public class UpFLoorActivity extends BaseActivity {
                     } else {
                         runOnUiThread(new Runnable() {
                             public void run() {
-//                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
-                                ToastUtils.showToast("没查询到该条扫描记录" + editString,500);
+                                //                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
+                                ToastUtils.showToast("没查询到该条扫描记录" + editString, 500);
                             }
                         });
                     }
@@ -524,20 +522,20 @@ public class UpFLoorActivity extends BaseActivity {
                                 mjjname = mjj.getMc() + "/";
                                 mjjid = mjj.getId() + "/";
                                 kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                            }else {
+                            } else {
                                 runOnUiThread(new Runnable() {
                                     public void run() {
-                                        ToastUtils.showToast("没查询到密集架表记录",500);
+                                        ToastUtils.showToast("没查询到密集架表记录", 500);
                                     }
                                 });
                             }
                             if (kf != null) {
                                 kfname = kf.getMc() + "/";
                                 kfid = kf.getId() + "/";
-                            }else {
+                            } else {
                                 runOnUiThread(new Runnable() {
                                     public void run() {
-                                        ToastUtils.showToast("没查询到库房表记录",500);
+                                        ToastUtils.showToast("没查询到库房表记录", 500);
                                     }
                                 });
                             }
@@ -549,10 +547,10 @@ public class UpFLoorActivity extends BaseActivity {
                             scanInfoLocal = temple;
 
                             mHandlerMessage.setData(mBundle);
-                        }else {
+                        } else {
                             runOnUiThread(new Runnable() {
                                 public void run() {
-                                    ToastUtils.showToast("没查询到格子记录 密集架ID："+Integer.valueOf(s[2]).toString()+"左/右:"+Integer.valueOf(s[3]).toString()+"层数："+Integer.valueOf(s[5]).toString() ,500);
+                                    ToastUtils.showToast("没查询到格子记录 密集架ID：" + Integer.valueOf(s[2]).toString() + "左/右:" + Integer.valueOf(s[3]).toString() + "层数：" + Integer.valueOf(s[5]).toString(), 500);
                                 }
                             });
                         }
@@ -560,7 +558,7 @@ public class UpFLoorActivity extends BaseActivity {
                         e.printStackTrace();
                         runOnUiThread(new Runnable() {
                             public void run() {
-                                ToastUtils.showToast(e.getMessage(),500);
+                                ToastUtils.showToast(e.getMessage(), 500);
                             }
                         });
                     }
@@ -812,8 +810,8 @@ public class UpFLoorActivity extends BaseActivity {
                     if (manager != null) {
                         epcList = manager.inventoryRealTime(); //
                         if (epcList != null && !epcList.isEmpty()) {
-                            SoundUtil.play(1, 0);
-                            Message sMessage = mHandler.obtainMessage();
+
+                            sMessage = mHandler.obtainMessage();
                             sMessage.what = UI_SUCCESS;
                             for (String epc : epcList) {
                                 searchDB(epc);
@@ -823,12 +821,12 @@ public class UpFLoorActivity extends BaseActivity {
                         }
                         epcList = null;
                         try {
-                            Thread.sleep(20);
+                            Thread.sleep(100);
                         } catch (InterruptedException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
-                    }else{
+                    } else {
                         runFlag = false;
                         startFlag = false;
                         runOnUiThread(new Runnable() {

@@ -24,11 +24,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuAdapter;
 
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -38,11 +38,11 @@ import butterknife.ButterKnife;
  */
 public class UpfloorAdapter extends SwipeMenuAdapter<UpfloorAdapter.DefaultViewHolder> {
     private Context mContext;
-    private static List<Map> list;
+    private static List<Mjjgda> list;
 
     private OnItemClickListener mOnItemClickListener;
 
-    public UpfloorAdapter(Context context, List<Map> list) {
+    public UpfloorAdapter(Context context, List<Mjjgda> list) {
         super();
         this.mContext = context;
         this.list = list;
@@ -100,9 +100,9 @@ public class UpfloorAdapter extends SwipeMenuAdapter<UpfloorAdapter.DefaultViewH
             imageView.setOnClickListener(this);
         }
 
-        public void setData(Map map, int position) {
+        public void setData(Mjjgda map, int position) {
             this.tvId.setText(String.valueOf(position + 1));
-            this.tvTitle.setText(String.valueOf(map.get("title")));
+            this.tvTitle.setText(map.getTitle());
         }
 
         @Override

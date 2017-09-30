@@ -282,16 +282,16 @@ public class DirectionalSearchActivity extends BaseActivity {
                             com.botongsoft.rfid.common.utils.LogUtils.d("UI_SUCCESS", String.valueOf(t));
                             //                            ToastUtils.showToast("序号位置："+position,500);
                             smoothMoveToPosition(mSwipeMenuRecyclerView, t);
-                            //                        mDirectionalSearchAdapter.notifyItemChanged(t);
-                            mDirectionalSearchAdapter.notifyDataSetChanged();
+                            mDirectionalSearchAdapter.notifyItemChanged(t);
+                            //                            mDirectionalSearchAdapter.notifyDataSetChanged();
 
 
                             Message msg1 = mHandler.obtainMessage();
                             msg1.what = UI_SUBMITSUCCESS;
-                            msg1.arg2=t;
-                                                    mHandler.sendMessage(msg1);
-//                                                    mHandler.sendMessageAtTime(msg1, 20);
-//                            mHandler.sendMessageDelayed(msg1, 3);
+                            msg1.arg2 = t;
+                            mHandler.sendMessage(msg1);
+                            //                                                    mHandler.sendMessageAtTime(msg1, 20);
+                            //                            mHandler.sendMessageDelayed(msg1, 3);
                             //                        timerConnect();
                             //                            mDataList.get(position).setColor(0);
                             //                            mDirectionalSearchAdapter.notifyItemChanged(position);
@@ -299,12 +299,12 @@ public class DirectionalSearchActivity extends BaseActivity {
                         break;
                     case UI_SUBMITSUCCESS:
                         if (!ListUtils.isEmpty(mDataList)) {
-                           int t2 = msg.arg2;
+                            int t2 = msg.arg2;
+                            mDataList.get(t2).setColor(0);
                             com.botongsoft.rfid.common.utils.LogUtils.d("UI_SUBMIT", String.valueOf(t2));
                             smoothMoveToPosition(mSwipeMenuRecyclerView, t2);
-                            mDataList.get(t2).setColor(0);
-                            //                        mDirectionalSearchAdapter.notifyItemChanged(t);
-                            mDirectionalSearchAdapter.notifyDataSetChanged();
+                            mDirectionalSearchAdapter.notifyItemChanged(t);
+                            //                            mDirectionalSearchAdapter.notifyDataSetChanged();
                         }
 
                         break;
@@ -338,15 +338,16 @@ public class DirectionalSearchActivity extends BaseActivity {
     private void searchDB(String editString) {
         boolean tempStr = true;
         //        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
-        Mjjgda mjjgda = null;
+
         if (mDataList.size() > 0) {
             for (int i = 0; i < mDataList.size(); i++) {
-                mjjgda = mDataList.get(i);
-                if (String.format("%016d", Integer.valueOf(mjjgda
-                        .getEpccode())).equals(editString)) {
+                Mjjgda mjjgda = mDataList.get(i);
+                String epcCode = String.format("%016d", Integer.valueOf(mjjgda
+                        .getEpccode()));
+                if (epcCode.equals(editString)) {
                     SoundUtil.play(1, 0);
                     mjjgda.setColor(1);
-                    mjjgda.setStatus(999);
+                    mjjgda.setStatus(-1);
                     sMessage.what = UI_SUCCESS;
                     sMessage.arg1 = i;
                     LogUtils.d("put_su", String.valueOf(i));
@@ -512,7 +513,23 @@ public class DirectionalSearchActivity extends BaseActivity {
     private OnItemClickListener onItemClickListener = new OnItemClickListener() {
         @Override
         public void onItemClick(int position) {
-
+//            //详细信息
+//            StringBuilder sb = new StringBuilder();
+//            sb.append("档号:").append(mDataList.get(position).getTitle()).append("\n");
+//            sb.append("位置:").append(mDataList.get(position).getScanInfo()).append("\n");
+//            sb.append("表名:").append(mDataList.get(position).getBm()).append("\n");
+//            sb.append("jlid:").append(mDataList.get(position).getJlid()).append("\n");
+//            sb.append("EPC编号:").append(mDataList.get(position).getEpccode()).append("\n");
+//            new AlertDialog.Builder(BaseActivity.activity)
+//                    .setTitle("详细信息：")
+//                    .setMessage(sb)
+//                    .setOnDismissListener(new DialogInterface.OnDismissListener() {
+//                        @Override
+//                        public void onDismiss(DialogInterface dialog) {
+//
+//                        }
+//                    })
+//                    .create().show();
         }
 
         @Override
@@ -587,6 +604,7 @@ public class DirectionalSearchActivity extends BaseActivity {
                 List list = (List) bundle.getSerializable("list");
                 mDataList.clear();
                 mDataList.addAll(list);
+                //                Collections.sort(mDataList, Mjjgda.nameComparator);//根据页面传入的档号排序
 
             }
         } else if (requestCode == CALL_REQUEST) {

@@ -5,6 +5,8 @@ import com.lidroid.xutils.db.annotation.Id;
 import com.lidroid.xutils.db.annotation.Table;
 import com.lidroid.xutils.db.annotation.Transient;
 
+import java.util.Comparator;
+
 /**
  * Created by pc on 2017/6/14.
  */
@@ -163,4 +165,12 @@ public class Mjjgda implements java.io.Serializable {
     public void setColor(int color) {
         this.color = color;
     }
+
+    public static Comparator<Mjjgda> nameComparator = new Comparator<Mjjgda>() {
+
+        @Override
+        public int compare(Mjjgda jc1, Mjjgda jc2) {
+            return (jc1.getTitle().compareTo(jc2.getTitle()));
+        }
+    };
 }

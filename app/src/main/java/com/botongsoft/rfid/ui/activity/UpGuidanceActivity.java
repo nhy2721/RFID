@@ -50,6 +50,7 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuCreator;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -271,6 +272,7 @@ public class UpGuidanceActivity extends BaseActivity {
                             mjjgda.setScanInfo(name);//界面显示存放位置
                             //                            mDataList.add(map);
                             mDataList.add(mjjgda);
+                            Collections.sort(mDataList, Mjjgda.nameComparator);//根据页面传入的档号排序
                             SoundUtil.play(1, 0);
                             sMessage.what = UI_SUCCESS;
                         }

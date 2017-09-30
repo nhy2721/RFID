@@ -51,6 +51,7 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuCreator;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -435,6 +436,7 @@ public class DownFLoorActivity extends BaseActivity {
                             mjjgda.setStatus(-1);
                             SoundUtil.play(1, 0);
                             mDataList.add(mjjgda);
+                            Collections.sort(mDataList, Mjjgda.nameComparator);//根据页面传入的档号排序
                             sMessage.what = UI_SUCCESS;
                             //                        //将下架记录存一份到delInfosesList集合中后保存数据
                             //                        if (mjjgda.getStatus() == 9) {//有同步过的下架要提交服务器 状态9(已同步过)-->>-1
@@ -709,7 +711,7 @@ public class DownFLoorActivity extends BaseActivity {
                         }
                         epcList = null;
                         try {
-                            Thread.sleep(200);
+                            Thread.sleep(100);
                         } catch (InterruptedException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();

@@ -133,7 +133,7 @@
                 android:padding="@dimen/item_margin"
                 android:text=""
                 android:textColor="@color/white"
-                android:textSize="@dimen/textsize_16"
+                android:textSize="@dimen/textsize_18"
                 />
         </LinearLayout>
 

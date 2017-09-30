@@ -26,6 +26,7 @@ import android.widget.TextView;
 
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
+import com.botongsoft.rfid.common.utils.LogUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuAdapter;
 
@@ -99,7 +100,7 @@ public class DirectionalSearchAdapter extends SwipeMenuAdapter<DirectionalSearch
             super(itemView);
             ButterKnife.bind(this, itemView);
             //绑定item点击事件
-//                        itemView.setOnClickListener(this);
+            itemView.setOnClickListener(this);
             //绑定image点击事件
             imageView.setOnClickListener(this);
         }
@@ -108,22 +109,28 @@ public class DirectionalSearchAdapter extends SwipeMenuAdapter<DirectionalSearch
             this.tvId.setText(String.valueOf(position + 1));
             this.tvTitle.setText(mjjgda.getTitle());
             this.tvLocal.setText(mjjgda.getScanInfo());
-            if (mjjgda.getColor()==1){
+            if (mjjgda.getColor() == 1) {
                 this.imageViewStyle.setImageResource(R.drawable.yuan_true);
 
-            }else if (mjjgda.getColor() == 0) {
+                LogUtils.d("setData", String.valueOf(position));
+            } else if (mjjgda.getColor() == 0) {
                 this.imageViewStyle.setImageResource(R.drawable.yuan_default);
             }
-            if(mjjgda.getStatus()==999){
+            if (mjjgda.getStatus() == -1) {
                 this.tvTitle.setTextColor(Color.RED);
+            }else {
+                this.tvTitle.setTextColor(Color.BLACK);
             }
         }
 
         @Override
         public void onClick(View v) {
             if (mOnItemClickListener != null) {
-                mOnItemClickListener.onItemClick(getAdapterPosition(), list.size() - 1);
-                //                mOnItemClickListener.onItemClick(getLayoutPosition());
+                if(v.getId()==R.id.imageView){
+                    mOnItemClickListener.onItemClick(getAdapterPosition(), list.size() - 1);
+                }else{
+                    mOnItemClickListener.onItemClick(getAdapterPosition());
+                }
             }
         }
     }
