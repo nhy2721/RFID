@@ -12,22 +12,14 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.botongsoft.rfid.R;
-import com.botongsoft.rfid.bean.classity.Epc;
-import com.botongsoft.rfid.bean.classity.Kf;
-import com.botongsoft.rfid.bean.classity.Mjj;
-import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.http.BaseResponse;
-import com.botongsoft.rfid.common.db.DBDataUtils;
-import com.botongsoft.rfid.common.db.MjgdaSearchDb;
 import com.botongsoft.rfid.common.service.http.BusinessException;
-import com.botongsoft.rfid.common.utils.ListUtils;
-import com.botongsoft.rfid.common.utils.ToastUtils;
+import com.botongsoft.rfid.ui.Thread.SearchDBThread;
 import com.botongsoft.rfid.ui.adapter.SelectAdapter;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -52,6 +44,7 @@ public class SearchResultActivity extends BaseActivity {
 
 
     private ArrayList<Mjjgda> mList = new ArrayList<>();
+    private SearchDBThread searchDBThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,49 +89,10 @@ public class SearchResultActivity extends BaseActivity {
     }
 
     private void searchDb(String q) {
-      List<Epc> epcList = (List<Epc>) DBDataUtils.getInfosHasOp(Epc.class,"archiveno","like","%"+q+"%");
-        Mjjgda mjjgda = null;
-        Mjj mjj = null;
-        Kf kf = null;
-        String kfname = "";
-        String mjjname = "";
-        String nLOrR = "";
-        if(!ListUtils.isEmpty(epcList)){
-            for (Epc ecp : epcList) {
-                mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", ecp.getBm() + "",
-                        "jlid", "=", ecp.getJlid() + "", "status", "!=", "-1");// 只查不属于被删除的数据
-                if (mjjgda != null) {
-                    mjjgda.setTitle(ecp.getArchiveno());
-                    mjjgda.setEpccode(String.valueOf(ecp.getEpccode()));
-                    Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
-                    if (mjjg != null) {
-                        nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-                        mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
-                    }
-                    if (mjj != null) {
-                        mjjname = mjj.getMc() + "/";
-                        kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                    }
-
-                    if (kf != null) {
-                        kfname = kf.getMc() + "/";
-                    }
-                    String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                    //                        map.put("local", name);//界面显示存放位置
-                    mjjgda.setScanInfo(name);
-                    mList.add(mjjgda);
-                }
-            }
-            if(ListUtils.isEmpty(mList)){
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ToastUtils.showToast("档号关键字:"+q+"没查询到数据",1000);
-                    }
-                });
-            }
-        }
-
+        searchDBThread = new SearchDBThread(mContext,q);
+        searchDBThread.setList(mList);
+        searchDBThread.start();
+//        mList = searchDBThread.getmList();
     }
 
     @Override
@@ -150,6 +104,10 @@ public class SearchResultActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         mList = null;
+        if (searchDBThread != null) {
+            searchDBThread.interrupt();//中断线程的方法
+            searchDBThread = null;
+        }
         finish();
         super.onDestroy();
     }
