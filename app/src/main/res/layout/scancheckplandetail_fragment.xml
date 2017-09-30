@@ -67,7 +67,8 @@
         android:layout_height="wrap_content"
         android:background="@color/white"
         android:orientation="horizontal"
-        android:padding="5sp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
         >
 
         <TextView
@@ -76,7 +77,7 @@
             android:layout_margin="3dp"
             android:layout_weight="0.33"
             android:gravity="center"
-            android:text="序号"
+            android:text="@string/number"
             />
 
         <TextView
@@ -85,7 +86,7 @@
             android:layout_margin="3dp"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="编码"
+            android:text="@string/recove"
             />
 
         <TextView
