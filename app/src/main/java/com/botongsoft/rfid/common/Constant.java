@@ -62,10 +62,7 @@ public class Constant {
      * @return
      */
     public static String coverNum(String value) {
-        String pattern="000000000000";
-        java.text.DecimalFormat df = new java.text.DecimalFormat(pattern);
-        int te = Integer.valueOf(value);
-        String s =df.format(te);
+        String s =String.format("%016d", Integer.valueOf( value));
         return s;
     }
 

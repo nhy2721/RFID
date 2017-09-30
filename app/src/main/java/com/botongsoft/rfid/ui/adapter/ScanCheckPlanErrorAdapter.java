@@ -105,7 +105,7 @@ public class ScanCheckPlanErrorAdapter extends SwipeMenuAdapter<ScanCheckPlanErr
 
         public void setData(CheckPlanDeatil mCheckPlanDeatil, int position) {
             this.tvId.setText(String.valueOf(position + 1));
-            this.tvTitle.setText(mCheckPlanDeatil.getBm() + "-" + mCheckPlanDeatil.getJlid());
+            this.tvTitle.setText(mCheckPlanDeatil.getTitle());
             if (mCheckPlanDeatil.getType() == 2) {
                 this.imageViewStyle.setImageResource(R.drawable.yuan_fales);
             } else if (mCheckPlanDeatil.getType() == 3) {

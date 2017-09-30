@@ -54,6 +54,7 @@ import java.util.List;
 
 import butterknife.BindView;
 
+import static com.botongsoft.rfid.common.Constant.coverNum;
 import static com.botongsoft.rfid.common.db.DBDataUtils.getCount;
 import static com.botongsoft.rfid.common.db.DBDataUtils.getInfo;
 import static com.botongsoft.rfid.ui.activity.BaseActivity.activity;
@@ -435,8 +436,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                         //                        Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
                         for (int i = mDataLists.size() - 1; i >= 0; i--) {
                             Mjjgda mjjgda = mDataLists.get(i);
-                            String epcCode = String.format("%016d", Integer.valueOf(mjjgda
-                                    .getEpccode()));
+                            String epcCode =  coverNum(mjjgda.getEpccode());
                             //                            if ((mjjgda.getBm().equals(ecp.getBm())) && (String.valueOf(mjjgda.getJlid()).equals(ecp.getJlid()))) {
                             if (epcCode.equals(editString)) {
                                 if (mjjgda.getFlag() == 1) {

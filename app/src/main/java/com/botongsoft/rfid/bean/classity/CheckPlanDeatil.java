@@ -3,6 +3,7 @@ package com.botongsoft.rfid.bean.classity;
 import com.lidroid.xutils.db.annotation.Column;
 import com.lidroid.xutils.db.annotation.Id;
 import com.lidroid.xutils.db.annotation.Table;
+import com.lidroid.xutils.db.annotation.Transient;
 
 /**盘点错误表
  * Created by pc on 2017/6/14.
@@ -24,8 +25,20 @@ public class CheckPlanDeatil implements java.io.Serializable {
     private int type;
     @Column
     private int status;
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     @Column
+
     private long anchor;
+    @Transient
+    private String title;//页面拼接的扫描标签
 
     public int getStatus() {
         return status;

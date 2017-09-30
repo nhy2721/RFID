@@ -66,6 +66,7 @@ import butterknife.ButterKnife;
 
 import static com.botongsoft.rfid.R.id.appBarLayout;
 import static com.botongsoft.rfid.R.id.toolbar;
+import static com.botongsoft.rfid.common.Constant.coverNum;
 
 /**
  * 定向查找
@@ -342,8 +343,7 @@ public class DirectionalSearchActivity extends BaseActivity {
         if (mDataList.size() > 0) {
             for (int i = 0; i < mDataList.size(); i++) {
                 Mjjgda mjjgda = mDataList.get(i);
-                String epcCode = String.format("%016d", Integer.valueOf(mjjgda
-                        .getEpccode()));
+                String epcCode = coverNum(mjjgda.getEpccode());
                 if (epcCode.equals(editString)) {
                     SoundUtil.play(1, 0);
                     mjjgda.setColor(1);

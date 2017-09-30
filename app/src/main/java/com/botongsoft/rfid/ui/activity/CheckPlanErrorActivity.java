@@ -20,6 +20,7 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.SpinnerJo;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
+import com.botongsoft.rfid.bean.classity.Epc;
 import com.botongsoft.rfid.bean.classity.Kf;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
@@ -49,7 +50,8 @@ import butterknife.ButterKnife;
 import static com.botongsoft.rfid.R.id.toolbar;
 import static com.botongsoft.rfid.common.db.DBDataUtils.getInfo;
 
-/**盘点纠错页面
+/**
+ * 盘点纠错页面
  * Created by pc on 2017/8/2.
  */
 
@@ -149,8 +151,8 @@ public class CheckPlanErrorActivity extends BaseActivity {
                         initSpinner();
                         break;
                     case BACK_SEARCH_DB:
-                        int temp = msg.getData().getInt("pos");
-                        searchDBForDatas(temp);
+                        int position = msg.getData().getInt("pos");
+                        searchDBForDatas(position);
                         break;
                     default:
                         super.handleMessage(msg);
@@ -160,16 +162,22 @@ public class CheckPlanErrorActivity extends BaseActivity {
         };
     }
 
-    private void searchDBForDatas(int temp) {
+    private void searchDBForDatas(int position) {
         mBackHandler.post(new Runnable() {
             @Override
             public void run() {
-                List tempList = (List<CheckPlanDeatil>) DBDataUtils.getInfosHasOp(CheckPlanDeatil.class,
-                        "zy", "=", String.valueOf(spinnerList.get(temp).zy),
-                        "pdid", "=", String.valueOf(spinnerList.get(temp).pdid),
-                        "kfid", "=", String.valueOf(spinnerList.get(temp).kfid),
-                        "mjjid", "=", String.valueOf(spinnerList.get(temp).mjjid),
-                        "mjgid", "=", String.valueOf(spinnerList.get(temp).mjgid));
+                List<CheckPlanDeatil> tempList = (List<CheckPlanDeatil>) DBDataUtils.getInfosHasOp(CheckPlanDeatil.class,
+                        "zy", "=", String.valueOf(spinnerList.get(position).zy),
+                        "pdid", "=", String.valueOf(spinnerList.get(position).pdid),
+                        "kfid", "=", String.valueOf(spinnerList.get(position).kfid),
+                        "mjjid", "=", String.valueOf(spinnerList.get(position).mjjid),
+                        "mjgid", "=", String.valueOf(spinnerList.get(position).mjgid));
+                for (CheckPlanDeatil checkPlanDeatil : tempList) {
+                    Epc epc = (Epc) DBDataUtils.getInfo(Epc.class, "bm", checkPlanDeatil.getBm() + "", "jlid", String.valueOf(checkPlanDeatil.getJlid()));
+                    if (epc != null) {
+                        checkPlanDeatil.setTitle(epc.getArchiveno());
+                    }
+                }
                 mDataList.addAll(tempList);
                 uiMessage = mUiHandler.obtainMessage();
                 uiMessage.what = UI_SUCCESS;
@@ -196,8 +204,8 @@ public class CheckPlanErrorActivity extends BaseActivity {
         DbUtils db = DataBaseCreator.create();
         StringBuffer sb = new StringBuffer();
         int tempKfid = 0;
-        int tempMjjid= 0;
-        int tempMjgid= 0;
+        int tempMjjid = 0;
+        int tempMjgid = 0;
         String kfName = "";
         String mjjName = "";
         String mjgName = "";
