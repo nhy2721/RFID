@@ -54,6 +54,7 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -91,7 +92,7 @@ public class UpFLoorActivity extends BaseActivity {
     Switch mSwitch;
     @BindView(R.id.tv_info)
     TextView mTextView;
-    private static String scanInfoLocal = "";//扫描的格子位置 根据“/”拆分后存入数据库
+    private static String scanInfoLocal = "";//扫描的格子位置 根据“/”拆分后存入数据库 kfid + mjjid + mjjg.getId()
     @BindView(R.id.progressBar)
     ProgressBar mProgressBar;
     private int index;
@@ -325,6 +326,17 @@ public class UpFLoorActivity extends BaseActivity {
         @Override
         public void run() {
             String temp[] = scanInfoLocal.split("/");//拆分上架的位置
+            newSave(temp);
+            //oldSave(temp);
+
+            //这里发送通知ui更新界面
+            scanInfoLocal = "";//上过架后清空该变量
+            mHandlerMessage = mHandler.obtainMessage();
+            mHandlerMessage.what = UI_SUBMITSUCCESS;
+            mHandler.sendMessage(mHandlerMessage);
+        }
+
+        private void oldSave(String[] temp) {
             //保存数据库
             for (Mjjgda mjjgda : mDataList) {
                 //                Mjjgda oldMjjgda = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", map.get("bm").toString(), "jlid", map.get("jlid").toString());
@@ -363,32 +375,72 @@ public class UpFLoorActivity extends BaseActivity {
 
                 //                } else {
                 Mjjgda saveMjjgda = new Mjjgda();
-                saveMjjgda.setScanInfo(mjjgda.getTitle());//保存到档案表的扫描信息字段
-                if (temp.length == 3) {
-                    saveMjjgda.setKfid(Integer.valueOf(temp[0]));
-                    saveMjjgda.setMjjid(Integer.valueOf(temp[1]));
-                    saveMjjgda.setMjgid(Integer.valueOf(temp[2]));
-                } else if (temp.length == 2) {
-                    saveMjjgda.setMjjid(Integer.valueOf(temp[0]));
-                    saveMjjgda.setMjgid(Integer.valueOf(temp[1]));
-                } else if (temp.length == 1) {
-                    saveMjjgda.setMjgid(Integer.valueOf(temp[0]));
-                }
-                saveMjjgda.setBm(mjjgda.getBm());
-                saveMjjgda.setJlid(mjjgda.getJlid());
-                saveMjjgda.setStatus(0);//数据库新增
-                saveMjjgda.setAnchor(0L);//数据新增默认版本号为0，等同步完获得服务器的版本号更新本地
+                setDaValue(temp, saveMjjgda, mjjgda.getTitle(), mjjgda.getBm(), mjjgda.getJlid());
                 DBDataUtils.save(saveMjjgda);
                 //删除未同步的下架数据
                 //                DBDataUtils.deleteInfo(MjjgdaDelInfos.class,"bm",mjjgda.getBm(),"jlid",mjjgda.getJlid(),"status","=","0");
                 //                }
 
             }
-            //这里发送通知ui更新界面
-            scanInfoLocal = "";//上过架后清空该变量
-            mHandlerMessage = mHandler.obtainMessage();
-            mHandlerMessage.what = UI_SUBMITSUCCESS;
-            mHandler.sendMessage(mHandlerMessage);
+        }
+
+        private void newSave(String[] temp) {
+            List<Mjjgda> mjjgdaTempList = new ArrayList<>();
+            for (int i = 0; i < mDataList.size(); i++) {
+                Mjjgda mjjgda = mDataList.get(i);
+                int count = DBDataUtils.getCount(Mjjgda.class, "bm", "=", mjjgda.getBm(),
+                        "jlid", "=", mjjgda.getJlid(), "anchor", ">", "0", "status", "=", "-1");
+                if (count > 0) {//服务器存在过
+                    //如果上架的位置与表里有同步过的位置相等 要删除已下架的数据才能保存新的位置
+                    Mjjgda delMjjgda = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "bm", "=",
+                            mjjgda.getBm(), "jlid", "=", mjjgda.getJlid(), "status", "=", "-1", "anchor", ">", "0");
+                    if (delMjjgda != null) {//说明服务器存在该条数据，但是被我们下架了。我们现在要重新上架这条数据，原服务器的数据id不能丢。
+                        if (delMjjgda.getKfid() == Integer.valueOf(temp[0])
+                                && delMjjgda.getMjjid() == Integer.valueOf(temp[1])
+                                && delMjjgda.getMjgid() == Integer.valueOf(temp[2])) {
+                            //判断如果位置相等删除需要提交同步的旧数据，把记录改回状态9就好了
+                            delMjjgda.setStatus(9);
+                            delMjjgda.setAnchor(new Date().getTime());
+                            DBDataUtils.update(delMjjgda);
+                            //                            DBDataUtils.deleteInfo(delMjjgda);
+                        } else {
+                            DBDataUtils.deleteInfos(Mjjgda.class, "bm", "=", mjjgda.getBm(),
+                                    "jlid", "=", mjjgda.getJlid(), "anchor", "=", "0", "status", "=", "-1");
+                            setDaValue(temp, mjjgda, mjjgda.getTitle(), mjjgda.getBm(), mjjgda.getJlid());
+                            mjjgdaTempList.add(mjjgda);
+                        }
+
+                    } else {
+                        setDaValue(temp, mjjgda, mjjgda.getTitle(), mjjgda.getBm(), mjjgda.getJlid());
+                        mjjgdaTempList.add(mjjgda);
+                    }
+                } else {//服务器不存在
+                    //先删除没同步过的版本号为0的重复数据 直接删是因为一个id编码只会有一个位置
+                    DBDataUtils.deleteInfos(Mjjgda.class, "bm", "=", mjjgda.getBm(),
+                            "jlid", "=", mjjgda.getJlid(), "anchor", "=", "0", "status", "=", "-1");
+                    setDaValue(temp, mjjgda, mjjgda.getTitle(), mjjgda.getBm(), mjjgda.getJlid());
+                    mjjgdaTempList.add(mjjgda);
+                }
+                DBDataUtils.saveAll(mjjgdaTempList);
+            }
+        }
+
+        private void setDaValue(String[] temp, Mjjgda mjjgda, String title, String bm, String jlid) {
+            mjjgda.setScanInfo(title);//保存到档案表的扫描信息字段
+            if (temp.length == 3) {
+                mjjgda.setKfid(Integer.valueOf(temp[0]));
+                mjjgda.setMjjid(Integer.valueOf(temp[1]));
+                mjjgda.setMjgid(Integer.valueOf(temp[2]));
+            } else if (temp.length == 2) {
+                mjjgda.setMjjid(Integer.valueOf(temp[0]));
+                mjjgda.setMjgid(Integer.valueOf(temp[1]));
+            } else if (temp.length == 1) {
+                mjjgda.setMjgid(Integer.valueOf(temp[0]));
+            }
+            mjjgda.setBm(bm);
+            mjjgda.setJlid(jlid);
+            mjjgda.setStatus(0);//数据库新增
+            mjjgda.setAnchor(0L);//数据新增默认版本号为0，等同步完获得服务器的版本号更新本地
         }
     };
 
@@ -478,19 +530,27 @@ public class UpFLoorActivity extends BaseActivity {
                             if (mjjg1 != null) {
                                 nLOrR1 = mjjg1.getZy() == 1 ? "左" : "右";
                                 mjj1 = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg1.getMjjid() + "");
-                            }
-                            if (mjj1 != null) {
-                                mjjname1 = mjj1.getMc() + "/";
-                                kf1 = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj1.getKfid() + "");
+                                if (mjj1 != null) {
+                                    mjjname1 = mjj1.getMc() + "/";
+                                    kf1 = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj1.getKfid() + "");
+                                }
+
+                                if (kf1 != null) {
+                                    kfname1 = kf1.getMc() + "/";
+                                }
+                                String name = "档号" + ecp.getArchiveno() + "已经在" + kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
+                                mHandlerMessage.what = UI_ISEXIST;
+                                mHandlerMessage.obj = name;
+                                mHandler.sendMessage(mHandlerMessage);
+                            }else{
+                                runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        //                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
+                                        ToastUtils.showToast("没查询到该条"+ editString+"扫描记录的格子对象，请检查数据库该记录的mjjg表记录是否存在" , 500);
+                                    }
+                                });
                             }
 
-                            if (kf1 != null) {
-                                kfname1 = kf1.getMc() + "/";
-                            }
-                            String name = "档号" + ecp.getArchiveno() + "已经在" + kfname1 + mjjname1 + nLOrR1 + "/" + mjjg1.getZs() + "组" + mjjg1.getCs() + "层";
-                            mHandlerMessage.what = UI_ISEXIST;
-                            mHandlerMessage.obj = name;
-                            mHandler.sendMessage(mHandlerMessage);
                         }
                     } else {
                         runOnUiThread(new Runnable() {

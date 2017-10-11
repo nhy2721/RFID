@@ -35,11 +35,9 @@ import java.util.List;
 import java.util.Map;
 
 
-
-
 /**
  * 网络操作工具类
- * 
+ *
  * @author wangjie
  */
 public class NetUtils {
@@ -59,7 +57,7 @@ public class NetUtils {
 	 */
 	public static final int STATE_CONNECT_MOBILE = 2;
 
-	private static final int TIMEOUT = 500;
+	private static final int TIMEOUT = 1500;
 
 	private static final String TAG = "NetUtils";
 
@@ -69,7 +67,7 @@ public class NetUtils {
 
 	/**
 	 * 判断网络是否连接
-	 * 
+	 *
 	 * @param context
 	 * @return
 	 */
@@ -85,7 +83,7 @@ public class NetUtils {
 
 	/**
 	 * 获取当前网络连接状态
-	 * 
+	 *
 	 * @param context
 	 * @return 常量 STATE_CONNECT_NONE：无连接， STATE_CONNECT_WIFI：WIFI连接,
 	 *         STATE_CONNECT_MOBILE：移动网络 2G/3G
@@ -108,7 +106,7 @@ public class NetUtils {
 
 	/**
 	 * 访问指定url，并获取inputStream
-	 * 
+	 *
 	 * @param urlString
 	 * @return
 	 * @throws IOException
@@ -142,7 +140,7 @@ public class NetUtils {
 
 	/**
 	 * 使用GET连接指定的url网址，返回结果转为String
-	 * 
+	 *
 	 * @param urlString
 	 * @return
 	 */
@@ -185,7 +183,7 @@ public class NetUtils {
 
 	/**
 	 * 向指定url发送POST请求，返回结果转为String
-	 * 
+	 *
 	 * @param urlString
 	 * @param params
 	 *            post请求参数
@@ -199,7 +197,7 @@ public class NetUtils {
 
 	/**
 	 * 将Map转换成JSON字符串
-	 * 
+	 *
 	 * @param params
 	 * @return 实例:key1=value1&key2=value2
 	 */
@@ -225,7 +223,7 @@ public class NetUtils {
 
 	/**
 	 * 向指定url发送POST请求，返回结果转为String
-	 * 
+	 *
 	 * @param urlString
 	 * @param params
 	 *            post请求参数
@@ -314,6 +312,8 @@ public class NetUtils {
 			URL   url = new URL(urlString);
 			connection = (HttpURLConnection) url.openConnection();
 			connection.setConnectTimeout(TIMEOUT);
+			//响应超时
+			connection.setReadTimeout(3000);
 			//			connection.setRequestProperty("content-type", "text/html");
 			final int statusCode = connection.getResponseCode();
 			if (statusCode == HttpStatus.SC_OK) {
@@ -322,14 +322,14 @@ public class NetUtils {
 
 
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 
 		} finally {
 			connection.disconnect();
 		}
 		return isConn;
 	}
+
+
 }

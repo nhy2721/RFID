@@ -28,7 +28,7 @@ public class WriteMjgDaDBThread extends Thread {
     private Message uiMsg;
     private int itype;
 
-    public WriteMjgDaDBThread(Handler mhandler, Message uiMsg ,int type) {
+    public WriteMjgDaDBThread(Handler mhandler, Message uiMsg, int type) {
         this.mhandler = mhandler;
         this.uiMsg = uiMsg;
         this.itype = type;
@@ -40,27 +40,27 @@ public class WriteMjgDaDBThread extends Thread {
 
     @Override
     public void run() {
-        int size =objList.size();
+        int size = objList.size();
         for (int i = 0; i < size; i++) {
             Mjjgda mjjgda = objList.get(i);
             uiMsg = mhandler.obtainMessage();
             Bundle b = new Bundle();
             b.putInt("da", i + 1);
             uiMsg.setData(b);
-            if(itype == 0){
+            if (itype == 0) {
                 uiMsg.what = BackThread_GETDA_SUCCESS_PB;
-            }else{
+            } else {
                 uiMsg.what = BackThread_PUTDA_SUCCESS_PB;
             }
             mhandler.sendMessage(uiMsg);
             mjjgdaOld = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", mjjgda.getBm() + "",
                     "jlid", mjjgda.getJlid() + "");
             if (mjjgdaOld != null) {
-                if (mjjgdaOld.getStatus() == -1) {//碰到服务器有更新，本地有做下架并且上架操作的要删除掉新上架的位置，以服务器的版本为准
-                    DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaOld.getBm()),
-                            "jlid", String.valueOf(mjjgdaOld.getJlid()),
-                            "id", "=", 0 + "");
-                }
+//                if (mjjgdaOld.getStatus() == -1 && mjjgda.getAnchor() > mjjgdaOld.getAnchor()) {//碰到服务器有更新，本地有做下架并且上架操作的要删除掉新上架的位置，以服务器的版本为准
+//                    DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaOld.getBm()),
+//                            "jlid", String.valueOf(mjjgdaOld.getJlid()),
+//                            "id", "=", 0 + "");
+//                }
                 mjjgdaOld.setAnchor(mjjgda.getAnchor());
                 mjjgdaOld.setId(mjjgda.getId());
                 mjjgdaOld.setMjjid(mjjgda.getMjjid());

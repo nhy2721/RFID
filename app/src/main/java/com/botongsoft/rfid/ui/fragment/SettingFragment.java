@@ -16,6 +16,8 @@ import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
 import com.botongsoft.rfid.bean.classity.Epc;
 import com.botongsoft.rfid.bean.classity.Kf;
+import com.botongsoft.rfid.bean.classity.LogDetail;
+import com.botongsoft.rfid.bean.classity.LogMain;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
@@ -38,7 +40,7 @@ public class SettingFragment extends PreferenceFragment implements SharedPrefere
     private AlertDialog.Builder builder;
     private Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class,
             Kf.class, Mjj.class, Mjjg.class, Mjjgda.class, MjjgdaDelInfos.class, CheckPlanDeatilDel.class,
-            Epc.class};
+            Epc.class, LogMain.class, LogDetail.class};
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

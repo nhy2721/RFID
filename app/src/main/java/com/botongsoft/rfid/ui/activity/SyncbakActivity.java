@@ -1,6 +1,7 @@
 package com.botongsoft.rfid.ui.activity;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -276,6 +277,12 @@ public class SyncbakActivity extends BaseActivity {
                         new AlertDialog.Builder(mContext)
                                 .setTitle("服务器无法访问")
                                 .setMessage("情检查网络是否畅通")
+                                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                                    @Override
+                                    public void onDismiss(DialogInterface dialog) {
+
+                                    }
+                                })
                                 .create().show();
                         bt_action1.setEnabled(false);
                         bt_action2.setEnabled(false);
