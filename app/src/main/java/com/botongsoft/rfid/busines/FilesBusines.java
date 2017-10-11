@@ -162,4 +162,45 @@ public class FilesBusines {
 
 
     }
+    /****
+     * 提交日志接口
+     *
+     * @param context
+     *
+     * @param
+     * @return
+     */
+    public static RequestTask putLog(Context context,
+                                           BusinessResolver.BusinessCallback<BaseResponse> callback,
+                                           int reqType, List logMainList, List logDetailList) {
+        final RequestTask task = new RequestTask(callback, context);
+        BusinessRequest request = new BusinessRequest(
+                BusinessRequest.REQUEST_TYPE_POST,
+                BusinessRequest.RESULT_TYPE_OBJECT);
+        request.proDialogMsgId = R.string.request_hint_register;
+        JSONObject str_json = new JSONObject();
+        JSONObject req = new JSONObject();
+        req.put("reqType", reqType);
+        if (logMainList != null) {
+            req.put("logMainList", logMainList);
+        }
+        if (logDetailList != null) {
+            req.put("logDetailList", logDetailList);
+        }
+
+        JSONArray str_jsons = new JSONArray();
+        str_jsons.add(req);
+        str_json.put("req", str_jsons);
+        request.paramsJSON = str_json.toJSONString();
+        request.cls = BaseResponse.class;
+        request.RESULT_ACT = reqType;
+        //        task.showDialog(request);
+        //                task.execute(request);
+        //        task.executeOnExecutor(Executors.newFixedThreadPool(20), request);//背压问题
+        //        task.executeOnExecutor(Executors.newCachedThreadPool(), request);
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, request);
+        return task;
+
+
+    }
 }

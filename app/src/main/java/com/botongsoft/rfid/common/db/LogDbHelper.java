@@ -7,6 +7,7 @@ import com.botongsoft.rfid.bean.classity.LogMain;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
 
 import static com.botongsoft.rfid.common.utils.TimeUtils.getCurrentTimeAll;
@@ -99,5 +100,16 @@ public class LogDbHelper {
     private static int getmainID1() {
         LogMain lo = (LogMain) DBDataUtils.getInfoHasOp(LogMain.class, "lid", ">", "0");
         return lo.getLid();
+    }
+
+    public static Object getInfosHasOp(Class<?> entityType, String key, String op, String value, int limit) {
+        DbUtils db = DataBaseCreator.create();
+        Object list = null;
+        try {
+            list = db.findAll(Selector.from(entityType).where(key, op, value).limit(limit));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

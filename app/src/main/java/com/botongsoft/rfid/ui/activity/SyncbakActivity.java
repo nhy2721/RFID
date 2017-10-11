@@ -33,6 +33,8 @@ import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
 import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
 import com.botongsoft.rfid.bean.classity.Epc;
 import com.botongsoft.rfid.bean.classity.Kf;
+import com.botongsoft.rfid.bean.classity.LogDetail;
+import com.botongsoft.rfid.bean.classity.LogMain;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
@@ -41,6 +43,7 @@ import com.botongsoft.rfid.busines.FilesBusines;
 import com.botongsoft.rfid.common.constants.Constant;
 import com.botongsoft.rfid.common.db.CheckDetailSearchDb;
 import com.botongsoft.rfid.common.db.DBDataUtils;
+import com.botongsoft.rfid.common.db.LogDbHelper;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.service.http.BusinessResolver;
 import com.botongsoft.rfid.common.service.http.NetUtils;
@@ -52,6 +55,7 @@ import com.botongsoft.rfid.ui.Thread.WriteCheckErrorDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteCheckPlanDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteEpcDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteKfDBThread;
+import com.botongsoft.rfid.ui.Thread.WriteLogDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjgDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjgDaDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjgDaDelDBThread;
@@ -167,6 +171,17 @@ public class SyncbakActivity extends BaseActivity {
     @BindView(R.id.pb8)
     ProgressBar pb8;
 
+    @BindView(R.id.tv_name9)
+    TextView tv_name9;
+    @BindView(R.id.bt_action9)
+    Button bt_action9;
+    @BindView(R.id.tv_oleNsize9)
+    TextView tv_oleNsize9;
+    @BindView(R.id.tv_status9)
+    TextView tv_status9;
+    @BindView(R.id.pb9)
+    ProgressBar pb9;
+
     private static final int CONN_SUCCESS = 0;
     private static final int CONN_UNSUCCESS = 1;
     private static final int CONN_UNSUCCESS1 = 3;
@@ -189,6 +204,7 @@ public class SyncbakActivity extends BaseActivity {
     private static final int BackThread_PUTCHECKERRORPLAN = 1008;
     private static final int BackThread_PUTCHECKDETAILPLAN = 1009;
     private static final int BackThread_GETEPC = 1010;
+    private static final int BackThread_PUTLOG = 1011;
     //传递后台运行消息队列
     private Message backThreadmsg;
     private Message uiMsg;
@@ -202,6 +218,7 @@ public class SyncbakActivity extends BaseActivity {
     private WriteCheckErrorDBThread writeCheckErrorDBThread;
     private WriteCheckDetailDBThread writeCheckDetailDBThread;
     private WriteCheckDetailDBDelThread writeCheckDetailDBDelThread;
+    private WriteLogDBThread writeLogDBDelThread;
     private WriteEpcDBThread wrEpcDbThread;//数据库操作相关
     private static int temple = 0;//服务器更新的档案条目数
     private Long kfAnchor;
@@ -219,6 +236,7 @@ public class SyncbakActivity extends BaseActivity {
     private long mDaLocalCount;//档案本地提交服务器总数量 = 已同步被删除数+新增数
     private int DaDelCount;//档案本地提交服务器已同步被删除数
     private int DaNewCount;//档案本地提交服务器新增数
+    private int mlogCount;//本地提交服务器日志数量；
     private RequestTask task;
     private boolean getKfFlag = false;
     private boolean getMjjFlag = false;
@@ -229,6 +247,7 @@ public class SyncbakActivity extends BaseActivity {
     private boolean putCheckDetailFLag = false;
     private boolean putCheckErrorFLag = false;
     private boolean getEpcFlag = false;
+    private boolean putLogFLag = false;
     private boolean isPause;
     private List<Mjjgda> getMjjgdaJsonList;
     private List<Mjjgda> putMjjgdaJsonList;
@@ -239,6 +258,7 @@ public class SyncbakActivity extends BaseActivity {
     private List<CheckPlan> checkPlanJsonList;
     private List<CheckError> checkErrorJsonList;
     private List<CheckPlanDeatil> checkDetailJsonList;
+    private List<LogMain> logJsonList;
 
     private final int limit = 500;
     private int checkdetailCountTemp = 0;
@@ -247,6 +267,7 @@ public class SyncbakActivity extends BaseActivity {
     private Mjjg mjjgInfo;
     private Mjjgda mjjgdaInfo;
     private Epc epcInfo;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -292,6 +313,7 @@ public class SyncbakActivity extends BaseActivity {
                         bt_action6.setEnabled(false);
                         bt_action7.setEnabled(false);
                         bt_action8.setEnabled(false);
+                        bt_action9.setEnabled(false);
                         isOnLine = false;
                         break;
                     case CONN_UNSUCCESS1:
@@ -304,6 +326,10 @@ public class SyncbakActivity extends BaseActivity {
                         break;
                     case Constant.BackThread_SUCCESS:
                         ToastUtils.showLong("通知界面保存完毕");
+
+                        break;
+                    case Constant.BackThread_PUTLOG_SUCCESS_PB:
+
 
                         break;
                     case BackThread_PUT_CHECKDETAIL_SUCCESS_PB:
@@ -550,75 +576,120 @@ public class SyncbakActivity extends BaseActivity {
         tv_name6.setText("盘点记录");
         tv_name7.setText("盘点纠错");
         tv_name8.setText("档号对照表");
+        tv_name9.setText("日志记录");
     }
 
-    @OnClick({R.id.bt_action1, R.id.bt_action2, R.id.bt_action3, R.id.bt_action4, R.id.bt_action5, R.id.bt_action6, R.id.bt_action7, R.id.bt_action8})
+    @OnClick({R.id.bt_action1, R.id.bt_action2, R.id.bt_action3, R.id.bt_action4, R.id.bt_action5, R.id.bt_action6, R.id.bt_action7, R.id.bt_action8, R.id.bt_action9})
     public void click(Button button) {
         switch (button.getId()) {
             case R.id.bt_action1:
-                bt_action1.setEnabled(false);
-                backThreadmsg = mCheckMsgHandler.obtainMessage();
-                LogUtils.d("BackThread_GETKF;");
-                backThreadmsg.what = BackThread_GETKF;
-                mCheckMsgHandler.sendMessage(backThreadmsg);
+                action1();
                 break;
             case R.id.bt_action2:
                 button.setEnabled(false);
-                backThreadmsg = mCheckMsgHandler.obtainMessage();
-                LogUtils.d("BackThread_GETMJJ;");
-                backThreadmsg.what = BackThread_GETMJJ;
-                mCheckMsgHandler.sendMessage(backThreadmsg);
+                action2();
                 break;
             case R.id.bt_action3:
                 button.setEnabled(false);
-                backThreadmsg = mCheckMsgHandler.obtainMessage();
-                LogUtils.d("BackThread_GETMJJG;");
-                backThreadmsg.what = BackThread_GETMJJG;
-                mCheckMsgHandler.sendMessage(backThreadmsg);
+                action3();
                 break;
             case R.id.bt_action4:
                 button.setEnabled(false);
-                if (temple > 0) {
-                    //如果服务器有更新数据 先获取服务器的更新数据,然后在通知线程完毕后去查找本地是否有更新数据再上传到服务器
-                    backThreadmsg = mCheckMsgHandler.obtainMessage();
-                    backThreadmsg.what = BackThread_GETMJJGDA;
-                    mCheckMsgHandler.sendMessage(backThreadmsg);
-                } else if (mDaLocalCount > 0 && temple <= 0) {
-                    //服务器没有更新，本地有更新
-                    mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
-                }
+                action4();
                 break;
             case R.id.bt_action5:
                 button.setEnabled(false);
-                backThreadmsg = mCheckMsgHandler.obtainMessage();
-                LogUtils.d("BackThread_GETCHECKPLAN;");
-                backThreadmsg.what = BackThread_GETCHECKPLAN;
-                mCheckMsgHandler.sendMessage(backThreadmsg);
+                action5();
                 break;
             case R.id.bt_action6:
                 button.setEnabled(false);
-                backThreadmsg = mCheckMsgHandler.obtainMessage();
-                LogUtils.d("BackThread_PUTCHECKERRORPLAN;");
-                backThreadmsg.what = BackThread_PUTCHECKERRORPLAN;
-                mCheckMsgHandler.sendMessage(backThreadmsg);
+                action6();
                 break;
             case R.id.bt_action7:
                 button.setEnabled(false);
-                backThreadmsg = mCheckMsgHandler.obtainMessage();
-                LogUtils.d("BackThread_PUTCHECKDETAILPLAN;");
-                backThreadmsg.what = BackThread_PUTCHECKDETAILPLAN;
-                mCheckMsgHandler.sendMessage(backThreadmsg);
+                action7();
                 break;
             case R.id.bt_action8:
-                bt_action8.setEnabled(false);
-                backThreadmsg = mCheckMsgHandler.obtainMessage();
-                LogUtils.d("BackThread_GETEPC;");
-                backThreadmsg.what = BackThread_GETEPC;
-                mCheckMsgHandler.sendMessage(backThreadmsg);
+                action8();
+                break;
+            case R.id.bt_action9:
+                action9();
                 break;
             default:
                 break;
         }
+    }
+
+
+    private void action1() {
+        bt_action1.setEnabled(false);
+        backThreadmsg = mCheckMsgHandler.obtainMessage();
+        LogUtils.d("BackThread_GETKF;");
+        backThreadmsg.what = BackThread_GETKF;
+        mCheckMsgHandler.sendMessage(backThreadmsg);
+    }
+
+    private void action2() {
+        backThreadmsg = mCheckMsgHandler.obtainMessage();
+        LogUtils.d("BackThread_GETMJJ;");
+        backThreadmsg.what = BackThread_GETMJJ;
+        mCheckMsgHandler.sendMessage(backThreadmsg);
+    }
+
+    private void action3() {
+        backThreadmsg = mCheckMsgHandler.obtainMessage();
+        LogUtils.d("BackThread_GETMJJG;");
+        backThreadmsg.what = BackThread_GETMJJG;
+        mCheckMsgHandler.sendMessage(backThreadmsg);
+    }
+
+    private void action4() {
+        if (temple > 0) {
+            //如果服务器有更新数据 先获取服务器的更新数据,然后在通知线程完毕后去查找本地是否有更新数据再上传到服务器
+            backThreadmsg = mCheckMsgHandler.obtainMessage();
+            backThreadmsg.what = BackThread_GETMJJGDA;
+            mCheckMsgHandler.sendMessage(backThreadmsg);
+        } else if (mDaLocalCount > 0 && temple <= 0) {
+            //服务器没有更新，本地有更新
+            mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+        }
+    }
+
+    private void action5() {
+        backThreadmsg = mCheckMsgHandler.obtainMessage();
+        LogUtils.d("BackThread_GETCHECKPLAN;");
+        backThreadmsg.what = BackThread_GETCHECKPLAN;
+        mCheckMsgHandler.sendMessage(backThreadmsg);
+    }
+
+    private void action6() {
+        backThreadmsg = mCheckMsgHandler.obtainMessage();
+        LogUtils.d("BackThread_PUTCHECKERRORPLAN;");
+        backThreadmsg.what = BackThread_PUTCHECKERRORPLAN;
+        mCheckMsgHandler.sendMessage(backThreadmsg);
+    }
+
+    private void action7() {
+        backThreadmsg = mCheckMsgHandler.obtainMessage();
+        LogUtils.d("BackThread_PUTCHECKDETAILPLAN;");
+        backThreadmsg.what = BackThread_PUTCHECKDETAILPLAN;
+        mCheckMsgHandler.sendMessage(backThreadmsg);
+    }
+
+    private void action9() {
+        bt_action9.setEnabled(false);
+        backThreadmsg = mCheckMsgHandler.obtainMessage();
+        LogUtils.d("BackThread_PUTLOG;");
+        backThreadmsg.what = BackThread_PUTLOG;
+        mCheckMsgHandler.sendMessage(backThreadmsg);
+    }
+
+    private void action8() {
+        bt_action8.setEnabled(false);
+        backThreadmsg = mCheckMsgHandler.obtainMessage();
+        LogUtils.d("BackThread_GETEPC;");
+        backThreadmsg.what = BackThread_GETEPC;
+        mCheckMsgHandler.sendMessage(backThreadmsg);
     }
 
     @Override
@@ -626,238 +697,282 @@ public class SyncbakActivity extends BaseActivity {
         if (response != null) {
             if (act == BackThread_DOWORK) {//服务器返回更新数
                 if (response.isSuccess()) {
-                    try {
-                        List<CountJson> countJsons = JSONObject.parseArray(response.res.rows, CountJson.class);
-                        if (Integer.valueOf(countJsons.get(0).kf) > 0) {
-                            tv_oleNsize1.setText("服务器新数据：" + countJsons.get(0).kf + "条记录");
-                        } else {
-                            tv_oleNsize1.setText("无更新内容");
-                        }
-                        if (Integer.valueOf(countJsons.get(0).mjj) > 0) {
-                            tv_oleNsize2.setText("服务器新数据：" + countJsons.get(0).mjj + "条记录");
-                        } else {
-                            tv_oleNsize2.setText("无更新内容");
-                        }
-                        if (Integer.valueOf(countJsons.get(0).mjjg) > 0) {
-                            tv_oleNsize3.setText("服务器新数据：" + countJsons.get(0).mjjg + "条记录");
-                        } else {
-                            tv_oleNsize3.setText("无更新内容");
-                        }
-
-                        if (Integer.valueOf(countJsons.get(0).mjgda) > 0 && mDaLocalCount > 0) {
-                            temple = Integer.valueOf(countJsons.get(0).mjgda);
-                            StringBuilder sb = new StringBuilder();
-                            sb.append("本地有").append(mDaLocalCount).append("条数据需要提交").append("\n");
-                            sb.append("服务器新数据：").append(countJsons.get(0).mjgda).append("条记录");
-                            tv_oleNsize4.setText(sb.toString());
-                            //                            myBusinessInfos.get(3).setListSize("本地有" + mDaLocalCount + "条数据需要提交/服务器新数据：" + countJsons.get(0).mjgda + "条记录");
-                        } else if (Integer.valueOf(countJsons.get(0).mjgda) > 0 && mDaLocalCount == 0) {
-                            temple = Integer.valueOf(countJsons.get(0).mjgda);
-                            tv_oleNsize4.setText("服务器新数据：" + countJsons.get(0).mjgda + "条记录");
-                        } else if (Integer.valueOf(countJsons.get(0).mjgda) == 0 && mDaLocalCount > 0) {
-                            tv_oleNsize4.setText("本地有" + mDaLocalCount + "条数据需要提交");
-                        } else {
-                            tv_oleNsize4.setText("无更新内容");
-                        }
-
-                        if (Integer.valueOf(countJsons.get(0).checkplan) > 0) {
-                            tv_oleNsize5.setText("服务器新数据：" + countJsons.get(0).checkplan + "条记录");
-                        } else {
-                            tv_oleNsize5.setText("无更新内容");
-                        }
-
-                        if (mCheckErrorCount > 0) {
-                            tv_oleNsize6.setText("本地有" + mCheckErrorCount + "条数据需要提交");
-                        } else {
-                            tv_oleNsize6.setText("无更新内容");
-                        }
-                        if (mCheckDetailCount > 0) {
-                            tv_oleNsize7.setText("本地有" + mCheckDetailCount + "条数据需要提交");
-                        } else {
-                            tv_oleNsize7.setText("无更新内容");
-                        }
-                        //                        if (Long.valueOf(countJsons.get(0).checkErrorNum) > 0) {
-                        //                            serverCheckErrorAnchor = Long.valueOf(countJsons.get(0).checkErrorNum);
-                        //                        }
-                        //                        if (Long.valueOf(countJsons.get(0).checkDetailNum) > 0) {
-                        //                            serverCheckDetailAnchor = Long.valueOf(countJsons.get(0).checkDetailNum);
-                        //                        }
-
-                        if (Integer.valueOf(countJsons.get(0).epcNum) > 0) {
-                            tv_oleNsize8.setText("服务器新数据：" + countJsons.get(0).epcNum + "条记录");
-                        } else {
-                            tv_oleNsize8.setText("无更新内容");
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    backThread_DoWork(response);
                 }
             } else if (act == BackThread_GETKF) {
                 if (response.isSuccess()) {
-                    try {
-                        kfJsonList = JSON.parseArray(response.res.rows, Kf.class);
-                        if (kfJsonList != null && !kfJsonList.isEmpty()) {
-                            wrKfDbThread = new WriteKfDBThread(mHandler, uiMsg);
-                            wrKfDbThread.setList(kfJsonList);
-                            wrKfDbThread.start();
-                        } else {
-                            getKfFlag = false;
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    backThread_GetKf(response);
                 }
-
             } else if (act == BackThread_GETMJJ) {
                 if (response.isSuccess()) {
-                    try {
-                        mjjJsonList = JSON.parseArray(response.res.rows, Mjj.class);
-                        if (mjjJsonList != null && !mjjJsonList.isEmpty()) {
-                            wrMjjDbThread = new WriteMjjDBThread(mHandler, uiMsg);
-                            wrMjjDbThread.setList(mjjJsonList);
-                            wrMjjDbThread.start();
-                        } else {
-                            getMjjFlag = false;
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    backThread_GetMjj(response);
                 }
             } else if (act == BackThread_GETMJJG) {
                 if (response.isSuccess()) {
-                    try {
-                        mjjgJsonList = JSON.parseArray(response.res.rows, Mjjg.class);
-                        if (mjjgJsonList != null && !mjjgJsonList.isEmpty()) {
-                            wrMjgDbThread = new WriteMjgDBThread(mHandler, uiMsg);
-                            wrMjgDbThread.setList(mjjgJsonList);
-                            wrMjgDbThread.start();
-                        } else {
-                            tv_oleNsize3.setText("更新完成");
-                            tv_oleNsize3.setTextColor(Color.GREEN);
-                            tv_status3.setText("");
-                            getMjgflag = false;
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    backThread_GetMjjg(response);
                 }
             } else if (act == BackThread_GETMJJGDA) {
                 if (response.isSuccess()) {
-                    try {
-                        getMjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
-                        if (getMjjgdaJsonList != null && !getMjjgdaJsonList.isEmpty()) {
-                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 0);
-                            writeMjgDaDBThread.setList(getMjjgdaJsonList);
-                            writeMjgDaDBThread.start();
-                        } else {
-                            getDaFLag = false;
-                            if (mDaLocalCount > 0) {
-                                //接收完服务器数据后再上传本地的数据
-                                mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
-                            } else {
-                                tv_oleNsize4.setText("更新完成");
-                                tv_oleNsize4.setTextColor(Color.GREEN);
-                                tv_status4.setText("");
-                            }
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    backThread_GetMjjDa(response);
                     //                    flag = false;
                 }
             } else if (act == BackThread_PUTMJJGDA) {
                 if (response.isSuccess()) {
-                    try {
-                        putMjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
-                        if (putMjjgdaJsonList != null && !putMjjgdaJsonList.isEmpty()) {
-                            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 1);
-                            writeMjgDaDBThread.setList(putMjjgdaJsonList);
-                            writeMjgDaDBThread.start();
-                        } else {
-                            putDaFLag = false;
-                        }
-                        List<Mjjgda> delMjjgdaJsonList = JSON.parseArray(response.res.delrecords, Mjjgda.class);
-                        if (delMjjgdaJsonList != null && !delMjjgdaJsonList.isEmpty()) {
-                            writeMjgDaDelDBThread = new WriteMjgDaDelDBThread(mHandler, uiMsg);
-                            writeMjgDaDelDBThread.setList(delMjjgdaJsonList);
-                            writeMjgDaDelDBThread.start();
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    backThread_PutMjjDa(response);
                     //                    flag = false;
                 }
             } else if (act == BackThread_GETCHECKPLAN) {
                 if (response.isSuccess()) {
-                    try {
-                        checkPlanJsonList = JSON.parseArray(response.res.rows, CheckPlan.class);
-                        if (checkPlanJsonList != null && !checkPlanJsonList.isEmpty()) {
-                            writeCheckPlanDBThread = new WriteCheckPlanDBThread(mHandler, uiMsg);
-                            writeCheckPlanDBThread.setList(checkPlanJsonList);
-                            writeCheckPlanDBThread.start();
-                        } else {
-                            getCheckPlanFLag = false;
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    backThread_GetCheckPlan(response);
                 }
             } else if (act == BackThread_PUTCHECKERRORPLAN) {
                 if (response.isSuccess()) {
-                    try {
-                        checkErrorJsonList = JSON.parseArray(response.res.rows, CheckError.class);
-                        if (checkErrorJsonList != null && !checkErrorJsonList.isEmpty()) {
-                            writeCheckErrorDBThread = new WriteCheckErrorDBThread(mHandler, uiMsg);
-                            writeCheckErrorDBThread.setList(checkErrorJsonList);
-                            writeCheckErrorDBThread.start();
-                        } else {
-                            putCheckErrorFLag = false;
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    backThread_PutCheckErrorPlan(response);
                 }
             } else if (act == BackThread_PUTCHECKDETAILPLAN) {
                 if (response.isSuccess()) {
-                    try {
-                        checkDetailJsonList = JSON.parseArray(response.res.rows, CheckPlanDeatil.class);
-                        if (checkDetailJsonList != null && !checkDetailJsonList.isEmpty()) {
-                            writeCheckDetailDBThread = new WriteCheckDetailDBThread(mHandler, uiMsg);
-                            writeCheckDetailDBThread.setList(checkDetailJsonList);
-                            writeCheckDetailDBThread.start();
-                        } else {
-                            putCheckDetailFLag = false;
-                        }
-                        List<CheckPlanDeatilDel> delJsonList = JSON.parseArray(response.res.delrecords, CheckPlanDeatilDel.class);
-                        if (delJsonList != null && !delJsonList.isEmpty()) {
-                            Log.i("delList", delJsonList.toString());
-                            writeCheckDetailDBDelThread = new WriteCheckDetailDBDelThread(mHandler, uiMsg);
-                            writeCheckDetailDBDelThread.setList(delJsonList);
-                            writeCheckDetailDBDelThread.start();
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    backThread_PutCheckDetailPlan(response);
                 }
-            }else if (act == BackThread_GETEPC) {
+            } else if (act == BackThread_GETEPC) {
                 if (response.isSuccess()) {
-                    try {
-                        epcJsonList = JSON.parseArray(response.res.rows, Epc.class);
-                        if (epcJsonList != null && !epcJsonList.isEmpty()) {
-                            wrEpcDbThread = new WriteEpcDBThread(mHandler, uiMsg);
-                            wrEpcDbThread.setList(epcJsonList);
-                            wrEpcDbThread.start();
-                        } else {
-                            tv_oleNsize8.setText("更新完成");
-                            tv_oleNsize8.setTextColor(Color.GREEN);
-                            tv_status8.setText("");
-                            getEpcFlag = false;
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    backThread_GetEpc(response);
                 }
             }
+        }
+    }
+
+    private void backThread_DoWork(BaseResponse response) {
+        try {
+            List<CountJson> countJsons = JSONObject.parseArray(response.res.rows, CountJson.class);
+            if (Integer.valueOf(countJsons.get(0).kf) > 0) {
+                tv_oleNsize1.setText("服务器新数据：" + countJsons.get(0).kf + "条记录");
+            } else {
+                tv_oleNsize1.setText("无更新内容");
+            }
+            if (Integer.valueOf(countJsons.get(0).mjj) > 0) {
+                tv_oleNsize2.setText("服务器新数据：" + countJsons.get(0).mjj + "条记录");
+            } else {
+                tv_oleNsize2.setText("无更新内容");
+            }
+            if (Integer.valueOf(countJsons.get(0).mjjg) > 0) {
+                tv_oleNsize3.setText("服务器新数据：" + countJsons.get(0).mjjg + "条记录");
+            } else {
+                tv_oleNsize3.setText("无更新内容");
+            }
+
+            if (Integer.valueOf(countJsons.get(0).mjgda) > 0 && mDaLocalCount > 0) {
+                temple = Integer.valueOf(countJsons.get(0).mjgda);
+                StringBuilder sb = new StringBuilder();
+                sb.append("本地有").append(mDaLocalCount).append("条数据需要提交").append("\n");
+                sb.append("服务器新数据：").append(countJsons.get(0).mjgda).append("条记录");
+                tv_oleNsize4.setText(sb.toString());
+                //                            myBusinessInfos.get(3).setListSize("本地有" + mDaLocalCount + "条数据需要提交/服务器新数据：" + countJsons.get(0).mjgda + "条记录");
+            } else if (Integer.valueOf(countJsons.get(0).mjgda) > 0 && mDaLocalCount == 0) {
+                temple = Integer.valueOf(countJsons.get(0).mjgda);
+                tv_oleNsize4.setText("服务器新数据：" + countJsons.get(0).mjgda + "条记录");
+            } else if (Integer.valueOf(countJsons.get(0).mjgda) == 0 && mDaLocalCount > 0) {
+                tv_oleNsize4.setText("本地有" + mDaLocalCount + "条数据需要提交");
+            } else {
+                tv_oleNsize4.setText("无更新内容");
+            }
+
+            if (Integer.valueOf(countJsons.get(0).checkplan) > 0) {
+                tv_oleNsize5.setText("服务器新数据：" + countJsons.get(0).checkplan + "条记录");
+            } else {
+                tv_oleNsize5.setText("无更新内容");
+            }
+
+            if (mCheckErrorCount > 0) {
+                tv_oleNsize6.setText("本地有" + mCheckErrorCount + "条数据需要提交");
+            } else {
+                tv_oleNsize6.setText("无更新内容");
+            }
+            if (mCheckDetailCount > 0) {
+                tv_oleNsize7.setText("本地有" + mCheckDetailCount + "条数据需要提交");
+            } else {
+                tv_oleNsize7.setText("无更新内容");
+            }
+            //                        if (Long.valueOf(countJsons.get(0).checkErrorNum) > 0) {
+            //                            serverCheckErrorAnchor = Long.valueOf(countJsons.get(0).checkErrorNum);
+            //                        }
+            //                        if (Long.valueOf(countJsons.get(0).checkDetailNum) > 0) {
+            //                            serverCheckDetailAnchor = Long.valueOf(countJsons.get(0).checkDetailNum);
+            //                        }
+
+            if (Integer.valueOf(countJsons.get(0).epcNum) > 0) {
+                tv_oleNsize8.setText("服务器新数据：" + countJsons.get(0).epcNum + "条记录");
+            } else {
+                tv_oleNsize8.setText("无更新内容");
+            }
+            if (mlogCount > 0) {
+                tv_oleNsize9.setText("本地有" + mlogCount + "条数据需要提交");
+            } else {
+                tv_oleNsize9.setText("无更新内容");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void backThread_GetKf(BaseResponse response) {
+        try {
+            kfJsonList = JSON.parseArray(response.res.rows, Kf.class);
+            if (kfJsonList != null && !kfJsonList.isEmpty()) {
+                wrKfDbThread = new WriteKfDBThread(mHandler, uiMsg);
+                wrKfDbThread.setList(kfJsonList);
+                wrKfDbThread.start();
+            } else {
+                getKfFlag = false;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void backThread_GetMjj(BaseResponse response) {
+        try {
+            mjjJsonList = JSON.parseArray(response.res.rows, Mjj.class);
+            if (mjjJsonList != null && !mjjJsonList.isEmpty()) {
+                wrMjjDbThread = new WriteMjjDBThread(mHandler, uiMsg);
+                wrMjjDbThread.setList(mjjJsonList);
+                wrMjjDbThread.start();
+            } else {
+                getMjjFlag = false;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void backThread_GetMjjg(BaseResponse response) {
+        try {
+            mjjgJsonList = JSON.parseArray(response.res.rows, Mjjg.class);
+            if (mjjgJsonList != null && !mjjgJsonList.isEmpty()) {
+                wrMjgDbThread = new WriteMjgDBThread(mHandler, uiMsg);
+                wrMjgDbThread.setList(mjjgJsonList);
+                wrMjgDbThread.start();
+            } else {
+                tv_oleNsize3.setText("更新完成");
+                tv_oleNsize3.setTextColor(Color.GREEN);
+                tv_status3.setText("");
+                getMjgflag = false;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void backThread_PutMjjDa(BaseResponse response) {
+        try {
+            putMjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
+            if (putMjjgdaJsonList != null && !putMjjgdaJsonList.isEmpty()) {
+                writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 1);
+                writeMjgDaDBThread.setList(putMjjgdaJsonList);
+                writeMjgDaDBThread.start();
+            } else {
+                putDaFLag = false;
+            }
+            List<Mjjgda> delMjjgdaJsonList = JSON.parseArray(response.res.delrecords, Mjjgda.class);
+            if (delMjjgdaJsonList != null && !delMjjgdaJsonList.isEmpty()) {
+                writeMjgDaDelDBThread = new WriteMjgDaDelDBThread(mHandler, uiMsg);
+                writeMjgDaDelDBThread.setList(delMjjgdaJsonList);
+                writeMjgDaDelDBThread.start();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void backThread_GetCheckPlan(BaseResponse response) {
+        try {
+            checkPlanJsonList = JSON.parseArray(response.res.rows, CheckPlan.class);
+            if (checkPlanJsonList != null && !checkPlanJsonList.isEmpty()) {
+                writeCheckPlanDBThread = new WriteCheckPlanDBThread(mHandler, uiMsg);
+                writeCheckPlanDBThread.setList(checkPlanJsonList);
+                writeCheckPlanDBThread.start();
+            } else {
+                getCheckPlanFLag = false;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void backThread_PutCheckErrorPlan(BaseResponse response) {
+        try {
+            checkErrorJsonList = JSON.parseArray(response.res.rows, CheckError.class);
+            if (checkErrorJsonList != null && !checkErrorJsonList.isEmpty()) {
+                writeCheckErrorDBThread = new WriteCheckErrorDBThread(mHandler, uiMsg);
+                writeCheckErrorDBThread.setList(checkErrorJsonList);
+                writeCheckErrorDBThread.start();
+            } else {
+                putCheckErrorFLag = false;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void backThread_PutCheckDetailPlan(BaseResponse response) {
+        try {
+            checkDetailJsonList = JSON.parseArray(response.res.rows, CheckPlanDeatil.class);
+            if (checkDetailJsonList != null && !checkDetailJsonList.isEmpty()) {
+                writeCheckDetailDBThread = new WriteCheckDetailDBThread(mHandler, uiMsg);
+                writeCheckDetailDBThread.setList(checkDetailJsonList);
+                writeCheckDetailDBThread.start();
+            } else {
+                putCheckDetailFLag = false;
+            }
+            List<CheckPlanDeatilDel> delJsonList = JSON.parseArray(response.res.delrecords, CheckPlanDeatilDel.class);
+            if (delJsonList != null && !delJsonList.isEmpty()) {
+                Log.i("delList", delJsonList.toString());
+                writeCheckDetailDBDelThread = new WriteCheckDetailDBDelThread(mHandler, uiMsg);
+                writeCheckDetailDBDelThread.setList(delJsonList);
+                writeCheckDetailDBDelThread.start();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void backThread_GetEpc(BaseResponse response) {
+        try {
+            epcJsonList = JSON.parseArray(response.res.rows, Epc.class);
+            if (epcJsonList != null && !epcJsonList.isEmpty()) {
+                wrEpcDbThread = new WriteEpcDBThread(mHandler, uiMsg);
+                wrEpcDbThread.setList(epcJsonList);
+                wrEpcDbThread.start();
+            } else {
+                tv_oleNsize8.setText("更新完成");
+                tv_oleNsize8.setTextColor(Color.GREEN);
+                tv_status8.setText("");
+                getEpcFlag = false;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void backThread_GetMjjDa(BaseResponse response) {
+        try {
+            getMjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
+            if (getMjjgdaJsonList != null && !getMjjgdaJsonList.isEmpty()) {
+                writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 0);
+                writeMjgDaDBThread.setList(getMjjgdaJsonList);
+                writeMjgDaDBThread.start();
+            } else {
+                getDaFLag = false;
+                if (mDaLocalCount > 0) {
+                    //接收完服务器数据后再上传本地的数据
+                    mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+                } else {
+                    tv_oleNsize4.setText("更新完成");
+                    tv_oleNsize4.setTextColor(Color.GREEN);
+                    tv_status4.setText("");
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
@@ -984,6 +1099,14 @@ public class SyncbakActivity extends BaseActivity {
                         } else {
                             epcAnchor = Long.valueOf(epcInfo.getAnchor());
                         }
+                        //日志数量
+                        try {
+                            int logMainCount = (int) DBDataUtils.count(LogMain.class, "status", "=", "0");
+                            int logDetailCount = (int) DBDataUtils.count(LogDetail.class, "status", "=", "0");
+                            mlogCount = logMainCount + logDetailCount;
+                        } catch (DbException e) {
+                            e.printStackTrace();
+                        }
                         mHandler.sendMessage(uiMsg);
                         //                        mHandler.obtainMessage(INIT_DOWORK).sendToTarget();
                         break;
@@ -1035,7 +1158,7 @@ public class SyncbakActivity extends BaseActivity {
                             if ((tempList != null && !tempList.isEmpty()) || (tempList1 != null && !tempList1.isEmpty())) {
                                 //                                task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
                                 FilesBusines.putDa(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, tempList, tempList1);
-                            }else{
+                            } else {
                                 putDaFLag = false;
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -1092,6 +1215,16 @@ public class SyncbakActivity extends BaseActivity {
                         isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                         getEpcFlag = true;
                         FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, epcAnchor, BackThread_GETEPC);
+                        break;
+                    case BackThread_PUTLOG:  //上传盘点纠错记录
+                        if (putLogFLag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        putLogFLag = true;
+                        List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOp(LogDetail.class, "status", "=", "0", limit);
+                        List<LogMain> logMainList = (List<LogMain>) DBDataUtils.getInfosHasOp(LogMain.class, "status", "=", "0");
+                        FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, logMainList, logDetailList);
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -1213,39 +1346,39 @@ public class SyncbakActivity extends BaseActivity {
             case KeyEvent.KEYCODE_BACK:
                 LogUtils.d("KEYCODE_BACK");
                 if (getKfFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (getMjjFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (getMjgflag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (getDaFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (putDaFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (getCheckPlanFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (putCheckDetailFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (putCheckErrorFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (getEpcFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 break;
@@ -1280,39 +1413,39 @@ public class SyncbakActivity extends BaseActivity {
             case android.R.id.home:
                 LogUtils.d("我按了返回键盘");
                 if (getKfFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (getMjjFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (getMjgflag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (getDaFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (putDaFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (getCheckPlanFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (putCheckDetailFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (putCheckErrorFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (getEpcFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回" ,500);
+                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
                     return false;
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -1332,15 +1465,7 @@ public class SyncbakActivity extends BaseActivity {
                     bt_action3.setEnabled(false);
                     mCheckMsgHandler.obtainMessage(BackThread_GETMJJG).sendToTarget();
                     bt_action4.setEnabled(false);
-                    if (temple > 0) {
-                        //如果服务器有更新数据 先获取服务器的更新数据,然后在通知线程完毕后去查找本地是否有更新数据再上传到服务器
-                        backThreadmsg = mCheckMsgHandler.obtainMessage();
-                        backThreadmsg.what = BackThread_GETMJJGDA;
-                        mCheckMsgHandler.sendMessage(backThreadmsg);
-                    } else if (mDaLocalCount > 0 && temple <= 0) {
-                        //服务器没有更新，本地有更新
-                        mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
-                    }
+                    action4();
                     bt_action5.setEnabled(false);
                     mCheckMsgHandler.obtainMessage(BackThread_GETCHECKPLAN).sendToTarget();
                     bt_action6.setEnabled(false);
@@ -1349,6 +1474,8 @@ public class SyncbakActivity extends BaseActivity {
                     mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
                     bt_action8.setEnabled(false);
                     mCheckMsgHandler.obtainMessage(BackThread_GETEPC).sendToTarget();
+                    bt_action9.setEnabled(false);
+                    mCheckMsgHandler.obtainMessage(BackThread_PUTLOG).sendToTarget();
                     //                    hideAnimate();
                 }
 
