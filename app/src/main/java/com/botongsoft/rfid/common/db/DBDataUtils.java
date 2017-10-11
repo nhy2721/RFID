@@ -568,6 +568,27 @@ public class DBDataUtils {
     }
 
     /**
+     * 删除数据
+     *
+     * @param key1
+     * @param value1
+     * @return
+     */
+    public static boolean deleteInfo(Class<?> entityType, String key1, String value1, String key2,
+                                     String value2, String key3, String op3, String value3,
+                                     String key4, String op4, String value4) {
+        DbUtils db = DataBaseCreator.create();
+        boolean isSuccess = false;
+        try {
+            db.delete(entityType, WhereBuilder.b(key1, "=", value1).and(key2, "=", value2).and(key3, op3, value3)
+                    .and(key4, op4, value4));
+            isSuccess = true;
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return isSuccess;
+    }
+    /**
      * 删除全部数据
      *
      * @param

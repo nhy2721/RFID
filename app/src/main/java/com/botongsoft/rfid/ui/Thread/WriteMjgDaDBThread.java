@@ -27,7 +27,7 @@ public class WriteMjgDaDBThread extends Thread {
     private Handler mhandler;
     private Message uiMsg;
     private int itype;
-
+    private final  static  int GET = 0;
     public WriteMjgDaDBThread(Handler mhandler, Message uiMsg, int type) {
         this.mhandler = mhandler;
         this.uiMsg = uiMsg;
@@ -47,15 +47,20 @@ public class WriteMjgDaDBThread extends Thread {
             Bundle b = new Bundle();
             b.putInt("da", i + 1);
             uiMsg.setData(b);
-            if (itype == 0) {
+            if (itype == GET) {
                 uiMsg.what = BackThread_GETDA_SUCCESS_PB;
             } else {
                 uiMsg.what = BackThread_PUTDA_SUCCESS_PB;
             }
             mhandler.sendMessage(uiMsg);
+            if (itype == GET){//如果是先接收再上传要检查数据库是否有冲突条目。有的话根据bm，jlid删除冲突记录
+                DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgda.getBm()),
+                        "jlid", String.valueOf(mjjgda.getJlid()));
+            }
             mjjgdaOld = (Mjjgda) DBDataUtils.getInfo(Mjjgda.class, "bm", mjjgda.getBm() + "",
-                    "jlid", mjjgda.getJlid() + "");
+                    "jlid", mjjgda.getJlid() + "","mjgid", mjjgda.getMjgid() + "");
             if (mjjgdaOld != null) {
+
 //                if (mjjgdaOld.getStatus() == -1 && mjjgda.getAnchor() > mjjgdaOld.getAnchor()) {//碰到服务器有更新，本地有做下架并且上架操作的要删除掉新上架的位置，以服务器的版本为准
 //                    DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaOld.getBm()),
 //                            "jlid", String.valueOf(mjjgdaOld.getJlid()),

@@ -54,7 +54,6 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -391,7 +390,7 @@ public class UpFLoorActivity extends BaseActivity {
                 int count = DBDataUtils.getCount(Mjjgda.class, "bm", "=", mjjgda.getBm(),
                         "jlid", "=", mjjgda.getJlid(), "anchor", ">", "0", "status", "=", "-1");
                 if (count > 0) {//服务器存在过
-                    //如果上架的位置与表里有同步过的位置相等 要删除已下架的数据才能保存新的位置
+                    //如果上架的位置与表里有同步过的位置相等 把记录改回状态9就好了
                     Mjjgda delMjjgda = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "bm", "=",
                             mjjgda.getBm(), "jlid", "=", mjjgda.getJlid(), "status", "=", "-1", "anchor", ">", "0");
                     if (delMjjgda != null) {//说明服务器存在该条数据，但是被我们下架了。我们现在要重新上架这条数据，原服务器的数据id不能丢。
@@ -400,7 +399,7 @@ public class UpFLoorActivity extends BaseActivity {
                                 && delMjjgda.getMjgid() == Integer.valueOf(temp[2])) {
                             //判断如果位置相等删除需要提交同步的旧数据，把记录改回状态9就好了
                             delMjjgda.setStatus(9);
-                            delMjjgda.setAnchor(new Date().getTime());
+//                            delMjjgda.setAnchor(new Date().getTime());
                             DBDataUtils.update(delMjjgda);
                             //                            DBDataUtils.deleteInfo(delMjjgda);
                         } else {
@@ -421,8 +420,8 @@ public class UpFLoorActivity extends BaseActivity {
                     setDaValue(temp, mjjgda, mjjgda.getTitle(), mjjgda.getBm(), mjjgda.getJlid());
                     mjjgdaTempList.add(mjjgda);
                 }
-                DBDataUtils.saveAll(mjjgdaTempList);
             }
+            DBDataUtils.saveAll(mjjgdaTempList);
         }
 
         private void setDaValue(String[] temp, Mjjgda mjjgda, String title, String bm, String jlid) {
