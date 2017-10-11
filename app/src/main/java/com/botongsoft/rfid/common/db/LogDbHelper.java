@@ -1,8 +1,13 @@
 package com.botongsoft.rfid.common.db;
 
+import android.database.Cursor;
+
 import com.botongsoft.rfid.bean.classity.LogDetail;
 import com.botongsoft.rfid.bean.classity.LogMain;
+import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
+import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.exception.DbException;
 
 import static com.botongsoft.rfid.common.utils.TimeUtils.getCurrentTimeAll;
 
@@ -14,29 +19,85 @@ public class LogDbHelper {
     private static final int LX_SJ_PHONE = 26;
     private static final int LX_XJ_PHONE = 27;
 
+    /**
+     * 返回上架日志主ID
+     *
+     * @return
+     */
     public static int retUpMainId() {
         LogMain logMain = new LogMain();
         logMain.setStatus(0);
         logMain.setLx(LX_SJ_PHONE);
         logMain.setSj(getCurrentTimeAll());
         DBDataUtils.save(logMain);
-        return logMain.getLid();
+        return getmainID();
     }
-    public static void addUpDetail(int mainID,Mjjgda mjjgda) {
-        LogDetail logDetail = new LogDetail();
-        logDetail.setLlogid(mainID);
-        logDetail.setStatus(0);
-        logDetail.setBm(mjjgda.getBm());
-        logDetail.setJlid(Integer.valueOf(mjjgda.getJlid()));
-        DBDataUtils.save(logDetail);
 
-    }
+    /**
+     * 返回下架日志主ID
+     *
+     * @return
+     */
     public static int retDownMainId() {
         LogMain logMain = new LogMain();
         logMain.setStatus(0);
         logMain.setLx(LX_XJ_PHONE);
         logMain.setSj(getCurrentTimeAll());
         DBDataUtils.save(logMain);
-        return logMain.getLid();
+        return getmainID();
+    }
+
+    public static void addUpDetail(int mainID, Mjjgda mjjgda) {
+        LogDetail logDetail = new LogDetail();
+        logDetail.setLlogid(mainID);
+        logDetail.setStatus(0);
+        logDetail.setBm(mjjgda.getBm());
+        logDetail.setJlid(Integer.valueOf(mjjgda.getJlid()));
+        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+        if (mjjg != null) {
+            String wz = mjjgda.getKfid() + "," + mjjgda.getMjjid() + ","
+                    + mjjg.getZy() + "," + mjjg.getCs() + "," + mjjg.getZs();
+            logDetail.setNewcfwz(wz);
+        }
+        DBDataUtils.save(logDetail);
+
+    }
+
+    public static void addDownDetail(int mainID, Mjjgda mjjgda) {
+        LogDetail logDetail = new LogDetail();
+        logDetail.setLlogid(mainID);
+        logDetail.setStatus(0);
+        logDetail.setBm(mjjgda.getBm());
+        logDetail.setJlid(Integer.valueOf(mjjgda.getJlid()));
+        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+        if (mjjg != null) {
+            String wz = mjjgda.getKfid() + "," + mjjgda.getMjjid() + ","
+                    + mjjg.getZy() + "," + mjjg.getCs() + "," + mjjg.getZs();
+            logDetail.setOldcfwz(wz);
+        }
+        DBDataUtils.save(logDetail);
+
+    }
+
+
+    private static int getmainID() {
+        DbUtils db = DataBaseCreator.create();
+        String sql = "select last_insert_rowid() from com_botongsoft_rfid_bean_classity_LogMain";
+        Cursor cursor = null; // 执行自定义sql
+        int a = -1;
+        try {
+            cursor = (Cursor) db.execQuery(sql);
+            if (cursor.moveToFirst()) {
+                a = cursor.getInt(0);
+            }
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return a;
+    }
+
+    private static int getmainID1() {
+        LogMain lo = (LogMain) DBDataUtils.getInfoHasOp(LogMain.class, "lid", ">", "0");
+        return lo.getLid();
     }
 }

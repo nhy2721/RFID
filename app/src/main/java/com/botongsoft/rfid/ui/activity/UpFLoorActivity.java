@@ -60,6 +60,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.botongsoft.rfid.R.id.appBarLayout;
+import static com.botongsoft.rfid.common.db.LogDbHelper.addUpDetail;
+import static com.botongsoft.rfid.common.db.LogDbHelper.retUpMainId;
 
 /**
  * 上架
@@ -325,7 +327,8 @@ public class UpFLoorActivity extends BaseActivity {
         @Override
         public void run() {
             String temp[] = scanInfoLocal.split("/");//拆分上架的位置
-            newSave(temp);
+            int logMainID =retUpMainId();
+            newSave(temp,logMainID);
             //oldSave(temp);
 
             //这里发送通知ui更新界面
@@ -383,7 +386,7 @@ public class UpFLoorActivity extends BaseActivity {
             }
         }
 
-        private void newSave(String[] temp) {
+        private void newSave(String[] temp, int logMainID) {
             List<Mjjgda> mjjgdaTempList = new ArrayList<>();
             for (int i = 0; i < mDataList.size(); i++) {
                 Mjjgda mjjgda = mDataList.get(i);
@@ -420,6 +423,7 @@ public class UpFLoorActivity extends BaseActivity {
                     setDaValue(temp, mjjgda, mjjgda.getTitle(), mjjgda.getBm(), mjjgda.getJlid());
                     mjjgdaTempList.add(mjjgda);
                 }
+                addUpDetail(logMainID,mjjgda);
             }
             DBDataUtils.saveAll(mjjgdaTempList);
         }

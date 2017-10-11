@@ -59,8 +59,8 @@ import butterknife.ButterKnife;
 
 import static com.botongsoft.rfid.R.id.appBarLayout;
 import static com.botongsoft.rfid.R.id.toolbar;
-import static com.botongsoft.rfid.common.db.LogDbHelper.addUpDetail;
-import static com.botongsoft.rfid.common.db.LogDbHelper.retUpMainId;
+import static com.botongsoft.rfid.common.db.LogDbHelper.addDownDetail;
+import static com.botongsoft.rfid.common.db.LogDbHelper.retDownMainId;
 
 /**
  * 下架
@@ -321,7 +321,7 @@ public class DownFLoorActivity extends BaseActivity {
         @Override
         public void run() {
             //保存数据库 根据list中的更新档案表信息
-            int logMainID =retUpMainId();
+            int logMainID =retDownMainId();
             boolean str = saveDB(mDataList,logMainID);
             //这里发送通知ui更新界面
             mHandlerMessage = mHandler.obtainMessage();
@@ -345,7 +345,7 @@ public class DownFLoorActivity extends BaseActivity {
         //新操作改成更新这些数据
         DBDataUtils.updateAll(mDataList);
         for (Mjjgda mjjgda : mDataList) {//增加日志明细
-            addUpDetail(logMainID,mjjgda);
+            addDownDetail(logMainID,mjjgda);
         }
         return str;
 
