@@ -1491,8 +1491,6 @@ public class SyncbakActivity extends BaseActivity {
                 return true;
             case R.id.action_Sync:
                 if (isOnLine) {//网络 状态正常
-
-
                     //                    showAnimate(item); //这里开始动画 太丑了
                     item.setEnabled(false);
                     bt_action1.setEnabled(false);
