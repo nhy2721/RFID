@@ -72,6 +72,7 @@ import butterknife.OnClick;
 
 import static com.botongsoft.rfid.R.id.appBarLayout;
 import static com.botongsoft.rfid.R.id.toolbar;
+import static com.botongsoft.rfid.common.constants.Constant.BackThread_PUTDETAILLOG_SUCCESS_PB;
 import static com.botongsoft.rfid.common.constants.Constant.BackThread_PUT_CHECKDETAIL_SUCCESS_PB;
 
 /**
@@ -355,7 +356,7 @@ public class SyncbakActivity extends BaseActivity {
 
 
                         break;
-                    case Constant.BackThread_PUTDETAILLOG_SUCCESS_PB:
+                    case BackThread_PUTDETAILLOG_SUCCESS_PB:
                         if (logDetailJsonList != null && logDetailJsonList.size() > 0) {
                             int detaillog = data.getInt("detaillog");
                             pb9.setMax(logDetailJsonList.size());
@@ -1303,7 +1304,7 @@ public class SyncbakActivity extends BaseActivity {
                         isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                         putLogFLag = true;
                         if (logDetailCount > 0 && logMainCount == 0) {//如果主日志已经上传，状态就都为9，查询不到。但是明细日志还有未上传的记录就直接进行明细上传，
-                            List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOp(LogDetail.class, "status", "=", "0", limit);
+                            List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOplimit(LogDetail.class, "status", "=", "0", limit);
                             FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
                         }else{
                             List<LogMain> logMainList = (List<LogMain>) DBDataUtils.getInfosHasOp(LogMain.class, "status", "=", "0");//传全部记录
@@ -1316,8 +1317,15 @@ public class SyncbakActivity extends BaseActivity {
                         }
                         isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                         putLogFLag = true;
-                        List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOp(LogDetail.class, "status", "=", "0", limit);
-                        FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
+                        List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOplimit(LogDetail.class, "status", "=", "0","logid", "!=", "0", limit);
+                        if(logDetailList!=null&&!logDetailList.isEmpty()){
+                            FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
+                        }else{
+                            uiMsg = mHandler.obtainMessage();
+                            uiMsg.what = BackThread_PUTDETAILLOG_SUCCESS_PB;
+                            mHandler.sendMessage(uiMsg);
+                        }
+
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息

@@ -102,11 +102,21 @@ public class LogDbHelper {
         return lo.getLid();
     }
 
-    public static Object getInfosHasOp(Class<?> entityType, String key, String op, String value, int limit) {
+    public static Object getInfosHasOplimit(Class<?> entityType, String key, String op, String value, int limit) {
         DbUtils db = DataBaseCreator.create();
         Object list = null;
         try {
             list = db.findAll(Selector.from(entityType).where(key, op, value).limit(limit));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    public static Object getInfosHasOplimit(Class<?> entityType, String key, String op, String value, String key1, String op1, String value1, int limit) {
+        DbUtils db = DataBaseCreator.create();
+        Object list = null;
+        try {
+            list = db.findAll(Selector.from(entityType).where(key, op, value).and(key1, op1, value1).limit(limit));
         } catch (DbException e) {
             e.printStackTrace();
         }
