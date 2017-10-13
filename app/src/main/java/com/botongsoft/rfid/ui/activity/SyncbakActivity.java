@@ -53,9 +53,10 @@ import com.botongsoft.rfid.ui.Thread.WriteCheckDetailDBDelThread;
 import com.botongsoft.rfid.ui.Thread.WriteCheckDetailDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteCheckErrorDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteCheckPlanDBThread;
+import com.botongsoft.rfid.ui.Thread.WriteDetailLogDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteEpcDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteKfDBThread;
-import com.botongsoft.rfid.ui.Thread.WriteLogDBThread;
+import com.botongsoft.rfid.ui.Thread.WriteMainLogDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjgDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjgDaDBThread;
 import com.botongsoft.rfid.ui.Thread.WriteMjgDaDelDBThread;
@@ -205,6 +206,7 @@ public class SyncbakActivity extends BaseActivity {
     private static final int BackThread_PUTCHECKDETAILPLAN = 1009;
     private static final int BackThread_GETEPC = 1010;
     private static final int BackThread_PUTLOG = 1011;
+    private static final int BackThread_PUTLOGDETAIL = 1012;
     //传递后台运行消息队列
     private Message backThreadmsg;
     private Message uiMsg;
@@ -218,8 +220,10 @@ public class SyncbakActivity extends BaseActivity {
     private WriteCheckErrorDBThread writeCheckErrorDBThread;
     private WriteCheckDetailDBThread writeCheckDetailDBThread;
     private WriteCheckDetailDBDelThread writeCheckDetailDBDelThread;
-    private WriteLogDBThread writeLogDBDelThread;
+    private WriteMainLogDBThread writeMainLogDBThread;
+    private WriteDetailLogDBThread writeDetailLogDBThread;
     private WriteEpcDBThread wrEpcDbThread;//数据库操作相关
+
     private static int temple = 0;//服务器更新的档案条目数
     private Long kfAnchor;
     private Long mjjAnchor;
@@ -235,7 +239,9 @@ public class SyncbakActivity extends BaseActivity {
     private long mCheckErrorCount;//盘点格子记录本地提交服务器数量
     private long mDaLocalCount;//档案本地提交服务器总数量 = 已同步被删除数+新增数
     private int DaDelCount;//档案本地提交服务器已同步被删除数
-    private int DaNewCount;//档案本地提交服务器新增数
+    private int DaNewCount;//档案本地提交服务器新增
+    private int logMainCount;
+    private int logDetailCount;
     private int mlogCount;//本地提交服务器日志数量；
     private RequestTask task;
     private boolean getKfFlag = false;
@@ -258,12 +264,14 @@ public class SyncbakActivity extends BaseActivity {
     private List<CheckPlan> checkPlanJsonList;
     private List<CheckError> checkErrorJsonList;
     private List<CheckPlanDeatil> checkDetailJsonList;
-    private List<LogMain> logJsonList;
+    private List<LogMain> logMainJsonList;
+    private List<LogDetail> logDetailJsonList;
 
     private final int limit = 500;
     private int checkdetailCountTemp = 0;
     private int checkerrorCountTemp = 0;
     private int putNewDaCountTemp = 0;
+    private int putNewDetailLogCountTemp = 0;
     private Mjjg mjjgInfo;
     private Mjjgda mjjgdaInfo;
     private Epc epcInfo;
@@ -328,8 +336,48 @@ public class SyncbakActivity extends BaseActivity {
                         ToastUtils.showLong("通知界面保存完毕");
 
                         break;
-                    case Constant.BackThread_PUTLOG_SUCCESS_PB:
+                    case Constant.BackThread_PUTMAINLOG_SUCCESS_PB:
+                        //                        if(logMainJsonList.size()==0){
+                        //                            mCheckMsgHandler.obtainMessage(BackThread_PUTLOGDETAIL).sendToTarget();
+                        //                            putLogFLag = false;
+                        //                        }else {
+                        int log = data.getInt("log");
+                        pb9.setMax(logMainJsonList.size());
+                        pb9.setProgress(log);
+                        tv_status9.setText("正在提交主日志记录");
+                        tv_status9.setTextColor(Color.RED);
+                        if (log == logMainJsonList.size()) {
+                            tv_status9.setText("准备提交日志明细记录");
+                            mCheckMsgHandler.obtainMessage(BackThread_PUTLOGDETAIL).sendToTarget();
+                            putLogFLag = false;
+                        }
+                        //                        }
 
+
+                        break;
+                    case Constant.BackThread_PUTDETAILLOG_SUCCESS_PB:
+                        if (logDetailJsonList != null && logDetailJsonList.size() > 0) {
+                            int detaillog = data.getInt("detaillog");
+                            pb9.setMax(logDetailJsonList.size());
+                            pb9.setProgress(detaillog);
+                            tv_status9.setText("正在提交日志明细记录");
+                            tv_status9.setTextColor(Color.RED);
+                            if (detaillog == logDetailJsonList.size()) {
+                                putNewDetailLogCountTemp += limit;
+                                if ((logDetailCount - putNewDetailLogCountTemp) >= 0) {
+                                    //总数-临时数大于0 说明还有未提交的数据，继续执行put的方法上传数据
+                                    putLogFLag = false;
+                                    mCheckMsgHandler.obtainMessage(BackThread_PUTLOGDETAIL).sendToTarget();
+                                }
+                                if (putNewDetailLogCountTemp >= logDetailCount) {
+                                    //如果最后统计数大于等于初始显示的数量 提示更新完成
+                                    tv_oleNsize9.setText("更新完成");
+                                    tv_oleNsize9.setTextColor(Color.GREEN);
+                                    tv_status9.setText("");
+                                    putLogFLag = false;
+                                }
+                            }
+                        }
 
                         break;
                     case BackThread_PUT_CHECKDETAIL_SUCCESS_PB:
@@ -610,9 +658,11 @@ public class SyncbakActivity extends BaseActivity {
                 action7();
                 break;
             case R.id.bt_action8:
+                bt_action8.setEnabled(false);
                 action8();
                 break;
             case R.id.bt_action9:
+                bt_action9.setEnabled(false);
                 action9();
                 break;
             default:
@@ -676,21 +726,25 @@ public class SyncbakActivity extends BaseActivity {
         mCheckMsgHandler.sendMessage(backThreadmsg);
     }
 
-    private void action9() {
-        bt_action9.setEnabled(false);
-        backThreadmsg = mCheckMsgHandler.obtainMessage();
-        LogUtils.d("BackThread_PUTLOG;");
-        backThreadmsg.what = BackThread_PUTLOG;
-        mCheckMsgHandler.sendMessage(backThreadmsg);
-    }
-
     private void action8() {
-        bt_action8.setEnabled(false);
         backThreadmsg = mCheckMsgHandler.obtainMessage();
         LogUtils.d("BackThread_GETEPC;");
         backThreadmsg.what = BackThread_GETEPC;
         mCheckMsgHandler.sendMessage(backThreadmsg);
     }
+
+    private void action9() {
+        backThreadmsg = mCheckMsgHandler.obtainMessage();
+        LogUtils.d("BackThread_PUTLOG;");
+        if (logDetailCount > 0 && logMainCount == 0) {//如果主日志已经上传，状态就都为9，查询不到。但是明细日志还有未上传的记录就直接进行明细上传，
+            backThreadmsg.what = BackThread_PUTLOGDETAIL;
+        } else {
+            backThreadmsg.what = BackThread_PUTLOG;
+        }
+
+        mCheckMsgHandler.sendMessage(backThreadmsg);
+    }
+
 
     @Override
     public void onSuccess(BaseResponse response, int act) {
@@ -736,6 +790,10 @@ public class SyncbakActivity extends BaseActivity {
             } else if (act == BackThread_GETEPC) {
                 if (response.isSuccess()) {
                     backThread_GetEpc(response);
+                }
+            } else if (act == BackThread_PUTLOG) {
+                if (response.isSuccess()) {
+                    backThread_PutLog(response);
                 }
             }
         }
@@ -976,6 +1034,28 @@ public class SyncbakActivity extends BaseActivity {
         }
     }
 
+    private void backThread_PutLog(BaseResponse response) {
+        try {
+            logMainJsonList = JSON.parseArray(response.res.rows, LogMain.class);
+            if (logMainJsonList != null && !logMainJsonList.isEmpty()) {
+                writeMainLogDBThread = new WriteMainLogDBThread(mHandler, uiMsg);
+                writeMainLogDBThread.setList(logMainJsonList);
+                writeMainLogDBThread.start();
+            } else {
+                putDaFLag = false;
+            }
+            logDetailJsonList = JSON.parseArray(response.res.detailrows, LogDetail.class);
+            if (logDetailJsonList != null && !logDetailJsonList.isEmpty()) {
+                Log.i("logDetailJsonList", logDetailJsonList.toString());
+                writeDetailLogDBThread = new WriteDetailLogDBThread(mHandler, uiMsg);
+                writeDetailLogDBThread.setList(logDetailJsonList);
+                writeDetailLogDBThread.start();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onError(BusinessException e, int act) {
         ToastUtils.showLong(act + "");
@@ -1101,8 +1181,8 @@ public class SyncbakActivity extends BaseActivity {
                         }
                         //日志数量
                         try {
-                            int logMainCount = (int) DBDataUtils.count(LogMain.class, "status", "=", "0");
-                            int logDetailCount = (int) DBDataUtils.count(LogDetail.class, "status", "=", "0");
+                            logMainCount = (int) DBDataUtils.count(LogMain.class, "status", "=", "0");
+                            logDetailCount = (int) DBDataUtils.count(LogDetail.class, "status", "=", "0");
                             mlogCount = logMainCount + logDetailCount;
                         } catch (DbException e) {
                             e.printStackTrace();
@@ -1222,9 +1302,22 @@ public class SyncbakActivity extends BaseActivity {
                         }
                         isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                         putLogFLag = true;
+                        if (logDetailCount > 0 && logMainCount == 0) {//如果主日志已经上传，状态就都为9，查询不到。但是明细日志还有未上传的记录就直接进行明细上传，
+                            List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOp(LogDetail.class, "status", "=", "0", limit);
+                            FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
+                        }else{
+                            List<LogMain> logMainList = (List<LogMain>) DBDataUtils.getInfosHasOp(LogMain.class, "status", "=", "0");//传全部记录
+                            FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, logMainList, null);
+                        }
+                        break;
+                    case BackThread_PUTLOGDETAIL:  //上传日志明细记录
+                        if (putLogFLag) {
+                            return;
+                        }
+                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                        putLogFLag = true;
                         List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOp(LogDetail.class, "status", "=", "0", limit);
-                        List<LogMain> logMainList = (List<LogMain>) DBDataUtils.getInfosHasOp(LogMain.class, "status", "=", "0");
-                        FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, logMainList, logDetailList);
+                        FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -1234,6 +1327,7 @@ public class SyncbakActivity extends BaseActivity {
         };
     }
 
+    int mainLogId;//主记录ID 用来判断
     /**
      * 网络操作相关的子线程
      */
@@ -1309,22 +1403,18 @@ public class SyncbakActivity extends BaseActivity {
             networkThread.interrupt();//中断线程的方法
             networkThread = null;
         }
-        if (wrKfDbThread != null) {
-            wrKfDbThread.interrupt();//中断线程的方法
-            wrKfDbThread = null;
-        }
-        if (wrMjjDbThread != null) {
-            wrMjjDbThread.interrupt();//中断线程的方法
-            wrMjjDbThread = null;
-        }
-        if (wrMjgDbThread != null) {
-            wrMjgDbThread.interrupt();//中断线程的方法
-            wrMjgDbThread = null;
-        }
-        if (writeMjgDaDBThread != null) {
-            writeMjgDaDBThread.interrupt();//中断线程的方法
-            writeMjgDaDBThread = null;
-        }
+        closeThread(wrKfDbThread);
+        closeThread(wrMjjDbThread);
+        closeThread(wrMjgDbThread);
+        closeThread(writeMjgDaDBThread);
+        closeThread(writeMjgDaDelDBThread);
+        closeThread(writeCheckPlanDBThread);
+        closeThread(writeCheckErrorDBThread);
+        closeThread(writeCheckDetailDBThread);
+        closeThread(writeCheckDetailDBDelThread);
+        closeThread(writeMainLogDBThread);
+        closeThread(writeDetailLogDBThread);
+        closeThread(wrEpcDbThread);
         mCheckMsgHandler.removeCallbacksAndMessages(null);
         mHandler.removeCallbacksAndMessages(null);
         //        if (task != null && task.getStatus() == AsyncTask.Status.RUNNING) {
@@ -1337,6 +1427,13 @@ public class SyncbakActivity extends BaseActivity {
         finish();
     }
 
+    private void closeThread(Thread threadName) {
+        if (threadName != null) {
+            threadName.interrupt();//中断线程的方法
+            threadName = null;
+        }
+    }
+
     /*
          * 重写返回键,模拟返回按下暂停键
          */
@@ -1345,42 +1442,7 @@ public class SyncbakActivity extends BaseActivity {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
                 LogUtils.d("KEYCODE_BACK");
-                if (getKfFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (getMjjFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (getMjgflag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (getDaFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (putDaFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (getCheckPlanFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (putCheckDetailFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (putCheckErrorFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (getEpcFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
+                if (checkFlags()) return false;
                 break;
             default:
                 break;
@@ -1412,42 +1474,7 @@ public class SyncbakActivity extends BaseActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 LogUtils.d("我按了返回键盘");
-                if (getKfFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (getMjjFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (getMjgflag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (getDaFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (putDaFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (getCheckPlanFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (putCheckDetailFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (putCheckErrorFLag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
-                if (getEpcFlag == true) {
-                    ToastUtils.showToast("正在更新数据库，请勿返回", 500);
-                    return false;
-                }
+                if (checkFlags()) return false;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     finishAfterTransition();
                 } else {
@@ -1483,6 +1510,50 @@ public class SyncbakActivity extends BaseActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private boolean checkFlags() {
+        if (getKfFlag == true) {
+            ToastUtils.showToast("正在更新数据库，请勿返回", 500);
+            return true;
+        }
+        if (getMjjFlag == true) {
+            ToastUtils.showToast("正在更新数据库，请勿返回", 500);
+            return true;
+        }
+        if (getMjgflag == true) {
+            ToastUtils.showToast("正在更新数据库，请勿返回", 500);
+            return true;
+        }
+        if (getDaFLag == true) {
+            ToastUtils.showToast("正在更新数据库，请勿返回", 500);
+            return true;
+        }
+        if (putDaFLag == true) {
+            ToastUtils.showToast("正在更新数据库，请勿返回", 500);
+            return true;
+        }
+        if (getCheckPlanFLag == true) {
+            ToastUtils.showToast("正在更新数据库，请勿返回", 500);
+            return true;
+        }
+        if (putCheckDetailFLag == true) {
+            ToastUtils.showToast("正在更新数据库，请勿返回", 500);
+            return true;
+        }
+        if (putCheckErrorFLag == true) {
+            ToastUtils.showToast("正在更新数据库，请勿返回", 500);
+            return true;
+        }
+        if (getEpcFlag == true) {
+            ToastUtils.showToast("正在更新数据库，请勿返回", 500);
+            return true;
+        }
+        //        if (putLogFLag == true) {
+        //            ToastUtils.showToast("正在更新数据库，请勿返回", 500);
+        //            return true;
+        //        }
+        return false;
     }
 
     /**

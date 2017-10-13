@@ -7,6 +7,7 @@ public class SendBaseResponse {
 	public int records;
 	public String msg;
 	public String delrecords;
+	public String detailrows;
 	public String rows;
 
 	public String phoneNum="";

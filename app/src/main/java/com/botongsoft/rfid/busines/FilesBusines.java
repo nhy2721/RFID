@@ -183,9 +183,13 @@ public class FilesBusines {
         req.put("reqType", reqType);
         if (logMainList != null) {
             req.put("logMainList", logMainList);
+        }else{
+            req.put("logMainList", "");
         }
         if (logDetailList != null) {
             req.put("logDetailList", logDetailList);
+        }else{
+            req.put("logDetailList", "");
         }
 
         JSONArray str_jsons = new JSONArray();

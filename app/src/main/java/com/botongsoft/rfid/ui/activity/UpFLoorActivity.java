@@ -402,6 +402,7 @@ public class UpFLoorActivity extends BaseActivity {
                                 && delMjjgda.getMjgid() == Integer.valueOf(temp[2])) {
                             //判断如果位置相等删除需要提交同步的旧数据，把记录改回状态9就好了
                             delMjjgda.setStatus(9);
+                            setDaValue(temp, mjjgda, mjjgda.getTitle(), mjjgda.getBm(), mjjgda.getJlid());
 //                            delMjjgda.setAnchor(new Date().getTime());
                             DBDataUtils.update(delMjjgda);
                             //                            DBDataUtils.deleteInfo(delMjjgda);
