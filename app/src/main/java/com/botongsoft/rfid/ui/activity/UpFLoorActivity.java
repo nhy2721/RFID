@@ -39,13 +39,13 @@ import com.botongsoft.rfid.common.db.MjgdaSearchDb;
 import com.botongsoft.rfid.common.service.http.BusinessException;
 import com.botongsoft.rfid.common.utils.SoundUtil;
 import com.botongsoft.rfid.common.utils.ToastUtils;
-import com.botongsoft.rfid.common.utils.UIUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
 import com.botongsoft.rfid.listener.OnSingleClickListener;
 import com.botongsoft.rfid.ui.adapter.UpfloorAdapter;
 import com.botongsoft.rfid.ui.fragment.SettingDialogFragment;
 import com.botongsoft.rfid.ui.widget.RecyclerViewDecoration.ListViewDescDecoration;
 import com.handheld.UHFLonger.UHFLongerManager;
+import com.lidroid.xutils.exception.DbException;
 import com.yanzhenjie.recyclerview.swipe.Closeable;
 import com.yanzhenjie.recyclerview.swipe.OnSwipeMenuItemClickListener;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenu;
@@ -73,6 +73,7 @@ public class UpFLoorActivity extends BaseActivity {
     private static final int UI_SUCCESS = 0;
     private static final int UI_SUBMITSUCCESS = 1;
     private static final int UI_SUBMITERROR = 2;
+    private static final int UI_SUBMITERROR_OUTSUM = 4;
     private static final int UI_ISEXIST = 3;
 
     @BindView(appBarLayout)
@@ -93,9 +94,17 @@ public class UpFLoorActivity extends BaseActivity {
     Switch mSwitch;
     @BindView(R.id.tv_info)
     TextView mTextView;
+    @BindView(R.id.tv_yxsl)
+    TextView tv_yxsl; //允许数量
+    @BindView(R.id.tv_ycsl)
+    TextView tv_ycsl;//已存数量
+    @BindView(R.id.tv_kcsl)
+    TextView tv_kcsl;//可存数量
     private static String scanInfoLocal = "";//扫描的格子位置 根据“/”拆分后存入数据库 kfid + mjjid + mjjg.getId()
     @BindView(R.id.progressBar)
     ProgressBar mProgressBar;
+    private int ycsl;//已存数量
+    private int kcsl;//可存数量
     private int index;
     private String editString;
     private List<Mjjgda> mDataList;
@@ -123,6 +132,8 @@ public class UpFLoorActivity extends BaseActivity {
     //    private PlaySoundPool soundPool;
     Thread thread;
     private Message sMessage;
+    boolean settingFlag;
+    int sub;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,6 +156,7 @@ public class UpFLoorActivity extends BaseActivity {
             e.printStackTrace();
         }
         initUiHandler();
+        getSettingFlag();
         mAppBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
             @Override
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
@@ -218,6 +230,16 @@ public class UpFLoorActivity extends BaseActivity {
         registerReceiver(keyReceiver, intentFilter);
     }
 
+    private void getSettingFlag() {
+        SharedPreferences sp1 = getSharedPreferences("setcheck", 0);
+        int settingvalue = sp1.getInt("value", 0);
+        if (settingvalue == 1) {
+            settingFlag = true;
+        } else {
+            settingFlag = false;
+        }
+    }
+
     @Override
     protected void initEvents() {
         index = getIntent().getIntExtra("index", 0);
@@ -245,7 +267,8 @@ public class UpFLoorActivity extends BaseActivity {
                     mHandler.sendMessage(mHandlerMessage);
                 } else {
                     if (mDataList.size() > 0) {
-                        Toast.makeText(UIUtils.getContext(), "开始保存", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showToast("开始保存", 500);
+                        //                        Toast.makeText(UIUtils.getContext(), "开始保存", Toast.LENGTH_SHORT).show();
                         view.setClickable(false);
                         mProgressBar.setVisibility(View.VISIBLE);
                         msg = mCheckMsgHandler.obtainMessage();
@@ -266,6 +289,8 @@ public class UpFLoorActivity extends BaseActivity {
                     case UI_SUCCESS:
                         if (mBundle != null) {
                             mTextView.setText(mBundle.getString("info"));
+                            tv_ycsl.setText(mBundle.getString("_count"));
+                            tv_kcsl.setText(mBundle.getString("hkcfsl"));
                         }
                         //                        mTextInputEditText.setText("");
                         smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
@@ -273,12 +298,20 @@ public class UpFLoorActivity extends BaseActivity {
                         break;
                     case UI_SUBMITSUCCESS:
                         mTextView.setText("");
+                        tv_yxsl.setText("");
+                        tv_ycsl.setText("");
+                        tv_kcsl.setText("");
                         //                        mTextInputEditText.setText("");
                         mDataList.clear();
                         mUpfloorAdapter.notifyDataSetChanged();
                         mProgressBar.setVisibility(View.GONE);
                         ToastUtils.showToast("保存成功", 500);
                         size1 = 1;
+                        mFab.setClickable(true);
+                        break;
+                    case UI_SUBMITERROR_OUTSUM:
+                        mProgressBar.setVisibility(View.GONE);
+                        ToastUtils.showToast("当前格子不允许存放超过可存数的档案", 1000);
                         mFab.setClickable(true);
                         break;
                     case UI_SUBMITERROR:
@@ -326,16 +359,26 @@ public class UpFLoorActivity extends BaseActivity {
 
         @Override
         public void run() {
-            String temp[] = scanInfoLocal.split("/");//拆分上架的位置
-            int logMainID =retUpMainId();
-            newSave(temp,logMainID);
-            //oldSave(temp);
+            if (settingFlag) {
+                int s = sub - mDataList.size();
+                if (s < 0) {
+                    mHandlerMessage = mHandler.obtainMessage();
+                    mHandlerMessage.what = UI_SUBMITERROR_OUTSUM;
+                    mHandler.sendMessage(mHandlerMessage);
+                }
+            } else {
+                String temp[] = scanInfoLocal.split("/");//拆分上架的位置
+                int logMainID = retUpMainId();
+                newSave(temp, logMainID);
+                //                oldSave(temp);
 
-            //这里发送通知ui更新界面
-            scanInfoLocal = "";//上过架后清空该变量
-            mHandlerMessage = mHandler.obtainMessage();
-            mHandlerMessage.what = UI_SUBMITSUCCESS;
-            mHandler.sendMessage(mHandlerMessage);
+                //这里发送通知ui更新界面
+                scanInfoLocal = "";//上过架后清空该变量
+                mHandlerMessage = mHandler.obtainMessage();
+                mHandlerMessage.what = UI_SUBMITSUCCESS;
+                mHandler.sendMessage(mHandlerMessage);
+            }
+
         }
 
         private void oldSave(String[] temp) {
@@ -403,7 +446,7 @@ public class UpFLoorActivity extends BaseActivity {
                             //判断如果位置相等删除需要提交同步的旧数据，把记录改回状态9就好了
                             delMjjgda.setStatus(9);
                             setDaValue(temp, mjjgda, mjjgda.getTitle(), mjjgda.getBm(), mjjgda.getJlid());
-//                            delMjjgda.setAnchor(new Date().getTime());
+                            //                            delMjjgda.setAnchor(new Date().getTime());
                             DBDataUtils.update(delMjjgda);
                             //                            DBDataUtils.deleteInfo(delMjjgda);
                         } else {
@@ -424,7 +467,7 @@ public class UpFLoorActivity extends BaseActivity {
                     setDaValue(temp, mjjgda, mjjgda.getTitle(), mjjgda.getBm(), mjjgda.getJlid());
                     mjjgdaTempList.add(mjjgda);
                 }
-                addUpDetail(logMainID,mjjgda);
+                addUpDetail(logMainID, mjjgda);
             }
             DBDataUtils.saveAll(mjjgdaTempList);
         }
@@ -546,11 +589,11 @@ public class UpFLoorActivity extends BaseActivity {
                                 mHandlerMessage.what = UI_ISEXIST;
                                 mHandlerMessage.obj = name;
                                 mHandler.sendMessage(mHandlerMessage);
-                            }else{
+                            } else {
                                 runOnUiThread(new Runnable() {
                                     public void run() {
                                         //                                ToastUtils.showShort("没查询到该条扫描记录" + editString);
-                                        ToastUtils.showToast("没查询到该条"+ editString+"扫描记录的格子对象，请检查数据库该记录的mjjg表记录是否存在" , 500);
+                                        ToastUtils.showToast("没查询到该条" + editString + "扫描记录的格子对象，请检查数据库该记录的mjjg表记录是否存在", 500);
                                     }
                                 });
                             }
@@ -581,6 +624,30 @@ public class UpFLoorActivity extends BaseActivity {
                         Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
                                 "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
                         if (mjjg != null) {
+                            mBundle = new Bundle();
+                            try {
+                                Long _count = DBDataUtils.count(Mjjgda.class, "mjgid", "=", mjjg.getId() + "");
+                                mBundle.putString("_count", String.valueOf(_count));
+
+                                if (mjjg.getCfsl() != 0) {
+                                    sub = (int) (mjjg.getCfsl() - _count);
+                                    mBundle.putString("hkcfsl", String.valueOf(sub));
+                                } else {
+                                    mBundle.putString("hkcfsl", "无限制");
+                                }
+
+                            } catch (DbException e) {
+                                e.printStackTrace();
+                            }
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    if (mjjg.getCfsl() != 0) {
+                                        tv_yxsl.setText(String.valueOf(mjjg.getCfsl()));
+                                    }
+
+                                }
+                            });
+
                             mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
                             if (mjj != null) {
                                 mjjname = mjj.getMc() + "/";
@@ -606,7 +673,7 @@ public class UpFLoorActivity extends BaseActivity {
                             nLOrR = mjjg.getZy() == 1 ? "左" : "右";
                             String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
                             String temple = kfid + mjjid + mjjg.getId();//这里的值用来拆分存放位置存入档案表
-                            mBundle = new Bundle();
+
                             mBundle.putString("info", name);
                             scanInfoLocal = temple;
 

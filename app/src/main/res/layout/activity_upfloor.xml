@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:context="com.botongsoft.rfid.ui.activity.UpFLoorActivity"
+                                                 xmlns:app="http://schemas.android.com/apk/res-auto"
+                                                 xmlns:tools="http://schemas.android.com/tools"
+                                                 android:layout_width="match_parent"
+                                                 android:layout_height="match_parent"
+                                                 android:fitsSystemWindows="true"
+                                                 tools:context="com.botongsoft.rfid.ui.activity.UpFLoorActivity"
     >
 
 
@@ -77,32 +77,42 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:titleTextColor="#ffffff"
             android:background="?attr/colorPrimary"
             android:minHeight="?attr/actionBarSize"
             app:layout_scrollFlags="scroll|enterAlways"
             app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:titleTextColor="#ffffff"
             />
+
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#334343"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             >
-            <Switch
-                android:id="@+id/st_saoma"
-                android:layout_width="0dp"
-                android:gravity="center"
-                android:layout_gravity="center_vertical"
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.21"
-                android:textOff="关闭中"
-                android:textOn="开启中"
-                android:showText="true"
-                android:hint="扫码:"
-                android:textColorHint="@color/white" />
-            <!--<android.support.design.widget.TextInputLayout-->
+                android:background="#334343"
+                android:orientation="horizontal"
+                >
+
+                <Switch
+                    android:id="@+id/st_saoma"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="0.21"
+                    android:gravity="center"
+                    android:hint="扫码:"
+                    android:showText="true"
+                    android:textColorHint="@color/white"
+                    android:textOff="关闭中"
+                    android:textOn="开启中"
+                    />
+                <!--<android.support.design.widget.TextInputLayout-->
                 <!--android:id="@+id/tx_layout"-->
                 <!--android:layout_width="0dp"-->
                 <!--android:layout_height="wrap_content"-->
@@ -111,30 +121,125 @@
                 <!--&gt;-->
 
                 <!--<android.support.design.widget.TextInputEditText-->
-                    <!--android:id="@+id/input_tx"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="wrap_content"-->
+                <!--android:id="@+id/input_tx"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
 
-                    <!--android:hint="请扫描信息标签"-->
-                    <!--android:maxLines="1"-->
-                    <!--/>-->
+                <!--android:hint="请扫描信息标签"-->
+                <!--android:maxLines="1"-->
+                <!--/>-->
                 <!--&lt;!&ndash;android:drawableLeft="@drawable/ic_search_white_24dp"&ndash;&gt;-->
-            <!--</android.support.design.widget.TextInputLayout>-->
+                <!--</android.support.design.widget.TextInputLayout>-->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.27"
+                    android:background="#334343"
+                    android:orientation="vertical"
+                    >
 
-            <TextView
-                android:id="@+id/tv_info"
-                android:layout_width="0dp"
-                android:layout_height="43dp"
-                android:layout_gravity="center"
-                android:layout_weight="0.27"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:gravity="right"
-                android:maxHeight="?attr/actionBarSize"
-                android:padding="@dimen/item_margin"
-                android:text=""
-                android:textColor="@color/white"
-                android:textSize="@dimen/textsize_18"
-                />
+                    <TextView
+                        android:id="@+id/tv_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:gravity="right"
+                        android:maxHeight="?attr/actionBarSize"
+                        android:padding="@dimen/item_margin"
+                        android:text=""
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/textsize_18"
+                        />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="允许存放数量"
+                    android:layout_gravity="center"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:maxHeight="?attr/actionBarSize"
+                    android:padding="@dimen/item_margin"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/textsize_18"
+                    />
+
+                <TextView
+                    android:id="@+id/tv_yxsl"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text=""
+                    android:layout_gravity="center"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:maxHeight="?attr/actionBarSize"
+                    android:padding="@dimen/item_margin"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/textsize_18"
+
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="已存数量"
+                    android:layout_gravity="center"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:maxHeight="?attr/actionBarSize"
+                    android:padding="@dimen/item_margin"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/textsize_18"
+                    />
+
+                <TextView
+                    android:id="@+id/tv_ycsl"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:layout_gravity="center"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:maxHeight="?attr/actionBarSize"
+                    android:padding="@dimen/item_margin"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/textsize_18"
+
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="还可存数量"
+                    android:layout_gravity="center"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:maxHeight="?attr/actionBarSize"
+                    android:padding="@dimen/item_margin"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/textsize_18"
+                    />
+
+                <TextView
+                    android:id="@+id/tv_kcsl"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:layout_gravity="center"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:maxHeight="?attr/actionBarSize"
+                    android:padding="@dimen/item_margin"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/textsize_18"
+                    />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -151,8 +256,8 @@
                 android:layout_margin="3dp"
                 android:layout_weight="0.33"
                 android:gravity="center"
-                android:text="@string/number"
                 android:paddingRight="5dp"
+                android:text="@string/number"
                 />
 
             <TextView

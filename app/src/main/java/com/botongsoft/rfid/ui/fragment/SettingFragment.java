@@ -3,6 +3,7 @@ package com.botongsoft.rfid.ui.fragment;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
@@ -28,7 +29,6 @@ import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.ui.activity.BaseActivity;
 import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.util.LogUtils;
 
 /**
  * Created by pc on 2017/9/5.
@@ -46,33 +46,44 @@ public class SettingFragment extends PreferenceFragment implements SharedPrefere
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
 
-        //        SwitchCompat ss = (SwitchCompat) getActivity().findViewById(R.id.switch_compat);
-        //        ss.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-        //            @Override
-        //            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        //                Logger.d("SwitchCompat " + buttonView + " changed to " + isChecked);
-        //            }
-        //        });
+        //                SwitchCompat ss = (SwitchCompat) getActivity().findViewById(R.id.switch_compat);
+        //                ss.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        //                    @Override
+        //                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        ////                        Logger.d("SwitchCompat " + buttonView + " changed to " + isChecked);
+        //                    }
+        //                });
 
-        //        final CheckBoxPreference checkboxPref = (CheckBoxPreference) getPreferenceManager()
-        //                .findPreference(getString(R.string.save_net_mode));
-        //
-        //        checkboxPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-        //
-        //            /**
-        //             * @param preference The changed Preference.
-        //             * @param newValue   The new value of the Preference.
-        //             * @return True to update the state of the Preference with the new value.
-        //             */
-        //            @Override
-        //            public boolean onPreferenceChange(Preference preference, Object newValue) {
-        //
-        //                boolean checked = Boolean.valueOf(newValue.toString());
-        //                PrefUtils.setSaveNetMode(checked);
-        //                return true;
-        //
-        //            }
-        //        });
+        final CheckBoxPreference checkboxPref = (CheckBoxPreference) getPreferenceManager()
+                .findPreference(getString(R.string.save_net_mode));
+
+        checkboxPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+
+            /**
+             * @param preference The changed Preference.
+             * @param newValue   The new value of the Preference.
+             * @return True to update the state of the Preference with the new value.
+             */
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+
+                boolean checked = Boolean.valueOf(newValue.toString());
+                SharedPreferences shared = BaseApplication.application.getSharedPreferences("setcheck", 0);
+                SharedPreferences.Editor editor = shared.edit();
+                if (checked) {
+                    editor.putInt("value", 1);
+                    //                            ToastUtils.showToast("真",2000);
+                } else {
+                    editor.putInt("value", 0);
+                    //                            ToastUtils.showToast("假",2000);
+                }
+                editor.commit();
+                //                        ToastUtils.showLong(checked+"");
+                //                        PrefUtils.setSaveNetMode(checked);
+                return true;
+
+            }
+        });
 
         editTextIpAddress = (EditTextPreference) getPreferenceManager().findPreference(getString(R.string.ipaddress));
         if (null != editTextIpAddress) {
@@ -141,8 +152,8 @@ public class SettingFragment extends PreferenceFragment implements SharedPrefere
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-        LogUtils.d(s + " onSharedPreferenceChanged");
-        ToastUtils.showToast(s + " onSharedPreferenceChanged", 500);
+        //        LogUtils.d(s + " onSharedPreferenceChanged");
+        //        ToastUtils.showToast(s + " onSharedPreferenceChanged", 500);
 
     }
 

@@ -9,23 +9,24 @@
         android:layout="@layout/preference_category_widget"
         android:title="基本设置"
         >
-        <!--<CheckBoxPreference-->
-            <!--android:key="@string/save_net_mode"-->
-            <!--android:layout="@layout/preference_item"-->
-            <!--android:summary="仅在Wi-Fi环境下才自动加载图片"-->
-            <!--android:title="省流量模式"-->
-            <!--android:widgetLayout="@layout/preference_switch_layout" />-->
+
         <EditTextPreference
             android:key="@string/ipaddress"
             android:layout="@layout/preference_item"
             android:summary=""
             android:textSize="@dimen/textsize_16"
-            android:title="服务器地址设置" />
+            android:title="@string/serverIP"/>
         <Preference
             android:key="@string/initdb"
             android:layout="@layout/preference_item"
-            android:summary="点击该选项将清空该机内的所有数据"
-            android:title="初始化数据库" />
+            android:summary="@string/initDbServerSummary"
+            android:title="@string/initDbServer"/>
+        <CheckBoxPreference
+            android:key="@string/save_net_mode"
+            android:layout="@layout/preference_item"
+            android:summary="开启后上架时不允许超出存放数量的最大限制 "
+            android:title="存放数量限制"
+            android:widgetLayout="@layout/preference_switch_layout"/>
     </PreferenceCategory>
 
 

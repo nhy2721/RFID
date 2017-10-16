@@ -64,4 +64,7 @@
     <string name="dialog_initdb_message">点击确定将清空该机内的所有数据内容</string>
     <string name="postive_button">确认</string>
     <string name="negative_button">取消</string>
+    <string name="serverIP">服务器地址设置</string>
+    <string name="initDbServer">初始化数据库</string>
+    <string name="initDbServerSummary">点击该选项将清空该机内的所有数据</string>
 </resources>

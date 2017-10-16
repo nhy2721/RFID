@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.support.v7.app.AppCompatDelegate;
 
+import com.botongsoft.rfid.crash.CrashCatchHandler;
 import com.botongsoft.rfid.ui.activity.BaseActivity;
 import com.handheld.UHFLonger.UHFLongerManager;
 
@@ -46,6 +47,7 @@ public class BaseApplication extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        CrashCatchHandler.getInstance().init(getApplicationContext());
     }
     public UHFLongerManager getmanager() {
         return manager;
