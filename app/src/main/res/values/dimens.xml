@@ -20,4 +20,6 @@
     <dimen name="textsize_12">12sp</dimen>
     <dimen name="textsize_10">10sp</dimen>
     <dimen name="item_height">30dp</dimen>
+    <dimen name="textsize_20">20sp</dimen>
+    <dimen name="textsize_22">22sp</dimen>
 </resources>

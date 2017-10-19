@@ -24,6 +24,17 @@ public class Epc implements java.io.Serializable {
     private long anchor;
     @Column
     private int status;
+    @Column
+    private int ztcode;
+
+    public int getZtcode() {
+        return ztcode;
+    }
+
+    public void setZtcode(int ztcode) {
+        this.ztcode = ztcode;
+    }
+
     public int getLid() {
         return lid;
     }

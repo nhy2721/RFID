@@ -36,6 +36,7 @@ import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.db.SearchDb;
 import com.botongsoft.rfid.common.utils.ConverJavaBean;
 import com.botongsoft.rfid.common.utils.LogUtils;
+import com.botongsoft.rfid.common.utils.SNUtil;
 import com.botongsoft.rfid.common.utils.SoundUtil;
 import com.botongsoft.rfid.common.utils.ToastUtils;
 import com.botongsoft.rfid.listener.OnItemClickListener;
@@ -49,7 +50,6 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuCreator;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -548,7 +548,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             mCheckError.setMjjid(mjjg.getMjjid());
             mCheckError.setKfid(mjj.getKfid());
             mCheckError.setStatus(0);
-            mCheckError.setAnchor(new Date().getTime());
+            mCheckError.setAnchor(SNUtil.nextSid());
             DBDataUtils.save(mCheckError);
         }
     }
@@ -568,7 +568,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                         mCheckPlanDeatil.setZy(oldZy);
                         mCheckPlanDeatil.setMjjid(oldMjjId);
                         mCheckPlanDeatil.setPdid(pdid);
-                        mCheckPlanDeatil.setAnchor(new Date().getTime());
+                        mCheckPlanDeatil.setAnchor(SNUtil.nextSid());
                         mCheckPlanDeatil.setStatus(0);
                         if (mDataList.getColor() == 3) {
                             mCheckPlanDeatil.setType(3);

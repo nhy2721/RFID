@@ -36,6 +36,10 @@ public class Constant {
      * 类型为档案
      */
     public static final int LX_MJGDA = 2;
+    /**
+     * 类型为案卷载体
+     */
+    public static final int LX_AJZT = 3;
 
     /**
      * 根据传入的RFID条码分解成数组 如果这个分界方法变了，所有有使用这个方法的地方需要
@@ -78,8 +82,10 @@ public class Constant {
         //            lx = Constant.LX_MJJG;
         //        }
 
-        if (value.substring(0,1).equals("B")) {
+        if (value.substring(0, 1).equals("B")) {
             lx = Constant.LX_MJJG;
+        } else if (value.substring(0, 1).equals("A")) {
+            lx = Constant.LX_AJZT;
         } else {
             lx = Constant.LX_MJGDA;
         }
