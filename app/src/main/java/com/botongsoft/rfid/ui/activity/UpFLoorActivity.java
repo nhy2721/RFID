@@ -92,6 +92,8 @@ public class UpFLoorActivity extends BaseActivity {
     //    TextInputEditText mTextInputEditText;
     @BindView(R.id.st_saoma)
     Switch mSwitch;
+    @BindView(R.id.st_ajzt)
+    Switch mSwitch_ajzt;
     @BindView(R.id.tv_info)
     TextView mTextView;
     @BindView(R.id.tv_yxsl)
@@ -108,6 +110,7 @@ public class UpFLoorActivity extends BaseActivity {
     private int index;
     private String editString;
     private List<Mjjgda> mDataList;
+    private List<String> ajztList;
     private UpfloorAdapter mUpfloorAdapter;
     private int size = 50;
     private static int size1 = 1;
@@ -134,6 +137,7 @@ public class UpFLoorActivity extends BaseActivity {
     private Message sMessage;
     boolean settingFlag;
     int sub;
+    private boolean ajztFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -179,41 +183,6 @@ public class UpFLoorActivity extends BaseActivity {
         mSwipeMenuRecyclerView.setItemAnimator(new DefaultItemAnimator());// 设置Item默认动画，加也行，不加也行。
         mSwipeMenuRecyclerView.addItemDecoration(new ListViewDescDecoration());// 添加分割线。
 
-
-        //        mTextInputEditText.addTextChangedListener(new TextWatcher() {
-        //            @Override
-        //            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-        //                // 输入前的监听
-        //                //                Log.e("输入前确认执行该方法", "开始输入");
-        //                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
-        //            }
-        //
-        //            @Override
-        //            public void onTextChanged(CharSequence s, int start, int before, int count) {
-        //                // 输入的内容变化的监听
-        //                //               Log.e("输入过程中执行该方法", "文字变化");
-        //                if (mCheckMsgHandler != null) {
-        //                    mCheckMsgHandler.removeCallbacks(delayRun);
-        //                }
-        //                mCheckMsgHandler.removeMessages(MSG_UPDATE_INFO);
-        //            }
-        //
-        //            @Override
-        //            public void afterTextChanged(Editable editable) {
-        //                // 输入后的监听
-        //                //                Log.e("输入结束执行该方法", "输入结束");
-        //                Log.e("Handler textChanged--->", String.valueOf(Thread.currentThread().getName()));
-        //                if (mTextInputEditText.length() != 0) {
-        //                    if (mCheckMsgHandler != null) {
-        //                        mCheckMsgHandler.removeCallbacks(delayRun);
-        //                    }
-        //                    //延迟800ms，如果不再输入字符，则执行该线程的run方法 模拟扫描输入
-        //                    msg = mCheckMsgHandler.obtainMessage();
-        //                    msg.what = MSG_UPDATE_INFO;
-        //                    mCheckMsgHandler.sendMessageDelayed(msg, Constant.delayRun);
-        //                }
-        //            }
-        //        });
         // 添加滚动监听。
         //        mSwipeMenuRecyclerView.addOnScrollListener(mOnScrollListener);
         // 设置菜单创建器。
@@ -245,18 +214,9 @@ public class UpFLoorActivity extends BaseActivity {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
         mDataList = new ArrayList<>();
-        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // 开启switch，设置提示信息
-                    startFlag = true;
-                } else {
-                    // 关闭swtich，设置提示信息
-                    startFlag = false;
-                }
-            }
-        });
+        ajztList = new ArrayList<>();
+        saomaEvent();
+        mSwitch_ajztEvent();
         mProgressBar.setVisibility(View.GONE);
         mFab.setOnClickListener(new OnSingleClickListener() {
             @Override
@@ -280,6 +240,36 @@ public class UpFLoorActivity extends BaseActivity {
         });
     }
 
+    private void mSwitch_ajztEvent() {
+        mSwitch_ajzt.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // 开启switch，设置提示信息
+                    ajztFlag = true;
+                } else {
+                    // 关闭swtich，设置提示信息
+                    ajztFlag = false;
+                }
+            }
+        });
+    }
+
+    private void saomaEvent() {
+        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked) {
+                    // 开启switch，设置提示信息
+                    startFlag = true;
+                } else {
+                    // 关闭swtich，设置提示信息
+                    startFlag = false;
+                }
+            }
+        });
+    }
+
     private void initUiHandler() {
         mHandler = new Handler() {
             @Override
@@ -289,8 +279,8 @@ public class UpFLoorActivity extends BaseActivity {
                     case UI_SUCCESS:
                         if (mBundle != null) {
                             mTextView.setText(mBundle.getString("info"));
-                            tv_ycsl.setText(mBundle.getString("_count"));
-                            tv_kcsl.setText(mBundle.getString("hkcfsl"));
+                            tv_ycsl.setText(mBundle.getString("_count"));//已存数量
+                            tv_kcsl.setText(mBundle.getString("hkcfsl"));//可存数量
                         }
                         //                        mTextInputEditText.setText("");
                         smoothMoveToPosition(mSwipeMenuRecyclerView, mDataList.size() + 1);
@@ -527,23 +517,81 @@ public class UpFLoorActivity extends BaseActivity {
     };
 
     private void searchDB(String editString) {
+
         boolean tempStr = true;
-        //防止扫描重复判断
-        if (mDataList.size() > 0) {
-            for (Mjjgda mjjgda : mDataList) {
-                if (mjjgda.getEpccode().equals(editString)) {
-                    tempStr = false;
-                    break;
+        boolean ajztTempFlag = true;
+        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
+        if (ajztFlag) {//
+            tempStr = false;
+            if (lx == Constant.LX_AJZT) {
+                if (ajztList != null && ajztList.size() == 0) {
+                    ajztTempFlag = true;
+                    ajztList.add(editString);
+                } else {
+                    for (String s : ajztList) {
+                        if (s.equals(editString)) {
+                            ajztTempFlag = false;
+                            break;
+                        }
+                    }
+                    ajztList.add(editString);
                 }
+            }
+        } else {
+            //防止扫描重复判断
+            if (lx != Constant.LX_AJZT) {
+                if (mDataList.size() > 0) {
+                    for (Mjjgda mjjgda : mDataList) {
+                        if (mjjgda.getEpccode().equals(editString)) {
+                            tempStr = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        switch (lx) {
+            case Constant.LX_MJJG:
+                mHandlerMessage = mHandler.obtainMessage();
+                showMjgLocal(editString);
+                mHandler.sendMessage(mHandlerMessage);
+                break;
+        }
+        if (ajztTempFlag && ajztFlag) {
+            SoundUtil.play(1, 0);
+            Mjjgda mjjgda = null;
+            mHandlerMessage = mHandler.obtainMessage();
+            switch (lx) {
+                case Constant.LX_AJZT:
+                    int code = Integer.parseInt(editString.substring(1, editString.length()));
+                    List<Epc> epcList = (List<Epc>) DBDataUtils.getInfos(Epc.class, "ztcode", String.valueOf(code));
+                    if (epcList != null && epcList.size() > 0) {
+                        for (Epc epc : epcList) {
+                            mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", epc.getBm() + "",
+                                    "jlid", "=", epc.getJlid() + "", "status", "!=", "-1");
+                            if (mjjgda == null) {
+                                //没上过架存入页面显示
+                                Mjjgda newMjjgda = new Mjjgda();
+                                newMjjgda.setTitle(epc.getArchiveno());
+                                newMjjgda.setEpccode(editString);
+                                newMjjgda.setBm(epc.getBm());
+                                newMjjgda.setJlid(String.valueOf(epc.getJlid()));
+                                mDataList.add(newMjjgda);
+                                Collections.sort(mDataList, Mjjgda.nameComparator);//根据页面传入的档号排序
+                            }
+                        }
+                    }
+                    break;
+
             }
         }
         if (tempStr) {
             SoundUtil.play(1, 0);
-            int lx = Constant.getLx(editString);//根据传入的值返回对象类型
+            Mjjgda mjjgda = null;
             mHandlerMessage = mHandler.obtainMessage();
             switch (lx) {
                 case Constant.LX_MJGDA:
-                    Mjjgda mjjgda = null;
+
                     //不是属于密集格再查询档案是否已经上过架了
                     //这里要先查询一次对照表 获得该扫描记录的bm与jlid
                     Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
@@ -553,12 +601,6 @@ public class UpFLoorActivity extends BaseActivity {
                                 "jlid", "=", ecp.getJlid() + "", "status", "!=", "-1");
                         if (mjjgda == null) {
                             //没上过架存入页面显示
-                            //                            Map map = new HashMap();
-                            //                            map.put("id", size1++);
-                            //                            map.put("title", ecp.getArchiveno());
-                            //                            map.put("epccode", editString);
-                            //                            map.put("bm", ecp.getBm());
-                            //                            map.put("jlid", String.valueOf(ecp.getJlid()));
                             Mjjgda newMjjgda = new Mjjgda();
                             newMjjgda.setTitle(ecp.getArchiveno());
                             newMjjgda.setEpccode(editString);
@@ -610,91 +652,95 @@ public class UpFLoorActivity extends BaseActivity {
 
 
                     break;
-                case Constant.LX_MJJG:
-                    String kfname = "";
-                    String mjjname = "";
-                    String nLOrR = "";
-                    Mjj mjj = null;
-                    Kf kf = null;
-                    String kfid = "";
-                    String mjjid = "";
-                    try {
-                        String s[] = Constant.reqDatas(editString);
-                        //如果不重复查询密集格表
-                        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
-                                "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
-                        if (mjjg != null) {
-                            mBundle = new Bundle();
-                            try {
-                                Long _count = DBDataUtils.count(Mjjgda.class, "mjgid", "=", mjjg.getId() + "");
-                                mBundle.putString("_count", String.valueOf(_count));
-
-                                if (mjjg.getCfsl() != 0) {
-                                    sub = (int) (mjjg.getCfsl() - _count);
-                                    mBundle.putString("hkcfsl", String.valueOf(sub));
-                                } else {
-                                    mBundle.putString("hkcfsl", "无限制");
-                                }
-
-                            } catch (DbException e) {
-                                e.printStackTrace();
-                            }
-                            runOnUiThread(new Runnable() {
-                                public void run() {
-                                    if (mjjg.getCfsl() != 0) {
-                                        tv_yxsl.setText(String.valueOf(mjjg.getCfsl()));
-                                    }
-
-                                }
-                            });
-
-                            mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
-                            if (mjj != null) {
-                                mjjname = mjj.getMc() + "/";
-                                mjjid = mjj.getId() + "/";
-                                kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
-                            } else {
-                                runOnUiThread(new Runnable() {
-                                    public void run() {
-                                        ToastUtils.showToast("没查询到密集架表记录", 500);
-                                    }
-                                });
-                            }
-                            if (kf != null) {
-                                kfname = kf.getMc() + "/";
-                                kfid = kf.getId() + "/";
-                            } else {
-                                runOnUiThread(new Runnable() {
-                                    public void run() {
-                                        ToastUtils.showToast("没查询到库房表记录", 500);
-                                    }
-                                });
-                            }
-                            nLOrR = mjjg.getZy() == 1 ? "左" : "右";
-                            String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
-                            String temple = kfid + mjjid + mjjg.getId();//这里的值用来拆分存放位置存入档案表
-
-                            mBundle.putString("info", name);
-                            scanInfoLocal = temple;
-
-                            mHandlerMessage.setData(mBundle);
-                        } else {
-                            runOnUiThread(new Runnable() {
-                                public void run() {
-                                    ToastUtils.showToast("没查询到格子记录 密集架ID：" + Integer.valueOf(s[2]).toString() + "左/右:" + Integer.valueOf(s[3]).toString() + "层数：" + Integer.valueOf(s[5]).toString(), 500);
-                                }
-                            });
-                        }
-                    } catch (NumberFormatException e) {
-                        e.printStackTrace();
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-                                ToastUtils.showToast(e.getMessage(), 500);
-                            }
-                        });
-                    }
-                    break;
+                //                case Constant.LX_MJJG:
+                //                    showMjgLocal(editString);
+                //                    break;
             }
+        }
+    }
+
+    private void showMjgLocal(String editString) {
+        String kfname = "";
+        String mjjname = "";
+        String nLOrR = "";
+        Mjj mjj = null;
+        Kf kf = null;
+        String kfid = "";
+        String mjjid = "";
+        try {
+            String s[] = Constant.reqDatas(editString);
+            //如果不重复查询密集格表
+            Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
+                    "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
+            if (mjjg != null) {
+                mBundle = new Bundle();
+                try {
+                    Long _count = DBDataUtils.count(Mjjgda.class, "mjgid", "=", mjjg.getId() + "");
+                    mBundle.putString("_count", String.valueOf(_count));
+
+                    if (mjjg.getCfsl() != 0) {
+                        sub = (int) (mjjg.getCfsl() - _count);
+                        mBundle.putString("hkcfsl", String.valueOf(sub));
+                    } else {
+                        mBundle.putString("hkcfsl", "无限制");
+                    }
+
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        if (mjjg.getCfsl() != 0) {
+                            tv_yxsl.setText(String.valueOf(mjjg.getCfsl()));
+                        }
+
+                    }
+                });
+
+                mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                if (mjj != null) {
+                    mjjname = mjj.getMc() + "/";
+                    mjjid = mjj.getId() + "/";
+                    kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                } else {
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            ToastUtils.showToast("没查询到密集架表记录", 500);
+                        }
+                    });
+                }
+                if (kf != null) {
+                    kfname = kf.getMc() + "/";
+                    kfid = kf.getId() + "/";
+                } else {
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            ToastUtils.showToast("没查询到库房表记录", 500);
+                        }
+                    });
+                }
+                nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                String name = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+                String temple = kfid + mjjid + mjjg.getId();//这里的值用来拆分存放位置存入档案表
+
+                mBundle.putString("info", name);
+                scanInfoLocal = temple;
+
+                mHandlerMessage.setData(mBundle);
+            } else {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        ToastUtils.showToast("没查询到格子记录 密集架ID：" + Integer.valueOf(s[2]).toString() + "左/右:" + Integer.valueOf(s[3]).toString() + "层数：" + Integer.valueOf(s[5]).toString(), 500);
+                    }
+                });
+            }
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    ToastUtils.showToast(e.getMessage(), 500);
+                }
+            });
         }
     }
 
@@ -717,6 +763,7 @@ public class UpFLoorActivity extends BaseActivity {
         thread = new ThreadMe();
         thread.start();
         mSwitch.setChecked(false);
+        mSwitch_ajzt.setChecked(false);
     }
 
     @Override
@@ -986,18 +1033,7 @@ public class UpFLoorActivity extends BaseActivity {
             case R.id.action_Power:
                 //                                Intent intent = new Intent(this, SettingPower.class);
                 //                                startActivity(intent);
-                mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                        if (isChecked) {
-                            // 开启switch，设置提示信息
-                            startFlag = true;
-                        } else {
-                            // 关闭swtich，设置提示信息
-                            startFlag = false;
-                        }
-                    }
-                });
+                saomaEvent();
                 startFlag = false;
                 mSwitch.setChecked(false);
                 FragmentTransaction ft = getFragmentManager().beginTransaction();

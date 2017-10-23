@@ -162,9 +162,15 @@ public class UpGuidanceActivity extends BaseActivity {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
         mDataList = new ArrayList<>();
+        saomaEvent();
+        mProgressBar.setVisibility(View.GONE);
+
+    }
+
+    private void saomaEvent() {
         mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 if (isChecked) {
                     // 开启switch，设置提示信息
                     startFlag = true;
@@ -174,8 +180,6 @@ public class UpGuidanceActivity extends BaseActivity {
                 }
             }
         });
-        mProgressBar.setVisibility(View.GONE);
-
     }
 
     private void initUiHandler() {
@@ -575,18 +579,7 @@ public class UpGuidanceActivity extends BaseActivity {
             case R.id.action_Power:
                 //                                Intent intent = new Intent(this, SettingPower.class);
                 //                                startActivity(intent);
-                mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                        if (isChecked) {
-                            // 开启switch，设置提示信息
-                            startFlag = true;
-                        } else {
-                            // 关闭swtich，设置提示信息
-                            startFlag = false;
-                        }
-                    }
-                });
+                saomaEvent();
                 startFlag = false;
                 mSwitch.setChecked(false);
                 FragmentTransaction ft = getFragmentManager().beginTransaction();

@@ -51,6 +51,7 @@ public class WriteEpcDBThread extends Thread {
                 epcOld.setBm(epc.getBm());
                 epcOld.setEpccode(epc.getEpccode());
                 epcOld.setJlid(epc.getJlid());
+                epcOld.setZtcode(epc.getZtcode());
                 epcOld.setStatus(9);
                 saveList.add(epcOld);
             } else {

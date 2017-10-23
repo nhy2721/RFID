@@ -632,15 +632,16 @@ public class SyncbakActivity extends BaseActivity {
     public void click(Button button) {
         switch (button.getId()) {
             case R.id.bt_action1:
-                action1();
+                bt_action1.setEnabled(false);
+                action(BackThread_GETKF);
                 break;
             case R.id.bt_action2:
                 button.setEnabled(false);
-                action2();
+                action(BackThread_GETMJJ);
                 break;
             case R.id.bt_action3:
                 button.setEnabled(false);
-                action3();
+                action(BackThread_GETMJJG);
                 break;
             case R.id.bt_action4:
                 button.setEnabled(false);
@@ -648,19 +649,19 @@ public class SyncbakActivity extends BaseActivity {
                 break;
             case R.id.bt_action5:
                 button.setEnabled(false);
-                action5();
+                action(BackThread_GETCHECKPLAN);
                 break;
             case R.id.bt_action6:
                 button.setEnabled(false);
-                action6();
+                action(BackThread_PUTCHECKERRORPLAN);
                 break;
             case R.id.bt_action7:
                 button.setEnabled(false);
-                action7();
+                action(BackThread_PUTCHECKDETAILPLAN);
                 break;
             case R.id.bt_action8:
                 bt_action8.setEnabled(false);
-                action8();
+                action(BackThread_GETEPC);
                 break;
             case R.id.bt_action9:
                 bt_action9.setEnabled(false);
@@ -671,28 +672,32 @@ public class SyncbakActivity extends BaseActivity {
         }
     }
 
-
-    private void action1() {
-        bt_action1.setEnabled(false);
+    private void action(int message) {
         backThreadmsg = mCheckMsgHandler.obtainMessage();
-        LogUtils.d("BackThread_GETKF;");
-        backThreadmsg.what = BackThread_GETKF;
+        backThreadmsg.what = message;
         mCheckMsgHandler.sendMessage(backThreadmsg);
     }
 
-    private void action2() {
-        backThreadmsg = mCheckMsgHandler.obtainMessage();
-        LogUtils.d("BackThread_GETMJJ;");
-        backThreadmsg.what = BackThread_GETMJJ;
-        mCheckMsgHandler.sendMessage(backThreadmsg);
-    }
+    //    private void action1() {
+    //        backThreadmsg = mCheckMsgHandler.obtainMessage();
+    //        LogUtils.d("BackThread_GETKF;");
+    //        backThreadmsg.what = BackThread_GETKF;
+    //        mCheckMsgHandler.sendMessage(backThreadmsg);
+    //    }
 
-    private void action3() {
-        backThreadmsg = mCheckMsgHandler.obtainMessage();
-        LogUtils.d("BackThread_GETMJJG;");
-        backThreadmsg.what = BackThread_GETMJJG;
-        mCheckMsgHandler.sendMessage(backThreadmsg);
-    }
+    //    private void action2() {
+    //        backThreadmsg = mCheckMsgHandler.obtainMessage();
+    //        LogUtils.d("BackThread_GETMJJ;");
+    //        backThreadmsg.what = BackThread_GETMJJ;
+    //        mCheckMsgHandler.sendMessage(backThreadmsg);
+    //    }
+
+    //    private void action3() {
+    //        backThreadmsg = mCheckMsgHandler.obtainMessage();
+    //        LogUtils.d("BackThread_GETMJJG;");
+    //        backThreadmsg.what = BackThread_GETMJJG;
+    //        mCheckMsgHandler.sendMessage(backThreadmsg);
+    //    }
 
     private void action4() {
         if (temple > 0) {
@@ -706,33 +711,33 @@ public class SyncbakActivity extends BaseActivity {
         }
     }
 
-    private void action5() {
-        backThreadmsg = mCheckMsgHandler.obtainMessage();
-        LogUtils.d("BackThread_GETCHECKPLAN;");
-        backThreadmsg.what = BackThread_GETCHECKPLAN;
-        mCheckMsgHandler.sendMessage(backThreadmsg);
-    }
+    //    private void action5() {
+    //        backThreadmsg = mCheckMsgHandler.obtainMessage();
+    //        LogUtils.d("BackThread_GETCHECKPLAN;");
+    //        backThreadmsg.what = BackThread_GETCHECKPLAN;
+    //        mCheckMsgHandler.sendMessage(backThreadmsg);
+    //    }
 
-    private void action6() {
-        backThreadmsg = mCheckMsgHandler.obtainMessage();
-        LogUtils.d("BackThread_PUTCHECKERRORPLAN;");
-        backThreadmsg.what = BackThread_PUTCHECKERRORPLAN;
-        mCheckMsgHandler.sendMessage(backThreadmsg);
-    }
+    //    private void action6() {
+    //        backThreadmsg = mCheckMsgHandler.obtainMessage();
+    //        LogUtils.d("BackThread_PUTCHECKERRORPLAN;");
+    //        backThreadmsg.what = BackThread_PUTCHECKERRORPLAN;
+    //        mCheckMsgHandler.sendMessage(backThreadmsg);
+    //    }
 
-    private void action7() {
-        backThreadmsg = mCheckMsgHandler.obtainMessage();
-        LogUtils.d("BackThread_PUTCHECKDETAILPLAN;");
-        backThreadmsg.what = BackThread_PUTCHECKDETAILPLAN;
-        mCheckMsgHandler.sendMessage(backThreadmsg);
-    }
+    //    private void action7() {
+    //        backThreadmsg = mCheckMsgHandler.obtainMessage();
+    //        LogUtils.d("BackThread_PUTCHECKDETAILPLAN;");
+    //        backThreadmsg.what = BackThread_PUTCHECKDETAILPLAN;
+    //        mCheckMsgHandler.sendMessage(backThreadmsg);
+    //    }
 
-    private void action8() {
-        backThreadmsg = mCheckMsgHandler.obtainMessage();
-        LogUtils.d("BackThread_GETEPC;");
-        backThreadmsg.what = BackThread_GETEPC;
-        mCheckMsgHandler.sendMessage(backThreadmsg);
-    }
+    //    private void action8() {
+    //        backThreadmsg = mCheckMsgHandler.obtainMessage();
+    //        LogUtils.d("BackThread_GETEPC;");
+    //        backThreadmsg.what = BackThread_GETEPC;
+    //        mCheckMsgHandler.sendMessage(backThreadmsg);
+    //    }
 
     private void action9() {
         backThreadmsg = mCheckMsgHandler.obtainMessage();

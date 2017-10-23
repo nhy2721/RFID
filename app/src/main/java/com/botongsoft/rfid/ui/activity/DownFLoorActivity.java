@@ -217,18 +217,7 @@ public class DownFLoorActivity extends BaseActivity {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
         mDataList = new ArrayList<>();
-        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // 开启switch，设置提示信息
-                    startFlag = true;
-                } else {
-                    // 关闭swtich，设置提示信息
-                    startFlag = false;
-                }
-            }
-        });
+        saomaEvent();
         //        delInfosesList = new ArrayList<>();
         mProgressBar.setVisibility(View.GONE);
         mFab.setOnClickListener(new OnSingleClickListener() {
@@ -241,6 +230,21 @@ public class DownFLoorActivity extends BaseActivity {
                     msg = mCheckMsgHandler.obtainMessage();
                     msg.what = MSG_SUBMIT;
                     mCheckMsgHandler.sendMessage(msg);
+                }
+            }
+        });
+    }
+
+    private void saomaEvent() {
+        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked) {
+                    // 开启switch，设置提示信息
+                    startFlag = true;
+                } else {
+                    // 关闭swtich，设置提示信息
+                    startFlag = false;
                 }
             }
         });
@@ -747,18 +751,7 @@ public class DownFLoorActivity extends BaseActivity {
             case R.id.action_Power:
                 //                                Intent intent = new Intent(this, SettingPower.class);
                 //                                startActivity(intent);
-                mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                        if (isChecked) {
-                            // 开启switch，设置提示信息
-                            startFlag = true;
-                        } else {
-                            // 关闭swtich，设置提示信息
-                            startFlag = false;
-                        }
-                    }
-                });
+                saomaEvent();
                 startFlag = false;
                 mSwitch.setChecked(false);
                 FragmentTransaction ft = getFragmentManager().beginTransaction();

@@ -7,16 +7,15 @@ import java.util.Date;
 public class SNUtil {
     public static void main(String[] args) {
         for (int i = 0; i < 3600; i++) {
-            System.out.println("Date()" + new Date().getTime());
-            System.out.println("System" + System.currentTimeMillis());
-            System.out.println("123456" + nextSid());
+            //			System.out.println("Date()"+new Date().getTime());
+            //			System.out.println("System"+System.currentTimeMillis());
+            System.out.println(nextSid());
         }
 
     }
-
     private static long lastTimestamp = -1L;
     private static int sequence = 0;
-    private static final long MAX_SEQUENCE = 1000;
+    private static final long MAX_SEQUENCE = 8;
     private static final SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 
 
@@ -48,6 +47,5 @@ public class SNUtil {
     private static long timeGen() {
         return System.currentTimeMillis();
     }
-
 
 }

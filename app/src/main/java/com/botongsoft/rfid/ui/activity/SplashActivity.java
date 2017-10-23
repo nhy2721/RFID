@@ -11,10 +11,7 @@ import com.botongsoft.rfid.R;
 import me.wangyuwei.particleview.ParticleView;
 
 /**
- * Author   :hymanme
- * Email    :hymanme@163.com
- * Create at 2016/9/8
- * Description:
+ * 引导页
  */
 
 public class SplashActivity extends AppCompatActivity {
