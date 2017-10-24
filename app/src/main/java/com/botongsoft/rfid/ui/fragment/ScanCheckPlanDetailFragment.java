@@ -79,6 +79,8 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     //    TextInputEditText mTextInputEditText;
     @BindView(R.id.st_saoma)
     Switch mSwitch;
+    @BindView(R.id.st_ajzt)
+    Switch mSwitch_ajzt;
     @BindView(R.id.tv_info)
     TextView mTextView;
     //    CheckPlanDetailActivity parentActivity;

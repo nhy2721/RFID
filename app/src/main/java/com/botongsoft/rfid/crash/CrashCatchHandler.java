@@ -37,7 +37,7 @@ public class CrashCatchHandler implements Thread.UncaughtExceptionHandler {
 
     private CrashCatchHandler() {
         mInfoMap = new LinkedHashMap<>();
-        mDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
+        mDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     }
 
     /**
@@ -152,6 +152,11 @@ public class CrashCatchHandler implements Thread.UncaughtExceptionHandler {
             if (!dir.exists()) {
                 dir.mkdirs();
             }
+            //            File file = new File (dir.getAbsolutePath() + File.separator + fileName);
+            //            if(!file.exists())
+            //            {
+            //                file.createNewFile();
+            //            }
             FileOutputStream fos = new FileOutputStream(dir.getAbsolutePath() + File.separator + fileName);
             fos.write(stringBuilder.toString().getBytes());
             fos.close();
