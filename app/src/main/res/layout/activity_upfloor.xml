@@ -174,7 +174,7 @@
                     android:layout_gravity="center"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:maxHeight="?attr/actionBarSize"
-                    android:padding="@dimen/item_margin"
+                    android:padding="@dimen/item_padding"
                     android:textColor="@color/white"
                     android:textSize="@dimen/textsize_18"
                     />
@@ -184,11 +184,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
 
-                    android:text=""
+                    android:text="  "
                     android:layout_gravity="center"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:maxHeight="?attr/actionBarSize"
-                    android:padding="@dimen/item_margin"
+                    android:padding="@dimen/item_padding"
                     android:textColor="@color/white"
                     android:textSize="@dimen/textsize_18"
 
@@ -202,7 +202,7 @@
                     android:layout_gravity="center"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:maxHeight="?attr/actionBarSize"
-                    android:padding="@dimen/item_margin"
+                    android:padding="@dimen/item_padding"
                     android:textColor="@color/white"
                     android:textSize="@dimen/textsize_18"
                     />
@@ -211,11 +211,11 @@
                     android:id="@+id/tv_ycsl"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=""
+                    android:text="  "
                     android:layout_gravity="center"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:maxHeight="?attr/actionBarSize"
-                    android:padding="@dimen/item_margin"
+                    android:padding="@dimen/item_padding"
                     android:textColor="@color/white"
                     android:textSize="@dimen/textsize_18"
 
@@ -228,7 +228,7 @@
                     android:layout_gravity="center"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:maxHeight="?attr/actionBarSize"
-                    android:padding="@dimen/item_margin"
+                    android:padding="@dimen/item_padding"
                     android:textColor="@color/white"
                     android:textSize="@dimen/textsize_18"
                     />
@@ -237,11 +237,11 @@
                     android:id="@+id/tv_kcsl"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=""
+                    android:text="  "
                     android:layout_gravity="center"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:maxHeight="?attr/actionBarSize"
-                    android:padding="@dimen/item_margin"
+                    android:padding="@dimen/item_padding"
                     android:textColor="@color/white"
                     android:textSize="@dimen/textsize_18"
                     />

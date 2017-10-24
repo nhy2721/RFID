@@ -247,9 +247,15 @@ public class UpFLoorActivity extends BaseActivity {
                 if (isChecked) {
                     // 开启switch，设置提示信息
                     ajztFlag = true;
+                    mDataList.clear();
+                    ajztList.clear();
+                    mUpfloorAdapter.notifyDataSetChanged();
                 } else {
                     // 关闭swtich，设置提示信息
                     ajztFlag = false;
+                    mDataList.clear();
+                    ajztList.clear();
+                    mUpfloorAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -421,13 +427,15 @@ public class UpFLoorActivity extends BaseActivity {
 
         private void newSave(String[] temp, int logMainID) {
             List<Mjjgda> mjjgdaTempList = new ArrayList<>();
+            Mjjgda delMjjgda = null;
+            Mjjgda mjjgda = null;
             for (int i = 0; i < mDataList.size(); i++) {
-                Mjjgda mjjgda = mDataList.get(i);
+                mjjgda = mDataList.get(i);
                 int count = DBDataUtils.getCount(Mjjgda.class, "bm", "=", mjjgda.getBm(),
                         "jlid", "=", mjjgda.getJlid(), "anchor", ">", "0", "status", "=", "-1");
                 if (count > 0) {//服务器存在过
                     //如果上架的位置与表里有同步过的位置相等 把记录改回状态9就好了
-                    Mjjgda delMjjgda = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "bm", "=",
+                    delMjjgda = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "bm", "=",
                             mjjgda.getBm(), "jlid", "=", mjjgda.getJlid(), "status", "=", "-1", "anchor", ">", "0");
                     if (delMjjgda != null) {//说明服务器存在该条数据，但是被我们下架了。我们现在要重新上架这条数据，原服务器的数据id不能丢。
                         if (delMjjgda.getKfid() == Integer.valueOf(temp[0])
@@ -534,7 +542,9 @@ public class UpFLoorActivity extends BaseActivity {
                             break;
                         }
                     }
-                    ajztList.add(editString);
+                    if (ajztTempFlag) {
+                        ajztList.add(editString);
+                    }
                 }
             }
         } else {
@@ -675,7 +685,7 @@ public class UpFLoorActivity extends BaseActivity {
             if (mjjg != null) {
                 mBundle = new Bundle();
                 try {
-                    Long _count = DBDataUtils.count(Mjjgda.class, "mjgid", "=", mjjg.getId() + "");
+                    Long _count = DBDataUtils.count(Mjjgda.class, "mjgid", "=", mjjg.getId() + "", "status", "!=", "-1");
                     mBundle.putString("_count", String.valueOf(_count));
 
                     if (mjjg.getCfsl() != 0) {
@@ -692,6 +702,8 @@ public class UpFLoorActivity extends BaseActivity {
                     public void run() {
                         if (mjjg.getCfsl() != 0) {
                             tv_yxsl.setText(String.valueOf(mjjg.getCfsl()));
+                        } else {
+                            tv_yxsl.setText("无限制");
                         }
 
                     }

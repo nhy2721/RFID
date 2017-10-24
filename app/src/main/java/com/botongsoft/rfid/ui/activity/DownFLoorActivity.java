@@ -88,11 +88,14 @@ public class DownFLoorActivity extends BaseActivity {
     //    TextView mTextView;
     @BindView(R.id.st_saoma)
     Switch mSwitch;
+    @BindView(R.id.st_ajzt)
+    Switch mSwitch_ajzt;
     @BindView(R.id.progressBar)
     ProgressBar mProgressBar;
     private int index;
     private String editString;
     private List<Mjjgda> mDataList;
+    private List<String> ajztList;
     //    private List<MjjgdaDelInfos> delInfosesList;//下架删除的记录存入MjjgdaDelInfos表
     private DownFloorAdapter mDownFloorAdapter;
     private int size = 50;
@@ -119,6 +122,7 @@ public class DownFLoorActivity extends BaseActivity {
     private boolean runFlag = true;
     private boolean startFlag = false;
     private Message sMessage;
+    private boolean ajztFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -217,7 +221,9 @@ public class DownFLoorActivity extends BaseActivity {
         index = getIntent().getIntExtra("index", 0);
         setTitle(getIntent().getStringExtra("title"));
         mDataList = new ArrayList<>();
+        ajztList = new ArrayList<>();
         saomaEvent();
+        mSwitch_ajztEvent();
         //        delInfosesList = new ArrayList<>();
         mProgressBar.setVisibility(View.GONE);
         mFab.setOnClickListener(new OnSingleClickListener() {
@@ -235,6 +241,26 @@ public class DownFLoorActivity extends BaseActivity {
         });
     }
 
+    private void mSwitch_ajztEvent() {
+        mSwitch_ajzt.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // 开启switch，设置提示信息
+                    ajztFlag = true;
+                    mDataList.clear();
+                    ajztList.clear();
+                    mDownFloorAdapter.notifyDataSetChanged();
+                } else {
+                    // 关闭swtich，设置提示信息
+                    ajztFlag = false;
+                    mDataList.clear();
+                    ajztList.clear();
+                    mDownFloorAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+    }
     private void saomaEvent() {
         mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
@@ -390,21 +416,101 @@ public class DownFLoorActivity extends BaseActivity {
 
     private void searchDB(String editString) {
         boolean tempStr = true;
-
+        boolean ajztTempFlag = true;
         //        String temp[] = editString.split("-");
+        int lx = Constant.getLx(editString);//根据传入的值返回对象类型
         //防止扫描重复判断
-        if (mDataList.size() > 0) {
-            for (Mjjgda mjjgda : mDataList) {
-                //                if (map.get("title").toString().equals(editString)) {
-                if (mjjgda.getEpccode().equals(editString)) {
-                    tempStr = false;
-                    break;
+        //        if (mDataList.size() > 0) {
+        //            for (Mjjgda mjjgda : mDataList) {
+        //                if (mjjgda.getEpccode().equals(editString)) {
+        //                    tempStr = false;
+        //                    break;
+        //                }
+        //            }
+        //        }
+        if (ajztFlag) {//
+            tempStr = false;
+            if (lx == Constant.LX_AJZT) {
+                if (ajztList != null && ajztList.size() == 0) {
+                    ajztTempFlag = true;
+                    ajztList.add(editString);
+                } else {
+                    for (String s : ajztList) {
+                        if (s.equals(editString)) {
+                            ajztTempFlag = false;
+                            break;
+                        }
+                    }
+                    if (ajztTempFlag) {
+                        ajztList.add(editString);
+                    }
+                }
+            }
+        } else {
+            //防止扫描重复判断
+            if (lx != Constant.LX_AJZT) {
+                if (mDataList.size() > 0) {
+                    for (Mjjgda mjjgda : mDataList) {
+                        if (mjjgda.getEpccode().equals(editString)) {
+                            tempStr = false;
+                            break;
+                        }
+                    }
                 }
             }
         }
-        if (tempStr) {
+        if (ajztTempFlag && ajztFlag) {
 
-            int lx = Constant.getLx(editString);//根据传入的值返回对象类型
+            Mjjgda mjjgda = null;
+            String kfname = "";
+            String mjjname = "";
+            String nLOrR = "";
+            Mjj mjj = null;
+            Kf kf = null;
+            mHandlerMessage = mHandler.obtainMessage();
+            switch (lx) {
+                case Constant.LX_AJZT:
+                    SoundUtil.play(1, 0);
+                    int code = Integer.parseInt(editString.substring(1, editString.length()));
+                    List<Epc> epcList = (List<Epc>) DBDataUtils.getInfos(Epc.class, "ztcode", String.valueOf(code));
+                    if (epcList != null && epcList.size() > 0) {
+                        for (Epc epc : epcList) {
+                            mjjgda = MjgdaSearchDb.getInfoHasOp(Mjjgda.class, "bm", "=", epc.getBm() + "",
+                                    "jlid", "=", epc.getJlid() + "", "status", "!=", "-1");
+                            if (mjjgda != null) {
+                                mjjgda.setTitle(epc.getArchiveno());
+                                mjjgda.setEpccode(editString);
+                                Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "id", mjjgda.getMjgid() + "");
+                                if (mjjg != null) {
+                                    nLOrR = mjjg.getZy() == 1 ? "左" : "右";
+                                    mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjg.getMjjid() + "");
+                                }
+                                if (mjj != null) {
+                                    mjjname = mjj.getMc() + "/";
+                                    kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", mjj.getKfid() + "");
+                                }
+
+                                if (kf != null) {
+                                    kfname = kf.getMc() + "/";
+                                }
+                                String scanInfo = kfname + mjjname + nLOrR + "/" + mjjg.getZs() + "组" + mjjg.getCs() + "层";
+                                //                        map.put("local", name);//界面显示存放位置
+                                mjjgda.setScanInfo(scanInfo);
+                                mjjgda.setStatus(-1);
+                                //                            mjjgda.setDownTime(getCurrentTimeAll());
+
+                                mDataList.add(mjjgda);
+
+                            }
+                        }
+                        Collections.sort(mDataList, Mjjgda.nameComparator);//根据页面传入的档号排序
+                        sMessage.what = UI_SUCCESS;
+                    }
+                    break;
+
+            }
+        }
+        if (tempStr) {
             switch (lx) {
                 case Constant.LX_MJGDA:
                     String kfname = "";
@@ -486,6 +592,7 @@ public class DownFLoorActivity extends BaseActivity {
         thread = new ThreadMe();
         thread.start();
         mSwitch.setChecked(false);
+        mSwitch_ajzt.setChecked(false);
     }
 
     @Override
@@ -512,6 +619,7 @@ public class DownFLoorActivity extends BaseActivity {
             mCheckMsgThread.quit();
         }
         mCheckMsgHandler.removeCallbacksAndMessages(null);
+        ajztList.clear();
         unregisterReceiver(keyReceiver);
         finish();
     }
@@ -709,11 +817,13 @@ public class DownFLoorActivity extends BaseActivity {
                     if (manager != null) {
                         epcList = manager.inventoryRealTime(); //
                         if (epcList != null && !epcList.isEmpty()) {
+                            sMessage = mHandler.obtainMessage();
                             for (String epc : epcList) {
-                                sMessage = mHandler.obtainMessage();
+
                                 searchDB(epc);
-                                mHandler.sendMessage(sMessage);
+
                             }
+                            mHandler.sendMessage(sMessage);
                         }
                         epcList = null;
                         try {
