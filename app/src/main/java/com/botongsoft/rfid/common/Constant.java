@@ -56,7 +56,7 @@ public class Constant {
         s[3]=value.substring(13,14);//1或2 左或右
         s[4]=value.substring(14,15);//组数
         s[5]=value.substring(15,16);//层数
-        System.out.println(Integer.valueOf(s[2]).toString());
+        //        System.out.println(Integer.valueOf(s[2]).toString());
         return s;
     }
 

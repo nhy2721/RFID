@@ -88,6 +88,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     //    private static String scanInfoNow = "";//扫描的格子位置
     private String editString;
     private List<Mjjgda> mDataLists = new ArrayList<Mjjgda>();
+    private List<String> ajztList = new ArrayList<String>();
     private List<Mjj> mjjLists = new ArrayList<>();
     private List mjjgList = new ArrayList();
     private List<CheckPlanDeatilDel> delTempList = new ArrayList<>();
@@ -102,6 +103,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     private Handler mHandler;
     private boolean isOnScreen;//是否在屏幕上
     private boolean isRun;//是否在RFID读取
+    private boolean ajztFlag;
 
     //传递后台运行消息队列
     Message msg;
@@ -179,12 +181,39 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                 }
             }
         });
+        mSwitch_ajzt.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // 开启switch，设置提示信息
+                    ajztFlag = true;
+                    switchChange();
+                } else {
+                    // 关闭swtich，设置提示信息
+                    ajztFlag = false;
+                    switchChange();
+                }
+            }
+        });
         thread = new ThreadMe();
         thread.start();
         keyReceiver = new KeyReceiver(manager, false, mSwitch);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.rfid.FUN_KEY");
         activity.registerReceiver(keyReceiver, intentFilter);
+    }
+
+    private void switchChange() {
+        if (mDataLists != null && mDataLists.size() > 0) {
+            mDataLists.clear();
+        }
+        if (ajztList != null && ajztList.size() > 0) {
+            ajztList.clear();
+        }
+        if (mjjgList != null && mjjgList.size() > 0) {
+            mjjgList.remove(0);
+        }
+        scanCheckPlanDetailAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -345,15 +374,18 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     @Override
     public void onResume() {
         super.onResume();
+        Log.e("onResume--->", String.valueOf(Thread.currentThread().getName()));
         isOnScreen = true;
         //        if(isOnScreen && isRun) {
         if (isOnScreen) {
             //开启新进程
-            mCheckMsgThread = new HandlerThread("BackThread");// 创建一个BackHandlerThread对象，它是一个线程
-            mCheckMsgThread.start();// 启动线程
+            //            mCheckMsgThread = new HandlerThread("BackThread");// 创建一个BackHandlerThread对象，它是一个线程
+            //            mCheckMsgThread.start();// 启动线程
             //创建后台线程
-            initBackThread();
+            //            initBackThread();
         }
+        mSwitch.setChecked(false);
+        mSwitch_ajzt.setChecked(false);
     }
 
     private void initBackThread() {
@@ -363,7 +395,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                 Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
                 switch (msg.what) {
                     case MSG_UPDATE_INFO:
-                        checkForUpdate();//
+                        //                        checkForUpdate();//
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
@@ -414,111 +446,219 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
 
     private void searchDB(String editString) {
         boolean tempStr = true;//防止重复扫描状态标记
-        boolean temp = true;//是否在盘点方位标记
+        boolean temp = true;//是否在盘点范围标记
+        boolean ajztTempFlag = true;
         mHandlerMessage = mHandler.obtainMessage();
         mHandler.sendMessage(mHandlerMessage);
         int lx = Constant.getLx(editString);//根据传入的值返回对象类型
         switch (lx) {
+            case Constant.LX_MJJG:
+                displayMjg(editString, temp);
+                break;
+        }
+
+        switch (lx) {
+            case Constant.LX_AJZT:
+
+                if (ajztTempFlag && ajztFlag) {
+                    if (scanInfoLocal.equals("")) {
+                        mHandlerMessage.what = UI_NOMJG_ERROR;
+                    } else {
+                        tempStr = newfcf(editString, tempStr, ajztTempFlag, lx);//新防重复（有案卷载体开关）
+                        if (tempStr) {
+                            int code = Integer.parseInt(editString.substring(1, editString.length()));
+                            List<Epc> epcList = (List<Epc>) DBDataUtils.getInfos(Epc.class, "ztcode", String.valueOf(code));
+                            if (epcList != null && epcList.size() > 0) {
+                                for (Epc epc1 : epcList) {
+                                    String epcs = String.valueOf(epc1.getEpccode());
+                                    epcs = coverNum(epcs);
+                                    for (int i = mDataLists.size() - 1; i >= 0; i--) {
+                                        Mjjgda mjjgda = mDataLists.get(i);
+                                        String epcCode = coverNum(mjjgda.getEpccode());
+                                        //                            if ((mjjgda.getBm().equals(ecp.getBm())) && (String.valueOf(mjjgda.getJlid()).equals(ecp.getJlid()))) {
+                                        if (epcCode.equals(epcs)) {
+                                            if (mjjgda.getFlag() == 1) {
+                                                mjjgda.setColor(3);//外借被找到
+                                            } else {
+                                                mjjgda.setColor(2);//正确
+                                            }
+                                            mHandlerMessage.obj = i;
+                                            text = 1;
+                                            break;
+                                        }
+                                        if (i == 0) {//如果循环完毕 都没有在这个格子中找到扫描的这个档案，变量设成0，然后在下面加入mDataLists中显示出新的条目数据
+                                            text = 0;
+                                        }
+                                    }
+                                    if (text == 0) {
+
+                                        Mjjgda mjjgda = new Mjjgda();
+                                        mjjgda.setBm(epc1.getBm());
+                                        mjjgda.setJlid(String.valueOf(epc1.getJlid()));
+                                        mjjgda.setColor(4);//多扫描或错架
+                                        mjjgda.setMjjid(nowMjjId);
+                                        mjjgda.setKfid(nowKfId);
+                                        mjjgda.setMjgid(nowMjjgId);
+                                        mjjgda.setTitle(epc1.getArchiveno());
+                                        mjjgda.setEpccode(String.valueOf(epc1.getEpccode()));
+                                        mDataLists.add(mjjgda);
+                                        SoundUtil.play(1, 0);
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+
+                break;
             case Constant.LX_MJGDA:
                 if (scanInfoLocal.equals("")) {
                     mHandlerMessage.what = UI_NOMJG_ERROR;
                 } else {
-                    //                    String mjgda[] = editString.split("-");
                     //防止扫描重复判断
-                    if (stringList.size() > 0) {
-                        for (String s : stringList) {
-                            if (s.equals(editString)) {
-                                tempStr = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (tempStr) {
-                        //这里要先查询一次对照表 获得该扫描记录的bm与jlid
-                        //                        Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
-                        for (int i = mDataLists.size() - 1; i >= 0; i--) {
-                            Mjjgda mjjgda = mDataLists.get(i);
-                            String epcCode =  coverNum(mjjgda.getEpccode());
-                            //                            if ((mjjgda.getBm().equals(ecp.getBm())) && (String.valueOf(mjjgda.getJlid()).equals(ecp.getJlid()))) {
-                            if (epcCode.equals(editString)) {
-                                if (mjjgda.getFlag() == 1) {
-                                    mjjgda.setColor(3);//外借被找到
-                                } else {
-                                    mjjgda.setColor(2);//正确
+                    //                    tempStr = oldfcf(editString, tempStr);//旧防重复（没有案卷载体开关）
+                    if (!ajztFlag) {
+                        tempStr = newfcf(editString, tempStr, ajztTempFlag, lx);//新防重复（有案卷载体开关）
+                        if (tempStr) {
+                            //这里要先查询一次对照表 获得该扫描记录的bm与jlid
+                            //                        Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
+                            for (int i = mDataLists.size() - 1; i >= 0; i--) {
+                                Mjjgda mjjgda = mDataLists.get(i);
+                                String epcCode = coverNum(mjjgda.getEpccode());
+                                //                            if ((mjjgda.getBm().equals(ecp.getBm())) && (String.valueOf(mjjgda.getJlid()).equals(ecp.getJlid()))) {
+                                if (epcCode.equals(editString)) {
+                                    if (mjjgda.getFlag() == 1) {
+                                        mjjgda.setColor(3);//外借被找到
+                                    } else {
+                                        mjjgda.setColor(2);//正确
+                                    }
+                                    mHandlerMessage.obj = i;
+                                    text = 1;
+                                    break;
                                 }
-                                mHandlerMessage.obj = i;
-                                text = 1;
-                                break;
+                                if (i == 0) {//如果循环完毕 都没有在这个格子中找到扫描的这个档案，变量设成0，然后在下面加入mDataLists中显示出新的条目数据
+                                    text = 0;
+                                }
                             }
-                            if (i == 0) {//如果循环完毕 都没有在这个格子中找到扫描的这个档案，变量设成0，然后在下面加入mDataLists中显示出新的条目数据
-                                text = 0;
+                            if (text == 0) {
+                                Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
+                                LogUtils.d("newErrorData", ecp.getBm() + "-" + ecp.getJlid());
+                                Mjjgda mjjgda = new Mjjgda();
+                                mjjgda.setBm(ecp.getBm());
+                                mjjgda.setJlid(String.valueOf(ecp.getJlid()));
+                                mjjgda.setColor(4);//多扫描或错架
+                                mjjgda.setMjjid(nowMjjId);
+                                mjjgda.setKfid(nowKfId);
+                                mjjgda.setMjgid(nowMjjgId);
+                                mjjgda.setTitle(ecp.getArchiveno());
+                                mjjgda.setEpccode(String.valueOf(ecp.getEpccode()));
+                                mDataLists.add(mjjgda);
+                                SoundUtil.play(1, 0);
                             }
+                            stringList.add(editString);
                         }
-                        if (text == 0) {
-                            Epc ecp = (Epc) DBDataUtils.getInfo(Epc.class, "epccode", editString);
-                            LogUtils.d("newErrorData", ecp.getBm() + "-" + ecp.getJlid());
-                            Mjjgda mjjgda = new Mjjgda();
-                            mjjgda.setBm(ecp.getBm());
-                            mjjgda.setJlid(String.valueOf(ecp.getJlid()));
-                            mjjgda.setColor(4);//多扫描或错架
-                            mjjgda.setMjjid(nowMjjId);
-                            mjjgda.setKfid(nowKfId);
-                            mjjgda.setMjgid(nowMjjgId);
-                            mjjgda.setTitle(ecp.getArchiveno());
-                            mjjgda.setEpccode(String.valueOf(ecp.getEpccode()));
-                            mDataLists.add(mjjgda);
-                            SoundUtil.play(1, 0);
-                        }
-                        stringList.add(editString);
                     }
+
 
                 }
                 break;
             case Constant.LX_MJJG:
-                String s[] = Constant.reqDatas(editString);
-                //如果不重复查询密集格表
-                Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
-                        "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
-                //                Mjjg mjjg = (Mjjg) getInfo(Mjjg.class, "id", editString);
-                if (mjjg != null) {
-                    nowMjjgId = mjjg.getId();
-                    nowMjjgZy = mjjg.getZy();
-                    int tt = SearchDb.countPdfw(srrArray, mjjg);//先判断是否在该批次的盘点范围内
-                    if (tt == 0) {
-                        temp = false;//false为不在盘点范围
-                        mHandlerMessage.what = UI_NOSCANFW_ERROR;
-                    }
-                    if (temp) {//temp=true 在盘点范围内
-                        Mjj mjj = (Mjj) getInfo(Mjj.class, "id", String.valueOf(mjjg.getMjjid()));
-                        nowMjjId = mjj.getId();
-                        nowKfId = mjj.getKfid();
-                        mjjgList.add(0, editString);
-                        if (mjjgList.size() >= 2) {//再判断上一次是否是扫描过的格子，防止重复读取数据库;
-                            if (mjjgList.get(0).equals(mjjgList.get(1))) {//当前读取的跟上一次读取的id相同
-                                mjjgList.remove(0);
-                            } else {
-                                //判断当前格子是否被扫描过(同批次)，有的话清除已扫描的错误记录表
-                                clearOrSaveCheckError(mjjg, mjj);
-                                //保存错误记录
-                                boolean save = savePdjl(mDataLists, pdid);
-                                //保存成功 读取新密集格内档案数据显示在列表上
-                                if (save == true) {
-                                    dislapView(mjjg);
-                                } else {
-                                    mjjgList.remove(0);
-                                }
-
-                            }
-                        } else if (mjjgList.size() <= 1) {//list为空或小于1 代表第一次读取
-                            //判断当前格子是否被扫描过(同批次)，有的话清除已扫描的错误记录表
-                            clearOrSaveCheckError(mjjg, mjj);
-                            //读取密集格内档案数据显示在列表上
-                            dislapView(mjjg);
-                        }
-                    }
-                }
+                //                displayMjg(editString, temp);
                 break;
         }
+    }
+
+    private void displayMjg(String editString, boolean temp) {
+        String s[] = Constant.reqDatas(editString);
+        //如果不重复查询密集格表
+        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
+                "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
+        //                Mjjg mjjg = (Mjjg) getInfo(Mjjg.class, "id", editString);
+        if (mjjg != null) {
+            nowMjjgId = mjjg.getId();
+            nowMjjgZy = mjjg.getZy();
+            int tt = SearchDb.countPdfw(srrArray, mjjg);//先判断是否在该批次的盘点范围内
+            if (tt == 0) {
+                temp = false;//false为不在盘点范围
+                mHandlerMessage.what = UI_NOSCANFW_ERROR;
+            }
+            if (temp) {//temp=true 在盘点范围内
+                Mjj mjj = (Mjj) getInfo(Mjj.class, "id", String.valueOf(mjjg.getMjjid()));
+                nowMjjId = mjj.getId();
+                nowKfId = mjj.getKfid();
+                mjjgList.add(0, editString);
+                if (mjjgList.size() >= 2) {//再判断上一次是否是扫描过的格子，防止重复读取数据库;
+                    if (mjjgList.get(0).equals(mjjgList.get(1))) {//当前读取的跟上一次读取的id相同
+                        mjjgList.remove(0);
+                    } else {
+                        //判断当前格子是否被扫描过(同批次)，有的话清除已扫描的错误记录表
+                        clearOrSaveCheckError(mjjg, mjj);
+                        //保存错误记录
+                        boolean save = savePdjl(mDataLists, pdid);
+                        //保存成功 读取新密集格内档案数据显示在列表上
+                        if (save == true) {
+                            dislapView(mjjg);
+                        } else {
+                            mjjgList.remove(0);
+                        }
+
+                    }
+                } else if (mjjgList.size() <= 1) {//list为空或小于1 代表第一次读取
+                    //判断当前格子是否被扫描过(同批次)，有的话清除已扫描的错误记录表
+                    clearOrSaveCheckError(mjjg, mjj);
+                    //读取密集格内档案数据显示在列表上
+                    dislapView(mjjg);
+                }
+            }
+        }
+    }
+
+    /*/
+    新防重复
+     */
+    private boolean newfcf(String editString, boolean tempStr, boolean ajztTempFlag, int lx) {
+        if (ajztFlag) {//
+            tempStr = false;
+            if (lx == Constant.LX_AJZT) {
+                if (ajztList != null && ajztList.size() == 0) {
+                    ajztTempFlag = true;
+                    tempStr = true;
+                    ajztList.add(editString);
+                } else {
+                    for (String s : ajztList) {
+                        if (s.equals(editString)) {
+                            ajztTempFlag = false;
+                            tempStr = false;
+                            break;
+                        } else {
+                            tempStr = true;
+                        }
+                    }
+                    if (ajztTempFlag) {
+                        ajztList.add(editString);
+                    }
+                }
+            }
+        } else {
+            //防止扫描重复判断
+            if (lx != Constant.LX_AJZT) {
+                tempStr = oldfcf(editString, tempStr);
+            }
+        }
+        return tempStr;
+    }
+
+    private boolean oldfcf(String editString, boolean tempStr) {
+        if (stringList.size() > 0) {
+            for (String s : stringList) {
+                if (s.equals(editString)) {
+                    tempStr = false;
+                    break;
+                }
+            }
+        }
+        return tempStr;
     }
 
     private void clearOrSaveCheckError(Mjjg mjjg, Mjj mjj) {
