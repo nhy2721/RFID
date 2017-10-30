@@ -30,18 +30,6 @@ import android.widget.CompoundButton;
 import android.widget.PopupWindow;
 
 import com.botongsoft.rfid.R;
-import com.botongsoft.rfid.bean.classity.CheckError;
-import com.botongsoft.rfid.bean.classity.CheckPlan;
-import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
-import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
-import com.botongsoft.rfid.bean.classity.Epc;
-import com.botongsoft.rfid.bean.classity.Kf;
-import com.botongsoft.rfid.bean.classity.LogDetail;
-import com.botongsoft.rfid.bean.classity.LogMain;
-import com.botongsoft.rfid.bean.classity.Mjj;
-import com.botongsoft.rfid.bean.classity.Mjjg;
-import com.botongsoft.rfid.bean.classity.Mjjgda;
-import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
@@ -76,9 +64,9 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     private PopupWindow mPopupWindow;
     private SearchViewHolder holder;
     private long lastTime = 0;
-    private Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class,
-            Kf.class, Mjj.class, Mjjg.class, Mjjgda.class, MjjgdaDelInfos.class, CheckPlanDeatilDel.class,
-            Epc.class,LogMain.class, LogDetail.class};
+    //    private Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class,
+    //            Kf.class, Mjj.class, Mjjg.class, Mjjgda.class, MjjgdaDelInfos.class, CheckPlanDeatilDel.class,
+    //            Epc.class,LogMain.class, LogDetail.class, ServerLogRecord.class};
     private Activity mContext;
 
     @Override
@@ -151,36 +139,36 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         new Thread() {
             @Override
             public void run() {
-                LogUtils.e("initEvents new Thread" +Thread.currentThread().getName() + "");
+                LogUtils.e("initEvents new Thread" + Thread.currentThread().getName() + "");
                 Log.e("initEvents new Thread", String.valueOf(Thread.currentThread().getName()));
                 DbUtils db = DataBaseCreator.create();
-                for (Class table : tables) {
+                for (Class table : Constant.tables) {
                     try {
                         db.createTableIfNotExist(table);
                     } catch (DbException e) {
                         e.printStackTrace();
                     }
                 }
-//                try {
-//                    if (db.count(CheckPlan.class) <= 0) {
-//                        boolean checkplanStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "checkplan.sql");
-//                        LogUtils.e("盘点数据数据新增 " + checkplanStruts + "");
-//                    }
-//                    if (db.count(Kf.class) <= 0) {
-//                        boolean kfStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "kf.sql");
-//                        LogUtils.e("库房数据新增 " + kfStruts + "");
-//                    }
-//                    if (db.count(Mjj.class) <= 0) {
-//                        boolean mjjStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjj.sql");
-//                        LogUtils.e("密集架数据新增 " + mjjStruts + "");
-//                    }
-//                    if (db.count(Mjjg.class) <= 0) {
-//                        boolean mjjgStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjjg.sql");
-//                        LogUtils.e("密集架格数据新增 " + mjjgStruts + "");
-//                    }
-//                } catch (DbException e) {
-//                    e.printStackTrace();
-//                }
+                //                try {
+                //                    if (db.count(CheckPlan.class) <= 0) {
+                //                        boolean checkplanStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "checkplan.sql");
+                //                        LogUtils.e("盘点数据数据新增 " + checkplanStruts + "");
+                //                    }
+                //                    if (db.count(Kf.class) <= 0) {
+                //                        boolean kfStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "kf.sql");
+                //                        LogUtils.e("库房数据新增 " + kfStruts + "");
+                //                    }
+                //                    if (db.count(Mjj.class) <= 0) {
+                //                        boolean mjjStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjj.sql");
+                //                        LogUtils.e("密集架数据新增 " + mjjStruts + "");
+                //                    }
+                //                    if (db.count(Mjjg.class) <= 0) {
+                //                        boolean mjjgStruts = FileUtils.readFileFromAssetWriteDB(MainActivity.this, "mjjg.sql");
+                //                        LogUtils.e("密集架格数据新增 " + mjjgStruts + "");
+                //                    }
+                //                } catch (DbException e) {
+                //                    e.printStackTrace();
+                //                }
 
             }
         }.start();

@@ -11,18 +11,7 @@ import android.support.v7.app.AlertDialog;
 
 import com.botongsoft.rfid.BaseApplication;
 import com.botongsoft.rfid.R;
-import com.botongsoft.rfid.bean.classity.CheckError;
-import com.botongsoft.rfid.bean.classity.CheckPlan;
-import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
-import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
-import com.botongsoft.rfid.bean.classity.Epc;
-import com.botongsoft.rfid.bean.classity.Kf;
-import com.botongsoft.rfid.bean.classity.LogDetail;
-import com.botongsoft.rfid.bean.classity.LogMain;
-import com.botongsoft.rfid.bean.classity.Mjj;
-import com.botongsoft.rfid.bean.classity.Mjjg;
-import com.botongsoft.rfid.bean.classity.Mjjgda;
-import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
+import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
 import com.botongsoft.rfid.common.utils.StringFormatUtil;
 import com.botongsoft.rfid.common.utils.ToastUtils;
@@ -38,9 +27,10 @@ public class SettingFragment extends PreferenceFragment implements SharedPrefere
     EditTextPreference editTextIpAddress;
     Preference initDbPreference;
     private AlertDialog.Builder builder;
-    private Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class,
-            Kf.class, Mjj.class, Mjjg.class, Mjjgda.class, MjjgdaDelInfos.class, CheckPlanDeatilDel.class,
-            Epc.class, LogMain.class, LogDetail.class};
+
+    //    private Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class,
+    //            Kf.class, Mjj.class, Mjjg.class, Mjjgda.class, MjjgdaDelInfos.class, CheckPlanDeatilDel.class,
+    //            Epc.class, LogMain.class, LogDetail.class, ServerLogRecord.class};
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -202,7 +192,7 @@ public class SettingFragment extends PreferenceFragment implements SharedPrefere
                         @Override
                         public void run() {
                             DbUtils db = DataBaseCreator.create();
-                            for (Class table : tables) {
+                            for (Class table : Constant.tables) {
                                 try {
                                     db.deleteAll(table);
                                 } catch (DbException e) {

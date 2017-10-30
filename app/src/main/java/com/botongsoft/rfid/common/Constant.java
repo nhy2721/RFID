@@ -2,6 +2,20 @@ package com.botongsoft.rfid.common;
 
 import android.support.annotation.StringDef;
 
+import com.botongsoft.rfid.bean.classity.CheckError;
+import com.botongsoft.rfid.bean.classity.CheckPlan;
+import com.botongsoft.rfid.bean.classity.CheckPlanDeatil;
+import com.botongsoft.rfid.bean.classity.CheckPlanDeatilDel;
+import com.botongsoft.rfid.bean.classity.Epc;
+import com.botongsoft.rfid.bean.classity.Kf;
+import com.botongsoft.rfid.bean.classity.LogDetail;
+import com.botongsoft.rfid.bean.classity.LogMain;
+import com.botongsoft.rfid.bean.classity.Mjj;
+import com.botongsoft.rfid.bean.classity.Mjjg;
+import com.botongsoft.rfid.bean.classity.Mjjgda;
+import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
+import com.botongsoft.rfid.bean.classity.ServerLogRecord;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -107,4 +121,8 @@ public class Constant {
     }
 
     public static final int UPFLOOR = 1;
+
+    public static final Class[] tables = {CheckError.class, CheckPlan.class, CheckPlanDeatil.class,
+            Kf.class, Mjj.class, Mjjg.class, Mjjgda.class, MjjgdaDelInfos.class, CheckPlanDeatilDel.class,
+            Epc.class, LogMain.class, LogDetail.class, ServerLogRecord.class};
 }
