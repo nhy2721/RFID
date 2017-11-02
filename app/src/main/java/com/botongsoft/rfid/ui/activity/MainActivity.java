@@ -30,6 +30,7 @@ import android.widget.CompoundButton;
 import android.widget.PopupWindow;
 
 import com.botongsoft.rfid.R;
+import com.botongsoft.rfid.bean.classity.ServerLogRecord;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.Constant;
 import com.botongsoft.rfid.common.db.DataBaseCreator;
@@ -145,6 +146,16 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                 for (Class table : Constant.tables) {
                     try {
                         db.createTableIfNotExist(table);
+                        if (table.getName().equals("com.botongsoft.rfid.bean.classity.ServerLogRecord")) {
+                            if (db.count(ServerLogRecord.class) == 0) {
+                                for (int i = 1; i <= 2; i++) {
+                                    ServerLogRecord sr = new ServerLogRecord();
+                                    sr.setType(i);
+                                    sr.setServerlogid(0);
+                                    db.saveOrUpdate(sr);
+                                }
+                            }
+                        }
                     } catch (DbException e) {
                         e.printStackTrace();
                     }

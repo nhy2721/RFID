@@ -38,6 +38,7 @@ import com.botongsoft.rfid.bean.classity.LogMain;
 import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
+import com.botongsoft.rfid.bean.classity.ServerLogRecord;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.busines.FilesBusines;
 import com.botongsoft.rfid.common.constants.Constant;
@@ -74,6 +75,7 @@ import static com.botongsoft.rfid.R.id.appBarLayout;
 import static com.botongsoft.rfid.R.id.toolbar;
 import static com.botongsoft.rfid.common.constants.Constant.BackThread_PUTDETAILLOG_SUCCESS_PB;
 import static com.botongsoft.rfid.common.constants.Constant.BackThread_PUT_CHECKDETAIL_SUCCESS_PB;
+import static com.botongsoft.rfid.common.db.ServerLogRecordDbUtil.getServerLogRecordType;
 
 /**
  * Created by pc on 2017/7/10.
@@ -276,6 +278,8 @@ public class SyncbakActivity extends BaseActivity {
     private Mjjg mjjgInfo;
     private Mjjgda mjjgdaInfo;
     private Epc epcInfo;
+    private List<Mjjgda> getMjjgdaDELJsonList;
+    private int delDaLogId;
 
 
     @Override
@@ -301,7 +305,7 @@ public class SyncbakActivity extends BaseActivity {
                         mCheckMsgHandler.sendMessage(backThreadmsg);
                         break;
                     case INIT_DOWORK:
-                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, mjjAnchor, mjjgAnchor, mjjgdaAnchor, checkPlanAnchor, epcAnchor);
+                        FilesBusines.getWorkState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, mjjAnchor, mjjgAnchor, mjjgdaAnchor, checkPlanAnchor, epcAnchor, delDaLogId);
                         break;
                     case CONN_UNSUCCESS:
                         new AlertDialog.Builder(mContext)
@@ -873,6 +877,11 @@ public class SyncbakActivity extends BaseActivity {
             } else {
                 tv_oleNsize9.setText("无更新内容");
             }
+            if (Integer.valueOf(countJsons.get(0).delDaLogId) > 0) {
+                ServerLogRecord sr = getServerLogRecordType(1);
+                sr.setServerlogid(Integer.valueOf(countJsons.get(0).delDaLogId));
+                DBDataUtils.update(sr);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -938,7 +947,7 @@ public class SyncbakActivity extends BaseActivity {
             }
             List<Mjjgda> delMjjgdaJsonList = JSON.parseArray(response.res.delrecords, Mjjgda.class);
             if (delMjjgdaJsonList != null && !delMjjgdaJsonList.isEmpty()) {
-                writeMjgDaDelDBThread = new WriteMjgDaDelDBThread(mHandler, uiMsg);
+                writeMjgDaDelDBThread = new WriteMjgDaDelDBThread(mHandler, uiMsg, 1);
                 writeMjgDaDelDBThread.setList(delMjjgdaJsonList);
                 writeMjgDaDelDBThread.start();
             }
@@ -1019,24 +1028,41 @@ public class SyncbakActivity extends BaseActivity {
 
     private void backThread_GetMjjDa(BaseResponse response) {
         try {
-            getMjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
-            if (getMjjgdaJsonList != null && !getMjjgdaJsonList.isEmpty()) {
-                writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 0);
-                writeMjgDaDBThread.setList(getMjjgdaJsonList);
-                writeMjgDaDBThread.start();
+            getMjjgdaDELJsonList = JSON.parseArray(response.res.delrecords, Mjjgda.class);
+            if (getMjjgdaDELJsonList != null && !getMjjgdaDELJsonList.isEmpty()) {
+                doDelDaByServer(response);
+                doAddDaByServer(response);
             } else {
-                getDaFLag = false;
-                if (mDaLocalCount > 0) {
-                    //接收完服务器数据后再上传本地的数据
-                    mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
-                } else {
-                    tv_oleNsize4.setText("更新完成");
-                    tv_oleNsize4.setTextColor(Color.GREEN);
-                    tv_status4.setText("");
-                }
+                doAddDaByServer(response);
             }
+
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void doDelDaByServer(BaseResponse response) {
+        writeMjgDaDelDBThread = new WriteMjgDaDelDBThread(mHandler, uiMsg, 0);
+        writeMjgDaDelDBThread.setList(getMjjgdaDELJsonList);
+        writeMjgDaDelDBThread.start();
+    }
+
+    private void doAddDaByServer(BaseResponse response) {
+        getMjjgdaJsonList = JSON.parseArray(response.res.rows, Mjjgda.class);
+        if (getMjjgdaJsonList != null && !getMjjgdaJsonList.isEmpty()) {
+            writeMjgDaDBThread = new WriteMjgDaDBThread(mHandler, uiMsg, 0);
+            writeMjgDaDBThread.setList(getMjjgdaJsonList);
+            writeMjgDaDBThread.start();
+        } else {
+            getDaFLag = false;
+            if (mDaLocalCount > 0) {
+                //接收完服务器数据后再上传本地的数据
+                mCheckMsgHandler.obtainMessage(BackThread_PUTMJJGDA).sendToTarget();
+            } else {
+                tv_oleNsize4.setText("更新完成");
+                tv_oleNsize4.setTextColor(Color.GREEN);
+                tv_status4.setText("");
+            }
         }
     }
 
@@ -1078,266 +1104,331 @@ public class SyncbakActivity extends BaseActivity {
                 switch (msg.what) {
                     case HAS_NEW_EPC:
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        epcInfo = (Epc) DBDataUtils.getInfoHasOp(Epc.class, "anchor", ">=", "0");
-                        if (epcInfo == null) {
-                            epcAnchor = 0L;
-                        } else {
-                            epcAnchor = Long.valueOf(epcInfo.getAnchor());
-                            getEpcFlag = false;
-                            mCheckMsgHandler.obtainMessage(BackThread_GETEPC).sendToTarget();
-                        }
+                        backThread_Has_New_Epc();
                         break;
                     case HAS_NEW_MJJG:
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
-                        if (mjjgInfo == null) {
-                            mjjgAnchor = 0L;
-                        } else {
-                            mjjgAnchor = Long.valueOf(mjjgInfo.getAnchor());
-                            getMjgflag = false;
-                            mCheckMsgHandler.obtainMessage(BackThread_GETMJJG).sendToTarget();
-                        }
+                        backThread_Has_New_Mjjg();
                         break;
                     case HAS_NEW_DA:
                         //先将本地的版本号发送给服务器，判断服务器时候有更新过 有更新要解决冲突
-                        mjjgdaInfo = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "anchor", ">=", "0");
-                        if (mjjgdaInfo == null) {
-                            mjjgdaAnchor = 0L;
-                            LogUtils.d("da == getMjjgdaJsonList.size()" + mjjgdaAnchor);
-                        } else {
-                            LogUtils.d("mjjgdaAnchor-->mjjgdaAnchor " + mjjgdaAnchor);
-                            mjjgdaAnchor = Long.valueOf(mjjgdaInfo.getAnchor());
-                            getDaFLag = false;
-                            mCheckMsgHandler.obtainMessage(BackThread_GETMJJGDA).sendToTarget();
-                        }
+                        backThread_Has_New_Da();
                         break;
                     case BackThread_DOWORK:
                         uiMsg = mHandler.obtainMessage();
                         uiMsg.what = INIT_DOWORK;
-                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        Kf kfInfo = (Kf) DBDataUtils.getInfoHasOp(Kf.class, "anchor", ">=", "0");
-                        if (kfInfo == null) {
-                            kfAnchor = 0L;
-                        } else {
-                            kfAnchor = Long.valueOf(kfInfo.getAnchor());
-                        }
-                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        Mjj mjjInfo = (Mjj) DBDataUtils.getInfoHasOp(Mjj.class, "anchor", ">=", "0");
-                        if (mjjInfo == null) {
-                            mjjAnchor = 0L;
-                        } else {
-                            mjjAnchor = Long.valueOf(mjjInfo.getAnchor());
-                        }
-
-                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        Mjjg mjjgInfo1 = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
-                        if (mjjgInfo1 == null) {
-                            mjjgAnchor = 0L;
-                        } else {
-                            mjjgAnchor = Long.valueOf(mjjgInfo1.getAnchor());
-                        }
-                        //先将本地的版本号发送给服务器，判断服务器时候有更新过 有更新要解决冲突
-                        Mjjgda mjjgdaInfo1 = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "anchor", ">=", "0");
-                        if (mjjgdaInfo1 == null) {
-                            mjjgdaAnchor = 0L;
-                        } else {
-                            mjjgdaAnchor = Long.valueOf(mjjgdaInfo1.getAnchor());
-                        }
-                        try {
-                            //已经同步过的数据下架了(版本号大于0 状态为删除状态-1)
-                            DaDelCount = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
-                            //新保存的上架记录
-                            DaNewCount = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
-                            mDaLocalCount = DaDelCount + DaNewCount;
-                            if (mDaLocalCount > 0) {
-                                uiMsg.arg1 = (int) mDaLocalCount;
-                            }
-                        } catch (DbException e) {
-                            e.printStackTrace();
-                        }
-
-                        //盘点计划表版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        CheckPlan mCheckPlan = (CheckPlan) DBDataUtils.getInfoHasOp(CheckPlan.class, "anchor", ">=", "0");
-                        if (mCheckPlan == null) {
-                            checkPlanAnchor = 0L;
-                        } else {
-                            checkPlanAnchor = Long.valueOf(mCheckPlan.getAnchor());
-                        }
-                        //盘点日志表
-                        try {
-                            int temp1 = (int) DBDataUtils.count(CheckError.class, "status", "=", "0", "anchor", ">=", "0");
-                            mCheckErrorCount = Long.valueOf(temp1);
-                        } catch (DbException e) {
-                            e.printStackTrace();
-                        }
-                        //盘点纠错表
-                        try {
-                            CheckPlanDeatilCount = (int) DBDataUtils.count(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">=", "0");
-                            CheckPlanDeatilDelCount = (int) DBDataUtils.count(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
-                            mCheckDetailCount = Long.valueOf(CheckPlanDeatilCount + CheckPlanDeatilDelCount);
-                        } catch (DbException e) {
-                            e.printStackTrace();
-                        }
-                        //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
-                        Epc epcInfo = (Epc) DBDataUtils.getInfoHasOp(Epc.class, "anchor", ">=", "0");
-                        if (epcInfo == null) {
-                            epcAnchor = 0L;
-                        } else {
-                            epcAnchor = Long.valueOf(epcInfo.getAnchor());
-                        }
-                        //日志数量
-                        try {
-                            logMainCount = (int) DBDataUtils.count(LogMain.class, "status", "=", "0");
-                            logDetailCount = (int) DBDataUtils.count(LogDetail.class, "status", "=", "0");
-                            mlogCount = logMainCount + logDetailCount;
-                        } catch (DbException e) {
-                            e.printStackTrace();
-                        }
+                        putBackAnchor();
                         mHandler.sendMessage(uiMsg);
                         //                        mHandler.obtainMessage(INIT_DOWORK).sendToTarget();
                         break;
                     case BackThread_GETKF:
-                        if (getKfFlag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        getKfFlag = true;
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, BackThread_GETKF);
+                        backThread_Get_Kf();
                         break;
                     case BackThread_GETMJJ:
-                        if (getMjjFlag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        getMjjFlag = true;
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjAnchor, BackThread_GETMJJ);
+                        backThread_GetMjj();
                         break;
                     case BackThread_GETMJJG:
-                        if (getMjgflag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        getMjgflag = true;
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgAnchor, BackThread_GETMJJG);
+                        backThread_Get_Mjjg();
                         break;
                     case BackThread_GETMJJGDA:
-                        if (getDaFLag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        getDaFLag = true;
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgdaAnchor, BackThread_GETMJJGDA);
+                        backThread_GetDa();
                         break;
                     case BackThread_PUTMJJGDA:
-                        if (putDaFLag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        putDaFLag = true;
-                        //已同步被下架
-                        List<Mjjgda> tempList1 = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
-                        //新上架子
-                        //                        List<Mjjgda> tempList = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
-                        List<Mjjgda> tempList = (List<Mjjgda>) CheckDetailSearchDb.getInfosHasOp(Mjjgda.class, "status", "=", "0", "anchor", "=", "0", limit);
-                        boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST());// 先判断对方服务器是否存在
-                        if (st) {
-                            if ((tempList != null && !tempList.isEmpty()) || (tempList1 != null && !tempList1.isEmpty())) {
-                                //                                task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
-                                FilesBusines.putDa(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, tempList, tempList1);
-                            } else {
-                                putDaFLag = false;
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        tv_oleNsize4.setText("更新完成");
-                                        tv_oleNsize4.setTextColor(Color.GREEN);
-                                        tv_status4.setText("");
-                                    }
-                                });
-                            }
-
-                        }
-                        //                        else {
-                        //                            if (task != null || task.getStatus() == AsyncTask.Status.RUNNING) {
-                        //                                task.cancel(true);
-                        //
-                        //                            }
-                        //                            break;
-                        //                        }
-
+                        backThread_Put_Da();
                         break;
                     case BackThread_GETCHECKPLAN:
-                        if (getCheckPlanFLag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        getCheckPlanFLag = true;
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, checkPlanAnchor, BackThread_GETCHECKPLAN);
+                        backThread_Get_CheckPlan();
                         break;
                     case BackThread_PUTCHECKERRORPLAN:  //上传盘点过的格子记录
-                        if (putCheckErrorFLag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        putCheckErrorFLag = true;
-                        //                        List<CheckError> checkErrorList = (List<CheckError>) DBDataUtils.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0");
-                        List<CheckError> checkErrorList = (List<CheckError>) CheckDetailSearchDb.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0", limit);
-                        FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKERRORPLAN, null, checkErrorList, null);
+                        backThread_Put_CheckError_Plan();
                         break;
                     case BackThread_PUTCHECKDETAILPLAN:  //上传盘点纠错记录
-                        if (putCheckDetailFLag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        putCheckDetailFLag = true;
-                        List<CheckPlanDeatil> checkDetailList = (List<CheckPlanDeatil>) CheckDetailSearchDb.getInfosHasOp(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">", "0", limit);
-                        List<CheckPlanDeatilDel> checkDetailDelList = (List<CheckPlanDeatilDel>) DBDataUtils.getInfosHasOp(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
-                        FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKDETAILPLAN, checkDetailList, null, checkDetailDelList);
+                        backThread_Put_CheckDetail_Plan();
                         break;
                     case BackThread_GETEPC:
-                        if (getEpcFlag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        getEpcFlag = true;
-                        FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, epcAnchor, BackThread_GETEPC);
+                        backThread_Get_Epc();
                         break;
                     case BackThread_PUTLOG:  //上传盘点纠错记录
-                        if (putLogFLag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        putLogFLag = true;
-                        if (logDetailCount > 0 && logMainCount == 0) {//如果主日志已经上传，状态就都为9，查询不到。但是明细日志还有未上传的记录就直接进行明细上传，
-                            List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOplimit(LogDetail.class, "status", "=", "0", limit);
-                            FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
-                        }else{
-                            List<LogMain> logMainList = (List<LogMain>) DBDataUtils.getInfosHasOp(LogMain.class, "status", "=", "0");//传全部记录
-                            FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, logMainList, null);
-                        }
+                        backThread_PutLogMain();
                         break;
                     case BackThread_PUTLOGDETAIL:  //上传日志明细记录
-                        if (putLogFLag) {
-                            return;
-                        }
-                        isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
-                        putLogFLag = true;
-                        List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOplimit(LogDetail.class, "status", "=", "0","logid", "!=", "0", limit);
-                        if(logDetailList!=null&&!logDetailList.isEmpty()){
-                            FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
-                        }else{
-                            uiMsg = mHandler.obtainMessage();
-                            uiMsg.what = BackThread_PUTDETAILLOG_SUCCESS_PB;
-                            mHandler.sendMessage(uiMsg);
-                        }
-
+                        backThread_Put_LogDetail();
                         break;
                     default:
                         super.handleMessage(msg);//这里最好对不需要或者不关心的消息抛给父类，避免丢失消息
                         break;
                 }
             }
+
+            private void backThread_Put_LogDetail() {
+                if (putLogFLag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                putLogFLag = true;
+                List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOplimit(LogDetail.class, "status", "=", "0", "logid", "!=", "0", limit);
+                if (logDetailList != null && !logDetailList.isEmpty()) {
+                    FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
+                } else {
+                    uiMsg = mHandler.obtainMessage();
+                    uiMsg.what = BackThread_PUTDETAILLOG_SUCCESS_PB;
+                    mHandler.sendMessage(uiMsg);
+                }
+            }
+
+            private void backThread_PutLogMain() {
+                if (putLogFLag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                putLogFLag = true;
+                if (logDetailCount > 0 && logMainCount == 0) {//如果主日志已经上传，状态就都为9，查询不到。但是明细日志还有未上传的记录就直接进行明细上传，
+                    List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOplimit(LogDetail.class, "status", "=", "0", limit);
+                    FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
+                } else {
+                    List<LogMain> logMainList = (List<LogMain>) DBDataUtils.getInfosHasOp(LogMain.class, "status", "=", "0");//传全部记录
+                    FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, logMainList, null);
+                }
+            }
+
+            private void backThread_Get_Epc() {
+                if (getEpcFlag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                getEpcFlag = true;
+                FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, epcAnchor, BackThread_GETEPC);
+            }
+
+            private void backThread_Put_CheckDetail_Plan() {
+                if (putCheckDetailFLag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                putCheckDetailFLag = true;
+                List<CheckPlanDeatil> checkDetailList = (List<CheckPlanDeatil>) CheckDetailSearchDb.getInfosHasOp(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">", "0", limit);
+                List<CheckPlanDeatilDel> checkDetailDelList = (List<CheckPlanDeatilDel>) DBDataUtils.getInfosHasOp(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
+                FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKDETAILPLAN, checkDetailList, null, checkDetailDelList);
+            }
+
+            private void backThread_Put_CheckError_Plan() {
+                if (putCheckErrorFLag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                putCheckErrorFLag = true;
+                //                        List<CheckError> checkErrorList = (List<CheckError>) DBDataUtils.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0");
+                List<CheckError> checkErrorList = (List<CheckError>) CheckDetailSearchDb.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0", limit);
+                FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKERRORPLAN, null, checkErrorList, null);
+            }
+
+            private void backThread_Get_CheckPlan() {
+                if (getCheckPlanFLag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                getCheckPlanFLag = true;
+                FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, checkPlanAnchor, BackThread_GETCHECKPLAN);
+            }
+
+            private void backThread_Put_Da() {
+                if (putDaFLag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                putDaFLag = true;
+                //已同步被下架
+                List<Mjjgda> tempList1 = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
+                //新上架子
+                //                        List<Mjjgda> tempList = (List<Mjjgda>) DBDataUtils.getInfosHasOp(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
+                List<Mjjgda> tempList = (List<Mjjgda>) CheckDetailSearchDb.getInfosHasOp(Mjjgda.class, "status", "=", "0", "anchor", "=", "0", limit);
+                boolean st = NetUtils.isConnByHttp(Constant.DOMAINTEST());// 先判断对方服务器是否存在
+                if (st) {
+                    if ((tempList != null && !tempList.isEmpty()) || (tempList1 != null && !tempList1.isEmpty())) {
+                        //                                task = new RequestTask((BusinessResolver.BusinessCallback<BaseResponse>) mContext, mContext);
+                        FilesBusines.putDa(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTMJJGDA, tempList, tempList1);
+                    } else {
+                        putDaFLag = false;
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                tv_oleNsize4.setText("更新完成");
+                                tv_oleNsize4.setTextColor(Color.GREEN);
+                                tv_status4.setText("");
+                            }
+                        });
+                    }
+
+                }
+                //                        else {
+                //                            if (task != null || task.getStatus() == AsyncTask.Status.RUNNING) {
+                //                                task.cancel(true);
+                //
+                //                            }
+                //                            break;
+                //                        }
+            }
+
+            private void backThread_GetDa() {
+                if (getDaFLag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                getDaFLag = true;
+                FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgdaAnchor, delDaLogId, BackThread_GETMJJGDA);
+            }
+
+            private void backThread_Get_Mjjg() {
+                if (getMjgflag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                getMjgflag = true;
+                FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjgAnchor, BackThread_GETMJJG);
+            }
+
+            private void backThread_GetMjj() {
+                if (getMjjFlag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                getMjjFlag = true;
+                FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, mjjAnchor, BackThread_GETMJJ);
+            }
+
+            private void backThread_Get_Kf() {
+                if (getKfFlag) {
+                    return;
+                }
+                isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
+                getKfFlag = true;
+                FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, kfAnchor, BackThread_GETKF);
+            }
+
+            private void backThread_Has_New_Da() {
+                mjjgdaInfo = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "anchor", ">=", "0");
+                getDaLogId();
+                if (mjjgdaInfo == null) {
+                    mjjgdaAnchor = 0L;
+                    LogUtils.d("da == getMjjgdaJsonList.size()" + mjjgdaAnchor);
+                } else {
+                    LogUtils.d("mjjgdaAnchor-->mjjgdaAnchor " + mjjgdaAnchor);
+                    mjjgdaAnchor = Long.valueOf(mjjgdaInfo.getAnchor());
+                    getDaFLag = false;
+                    mCheckMsgHandler.obtainMessage(BackThread_GETMJJGDA).sendToTarget();
+                }
+            }
+
+            private void backThread_Has_New_Mjjg() {
+                mjjgInfo = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
+                if (mjjgInfo == null) {
+                    mjjgAnchor = 0L;
+                } else {
+                    mjjgAnchor = Long.valueOf(mjjgInfo.getAnchor());
+                    getMjgflag = false;
+                    mCheckMsgHandler.obtainMessage(BackThread_GETMJJG).sendToTarget();
+                }
+            }
+
+            private void backThread_Has_New_Epc() {
+                epcInfo = (Epc) DBDataUtils.getInfoHasOp(Epc.class, "anchor", ">=", "0");
+                if (epcInfo == null) {
+                    epcAnchor = 0L;
+                } else {
+                    epcAnchor = Long.valueOf(epcInfo.getAnchor());
+                    getEpcFlag = false;
+                    mCheckMsgHandler.obtainMessage(BackThread_GETEPC).sendToTarget();
+                }
+            }
+
+            private void putBackAnchor() {
+                //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                Kf kfInfo = (Kf) DBDataUtils.getInfoHasOp(Kf.class, "anchor", ">=", "0");
+                if (kfInfo == null) {
+                    kfAnchor = 0L;
+                } else {
+                    kfAnchor = Long.valueOf(kfInfo.getAnchor());
+                }
+                //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                Mjj mjjInfo = (Mjj) DBDataUtils.getInfoHasOp(Mjj.class, "anchor", ">=", "0");
+                if (mjjInfo == null) {
+                    mjjAnchor = 0L;
+                } else {
+                    mjjAnchor = Long.valueOf(mjjInfo.getAnchor());
+                }
+
+                //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                Mjjg mjjgInfo1 = (Mjjg) DBDataUtils.getInfoHasOp(Mjjg.class, "anchor", ">=", "0");
+                if (mjjgInfo1 == null) {
+                    mjjgAnchor = 0L;
+                } else {
+                    mjjgAnchor = Long.valueOf(mjjgInfo1.getAnchor());
+                }
+                //先将本地的版本号发送给服务器，判断服务器时候有更新过 有更新要解决冲突
+                Mjjgda mjjgdaInfo1 = (Mjjgda) DBDataUtils.getInfoHasOp(Mjjgda.class, "anchor", ">=", "0");
+                if (mjjgdaInfo1 == null) {
+                    mjjgdaAnchor = 0L;
+                } else {
+                    mjjgdaAnchor = Long.valueOf(mjjgdaInfo1.getAnchor());
+                }
+                try {
+                    //已经同步过的数据下架了(版本号大于0 状态为删除状态-1)
+                    DaDelCount = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "-1", "anchor", ">", "0");
+                    //新保存的上架记录
+                    DaNewCount = (int) DBDataUtils.count(Mjjgda.class, "status", "=", "0", "anchor", "=", "0");
+                    mDaLocalCount = DaDelCount + DaNewCount;
+                    if (mDaLocalCount > 0) {
+                        uiMsg.arg1 = (int) mDaLocalCount;
+                    }
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+
+                //盘点计划表版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                CheckPlan mCheckPlan = (CheckPlan) DBDataUtils.getInfoHasOp(CheckPlan.class, "anchor", ">=", "0");
+                if (mCheckPlan == null) {
+                    checkPlanAnchor = 0L;
+                } else {
+                    checkPlanAnchor = Long.valueOf(mCheckPlan.getAnchor());
+                }
+                //盘点日志表
+                try {
+                    int temp1 = (int) DBDataUtils.count(CheckError.class, "status", "=", "0", "anchor", ">=", "0");
+                    mCheckErrorCount = Long.valueOf(temp1);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+                //盘点纠错表
+                try {
+                    CheckPlanDeatilCount = (int) DBDataUtils.count(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">=", "0");
+                    CheckPlanDeatilDelCount = (int) DBDataUtils.count(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
+                    mCheckDetailCount = Long.valueOf(CheckPlanDeatilCount + CheckPlanDeatilDelCount);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+                //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
+                Epc epcInfo = (Epc) DBDataUtils.getInfoHasOp(Epc.class, "anchor", ">=", "0");
+                if (epcInfo == null) {
+                    epcAnchor = 0L;
+                } else {
+                    epcAnchor = Long.valueOf(epcInfo.getAnchor());
+                }
+                //日志数量
+                try {
+                    logMainCount = (int) DBDataUtils.count(LogMain.class, "status", "=", "0");
+                    logDetailCount = (int) DBDataUtils.count(LogDetail.class, "status", "=", "0");
+                    mlogCount = logMainCount + logDetailCount;
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+                getDaLogId();
+            }
         };
+    }
+
+    private void getDaLogId() {
+        ServerLogRecord sr = getServerLogRecordType(1);
+        delDaLogId = sr.getServerlogid();
     }
 
     int mainLogId;//主记录ID 用来判断
@@ -1411,11 +1502,7 @@ public class SyncbakActivity extends BaseActivity {
             mCheckMsgThread.quit();
         }
         mCheckMsgHandler.removeCallbacksAndMessages(null);
-
-        if (networkThread != null) {
-            networkThread.interrupt();//中断线程的方法
-            networkThread = null;
-        }
+        closeThread(networkThread);
         closeThread(wrKfDbThread);
         closeThread(wrMjjDbThread);
         closeThread(wrMjgDbThread);

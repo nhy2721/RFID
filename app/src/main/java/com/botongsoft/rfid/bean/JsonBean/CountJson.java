@@ -15,4 +15,5 @@ public class CountJson implements Serializable {
     public String checkErrorNum;//盘点计划
     public String checkDetailNum;//盘点计划
     public String epcNum;//盘点计划
+    public String delDaLogId;//服务器日志记录最大删除的档案id
 }

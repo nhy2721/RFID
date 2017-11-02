@@ -25,7 +25,7 @@ public class FilesBusines {
      */
     public static RequestTask getWorkState(Context context,
                                            BusinessResolver.BusinessCallback<BaseResponse> callback, Long kf, Long mjj,
-                                           Long mjg, Long mjgda, Long checkPlanAnchor,Long epcAnchor) {
+                                           Long mjg, Long mjgda, Long checkPlanAnchor, Long epcAnchor, int delDaLogId) {
         final RequestTask task = new RequestTask(callback, context);
         BusinessRequest request = new BusinessRequest(
                 BusinessRequest.REQUEST_TYPE_POST,
@@ -40,6 +40,7 @@ public class FilesBusines {
         req.put("mjgdaanchor", mjgda);
         req.put("checkPlanAnchor", checkPlanAnchor);
         req.put("epcAnchor", epcAnchor);
+        req.put("delDaLogId", delDaLogId);
         JSONArray str_jsons = new JSONArray();
         str_jsons.add(req);
         str_json.put("req", str_jsons);
@@ -89,6 +90,36 @@ public class FilesBusines {
 
     }
 
+    /****
+     * 提交库房密集架数据接口
+     *
+     * @param context
+     *
+     * @param
+     * @return
+     */
+    public static RequestTask getState(Context context,
+                                       BusinessResolver.BusinessCallback<BaseResponse> callback, Long anchor, int logID, int reqType) {
+        final RequestTask task = new RequestTask(callback, context);
+        BusinessRequest request = new BusinessRequest(
+                BusinessRequest.REQUEST_TYPE_POST,
+                BusinessRequest.RESULT_TYPE_OBJECT);
+        request.proDialogMsgId = R.string.request_hint_register;
+        JSONObject str_json = new JSONObject();
+        JSONObject req = new JSONObject();
+        req.put("reqType", reqType);
+        req.put("anchor", anchor);
+        req.put("delDaLogId", logID);
+        JSONArray str_jsons = new JSONArray();
+        str_jsons.add(req);
+        str_json.put("req", str_jsons);
+        request.paramsJSON = str_json.toJSONString();
+        request.cls = BaseResponse.class;
+        request.RESULT_ACT = reqType;
+        task.showDialog(request);
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, request);
+        return task;
+    }
     /****
      * 提交库房密集架数据接口
      *

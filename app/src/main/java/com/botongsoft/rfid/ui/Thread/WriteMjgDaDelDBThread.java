@@ -26,10 +26,13 @@ public class WriteMjgDaDelDBThread extends Thread {
     private MjjgdaDelInfos mjjgdaOld;
     private Handler mhandler;
     private Message uiMsg;
+    private int itype;
+    private final static int GET = 0;
 
-    public WriteMjgDaDelDBThread(Handler mhandler, Message uiMsg) {
+    public WriteMjgDaDelDBThread(Handler mhandler, Message uiMsg, int type) {
         this.mhandler = mhandler;
         this.uiMsg = uiMsg;
+        this.itype = type;
     }
 
     public void setList(List list) {
@@ -47,14 +50,19 @@ public class WriteMjgDaDelDBThread extends Thread {
             uiMsg.setData(b);
             uiMsg.what = BackThread_PUTDA_SUCCESS_PB;
             mhandler.sendMessage(uiMsg);
-            if(mjjgdaDelInfo.getId()==0){
+            if (itype == GET) {
                 DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaDelInfo.getBm()),
-                        "jlid", String.valueOf(mjjgdaDelInfo.getJlid()),
-                        "id", "=", 0 + "");
+                        "jlid", String.valueOf(mjjgdaDelInfo.getJlid()));
             }else{
-                DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaDelInfo.getBm()),
-                        "jlid", String.valueOf(mjjgdaDelInfo.getJlid()),
-                        "id", "=", mjjgdaDelInfo.getId()+"");
+                if (mjjgdaDelInfo.getId() == 0) {
+                    DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaDelInfo.getBm()),
+                            "jlid", String.valueOf(mjjgdaDelInfo.getJlid()),
+                            "id", "=", 0 + "");
+                } else {
+                    DBDataUtils.deleteInfo(Mjjgda.class, "bm", String.valueOf(mjjgdaDelInfo.getBm()),
+                            "jlid", String.valueOf(mjjgdaDelInfo.getJlid()),
+                            "id", "=", mjjgdaDelInfo.getId() + "");
+                }
             }
 
         }

@@ -15,4 +15,28 @@ public class ServerLogRecord {
     private int type;//type表记录类型[1,2]  1:档案删除记录类型,2:epc删除记录类型
     @Column
     private int serverlogid;//服务器储存的日志主记录ID
+
+    public int getLid() {
+        return lid;
+    }
+
+    public void setLid(int lid) {
+        this.lid = lid;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public int getServerlogid() {
+        return serverlogid;
+    }
+
+    public void setServerlogid(int serverlogid) {
+        this.serverlogid = serverlogid;
+    }
 }
