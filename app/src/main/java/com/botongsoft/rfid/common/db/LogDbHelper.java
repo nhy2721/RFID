@@ -80,7 +80,25 @@ public class LogDbHelper {
 
     }
 
+    /*
+    * 根据传入的日志主ID计算出明细条目
+    * */
 
+    public static int countDetail(int mainId) {
+        DbUtils db = DataBaseCreator.create();
+        String sql1 = "select COUNT(*) as counts from com_botongsoft_rfid_bean_classity_LogDetail a where a.llogid= " + mainId;
+        Cursor cursor = null; // 执行自定义sql
+        int a = -1;
+        try {
+            cursor = (Cursor) db.execQuery(sql1);
+            if (cursor.moveToFirst()) {
+                a = cursor.getInt(0);
+            }
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return a;
+    }
     private static int getmainID() {
         DbUtils db = DataBaseCreator.create();
         String sql = "select last_insert_rowid() from com_botongsoft_rfid_bean_classity_LogMain";

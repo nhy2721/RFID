@@ -1187,6 +1187,10 @@ public class SyncbakActivity extends BaseActivity {
                     FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
                 } else {
                     List<LogMain> logMainList = (List<LogMain>) DBDataUtils.getInfosHasOp(LogMain.class, "status", "=", "0");//传全部记录
+                    for (LogMain logMain : logMainList) {
+                        int count = LogDbHelper.countDetail(logMain.getLid());
+                        logMain.setSl(count);
+                    }
                     FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, logMainList, null);
                 }
             }
