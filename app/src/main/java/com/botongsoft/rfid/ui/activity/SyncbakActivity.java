@@ -445,6 +445,9 @@ public class SyncbakActivity extends BaseActivity {
                                 tv_oleNsize6.setTextColor(Color.GREEN);
                                 tv_status6.setText("");
                                 putCheckErrorFLag = false;
+                                //主数据提交后在提交明细
+                                putCheckDetailFLag = false;
+                                mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
                             }
                             //                            tv_oleNsize6.setText("更新完成");
                             //                            tv_oleNsize6.setTextColor(Color.GREEN);
@@ -661,7 +664,8 @@ public class SyncbakActivity extends BaseActivity {
                 break;
             case R.id.bt_action7:
                 button.setEnabled(false);
-                action(BackThread_PUTCHECKDETAILPLAN);
+                //按钮7的整个视图打算取消
+                //                action(BackThread_PUTCHECKDETAILPLAN);
                 break;
             case R.id.bt_action8:
                 bt_action8.setEnabled(false);
@@ -1100,7 +1104,7 @@ public class SyncbakActivity extends BaseActivity {
         mCheckMsgHandler = new Handler(mCheckMsgThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
-                Log.e("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
+                Log.w("Handler BackThread--->", String.valueOf(Thread.currentThread().getName()));
                 switch (msg.what) {
                     case HAS_NEW_EPC:
                         //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
@@ -1167,7 +1171,7 @@ public class SyncbakActivity extends BaseActivity {
                 isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                 putLogFLag = true;
                 List<LogDetail> logDetailList = (List<LogDetail>) LogDbHelper.getInfosHasOplimit(LogDetail.class, "status", "=", "0", "logid", "!=", "0", limit);
-                if (logDetailList != null && !logDetailList.isEmpty()) {
+                if (logDetailList != null && logDetailList.size() > 0) {
                     FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
                 } else {
                     uiMsg = mHandler.obtainMessage();
@@ -1222,7 +1226,9 @@ public class SyncbakActivity extends BaseActivity {
                 isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                 putCheckErrorFLag = true;
                 //                        List<CheckError> checkErrorList = (List<CheckError>) DBDataUtils.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0");
-                List<CheckError> checkErrorList = (List<CheckError>) CheckDetailSearchDb.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0", limit);
+                //              打算把版本号为0的提交服务器，让服务器删除对应的明细数据
+                //  List<CheckError> checkErrorList = (List<CheckError>) CheckDetailSearchDb.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0", limit);
+                List<CheckError> checkErrorList = (List<CheckError>) CheckDetailSearchDb.getInfosHasOp(CheckError.class, "status", "=", "0", limit);
                 FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKERRORPLAN, null, checkErrorList, null);
             }
 

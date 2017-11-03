@@ -55,6 +55,7 @@ import java.util.List;
 import butterknife.BindView;
 
 import static com.botongsoft.rfid.common.Constant.coverNum;
+import static com.botongsoft.rfid.common.Constant.getMjjg;
 import static com.botongsoft.rfid.common.db.DBDataUtils.getCount;
 import static com.botongsoft.rfid.common.db.DBDataUtils.getInfo;
 import static com.botongsoft.rfid.ui.activity.BaseActivity.activity;
@@ -572,9 +573,9 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     private void displayMjg(String editString, boolean temp) {
         String s[] = Constant.reqDatas(editString);
         //如果不重复查询密集格表
-        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
-                "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
-        //                Mjjg mjjg = (Mjjg) getInfo(Mjjg.class, "id", editString);
+        //        Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
+        //                "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
+        Mjjg mjjg = getMjjg(s);
         if (mjjg != null) {
             nowMjjgId = mjjg.getId();
             nowMjjgZy = mjjg.getZy();
@@ -690,7 +691,8 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             mCheckError.setMjjid(mjjg.getMjjid());
             mCheckError.setKfid(mjj.getKfid());
             mCheckError.setStatus(0);
-            mCheckError.setAnchor(SNUtil.nextSid());
+            //            mCheckError.setAnchor(SNUtil.nextSid());
+            mCheckError.setAnchor(0);
             DBDataUtils.save(mCheckError);
         }
     }

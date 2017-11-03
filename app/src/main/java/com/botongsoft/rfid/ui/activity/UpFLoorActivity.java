@@ -60,6 +60,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.botongsoft.rfid.R.id.appBarLayout;
+import static com.botongsoft.rfid.common.Constant.getMjjg;
 import static com.botongsoft.rfid.common.db.LogDbHelper.addUpDetail;
 import static com.botongsoft.rfid.common.db.LogDbHelper.retUpMainId;
 
@@ -680,8 +681,7 @@ public class UpFLoorActivity extends BaseActivity {
         try {
             String s[] = Constant.reqDatas(editString);
             //如果不重复查询密集格表
-            Mjjg mjjg = (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
-                    "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
+            Mjjg mjjg = getMjjg(s);
             if (mjjg != null) {
                 mBundle = new Bundle();
                 try {

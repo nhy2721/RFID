@@ -26,4 +26,15 @@ public class CheckDetailSearchDb {
         }
         return list;
     }
+
+    public static Object getInfosHasOp(Class<?> entityType, String key, String op, String value, int limit) {
+        DbUtils db = DataBaseCreator.create();
+        Object list = null;
+        try {
+            list = db.findAll(Selector.from(entityType).where(key, op, value).limit(limit));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

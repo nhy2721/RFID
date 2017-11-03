@@ -15,6 +15,7 @@ import com.botongsoft.rfid.bean.classity.Mjjg;
 import com.botongsoft.rfid.bean.classity.Mjjgda;
 import com.botongsoft.rfid.bean.classity.MjjgdaDelInfos;
 import com.botongsoft.rfid.bean.classity.ServerLogRecord;
+import com.botongsoft.rfid.common.db.DBDataUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -72,6 +73,11 @@ public class Constant {
         s[5]=value.substring(15,16);//层数
         //        System.out.println(Integer.valueOf(s[2]).toString());
         return s;
+    }
+
+    public static Mjjg getMjjg(String[] s) {
+        return (Mjjg) DBDataUtils.getInfo(Mjjg.class, "mjjid", Integer.valueOf(s[2]).toString(), "zy", Integer.valueOf(s[3]).toString(),
+                "cs", Integer.valueOf(s[5]).toString(), "zs", Integer.valueOf(s[4]).toString());
     }
 
     /**
