@@ -670,7 +670,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                 "zy", String.valueOf(mjjg.getZy()),
                 "mjjid", String.valueOf(mjjg.getMjjid()),
                 "kfid", String.valueOf(mjj.getKfid()));
-        if (ce != null) {
+        if (ce != null) {//数据库有扫描过该格子了
             List<CheckPlanDeatil> mCheckPlanDeatilList = (List) DBDataUtils.getInfosHasOp(CheckPlanDeatil.class, "pdid", "=",
                     String.valueOf(pdid), "mjgid", "=", String.valueOf(mjjg.getId()));
             if (mCheckPlanDeatilList != null && !mCheckPlanDeatilList.isEmpty()) {
@@ -683,6 +683,8 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             //清楚数据库扫过的该批次的格子内容
             DBDataUtils.deleteInfos(CheckPlanDeatil.class, "pdid", String.valueOf(pdid), "mjgid", String.valueOf(mjjg.getId()));
             delTempList.clear();
+            ce.setAnchor(0);//将扫描过的版本号设置为0，提交服务器的时候 ，服务器会删除该格子的旧数据。
+            DBDataUtils.update(ce);
         } else {
             CheckError mCheckError = new CheckError();
             mCheckError.setMjgid(mjjg.getId());

@@ -133,6 +133,9 @@ public class SyncbakActivity extends BaseActivity {
     TextView tv_status4;
     @BindView(R.id.pb4)
     ProgressBar pb4;
+
+
+    //checkplan
     @BindView(R.id.tv_name5)
     TextView tv_name5;
     @BindView(R.id.bt_action5)
@@ -143,6 +146,8 @@ public class SyncbakActivity extends BaseActivity {
     TextView tv_status5;
     @BindView(R.id.pb5)
     ProgressBar pb5;
+
+    //checkerror checkdetail
     @BindView(R.id.tv_name6)
     TextView tv_name6;
     @BindView(R.id.bt_action6)
@@ -153,17 +158,19 @@ public class SyncbakActivity extends BaseActivity {
     TextView tv_status6;
     @BindView(R.id.pb6)
     ProgressBar pb6;
-    @BindView(R.id.tv_name7)
-    TextView tv_name7;
-    @BindView(R.id.bt_action7)
-    Button bt_action7;
-    @BindView(R.id.tv_oleNsize7)
-    TextView tv_oleNsize7;
-    @BindView(R.id.tv_status7)
-    TextView tv_status7;
-    @BindView(R.id.pb7)
-    ProgressBar pb7;
 
+    //    @BindView(R.id.tv_name7)
+    //    TextView tv_name7;
+    //    @BindView(R.id.bt_action7)
+    //    Button bt_action7;
+    //    @BindView(R.id.tv_oleNsize7)
+    //    TextView tv_oleNsize7;
+    //    @BindView(R.id.tv_status7)
+    //    TextView tv_status7;
+    //    @BindView(R.id.pb7)
+    //    ProgressBar pb7;
+
+    //Epc  8
     @BindView(R.id.tv_name8)
     TextView tv_name8;
     @BindView(R.id.bt_action8)
@@ -175,6 +182,7 @@ public class SyncbakActivity extends BaseActivity {
     @BindView(R.id.pb8)
     ProgressBar pb8;
 
+    //log
     @BindView(R.id.tv_name9)
     TextView tv_name9;
     @BindView(R.id.bt_action9)
@@ -236,10 +244,11 @@ public class SyncbakActivity extends BaseActivity {
     private Long epcAnchor;
     private Long serverCheckDetailAnchor = 0L;
     private Long serverCheckErrorAnchor = 0L;
-    private long mCheckDetailCount;//盘点错误记录本地提交服务器总数量=提交数据量+删除数量
+    private long mCheckDetailCount;//盘点错误记录本地提交服务器总数量=提交数据量+删除数量 mCheckDetailCount = CheckPlanDeatilCount+CheckPlanDeatilDelCount
     private int CheckPlanDeatilDelCount;//盘点错误记录本地提交服务器 提交数据量
     private int CheckPlanDeatilCount;//盘点错误记录本地提交服务器 删除数量
     private long mCheckErrorCount;//盘点格子记录本地提交服务器数量
+    private long mCheckErrorDetailCount;//盘点记录与错误记录总数量 mCheckErrorDetailCount =  mCheckDetailCount+mCheckErrorCount
     private long mDaLocalCount;//档案本地提交服务器总数量 = 已同步被删除数+新增数
     private int DaDelCount;//档案本地提交服务器已同步被删除数
     private int DaNewCount;//档案本地提交服务器新增
@@ -324,7 +333,7 @@ public class SyncbakActivity extends BaseActivity {
                         bt_action4.setEnabled(false);
                         bt_action5.setEnabled(false);
                         bt_action6.setEnabled(false);
-                        bt_action7.setEnabled(false);
+                        //                        bt_action7.setEnabled(false);
                         bt_action8.setEnabled(false);
                         bt_action9.setEnabled(false);
                         isOnLine = false;
@@ -386,14 +395,15 @@ public class SyncbakActivity extends BaseActivity {
 
                         break;
                     case BackThread_PUT_CHECKDETAIL_SUCCESS_PB:
+
                         int checkdetail = data.getInt("checkdetail");//Thread传出的数据消息
                         int checkdetaildel = data.getInt("checkdetaildel");
                         if (checkdetail > 0) {
                             LogUtils.d("BackThread_PUT_CHECKDETAIL_SUCCESS_PB--> " + checkdetail);
-                            pb7.setMax(checkDetailJsonList.size());
-                            pb7.setProgress(checkdetail);
-                            tv_status7.setText("正在写入数据库");
-                            tv_status7.setTextColor(Color.RED);
+                            pb6.setMax(checkDetailJsonList.size());
+                            pb6.setProgress(checkdetail);
+                            tv_status6.setText("正在写入数据库");
+                            tv_status6.setTextColor(Color.RED);
                             //如果进度条等于服务器返回的数据大小。说明该次的进度已经结束
                             if (checkdetail == checkDetailJsonList.size()) {
                                 checkdetailCountTemp += limit;
@@ -404,24 +414,31 @@ public class SyncbakActivity extends BaseActivity {
                                 }
                                 if (checkdetailCountTemp >= CheckPlanDeatilCount) {
                                     //如果最后统计数大于等于初始显示的数量 提示更新完成
-                                    tv_oleNsize7.setText("更新完成");
-                                    tv_oleNsize7.setTextColor(Color.GREEN);
-                                    tv_status7.setText("");
+                                    tv_oleNsize6.setText("更新完成");
+                                    tv_oleNsize6.setTextColor(Color.GREEN);
+                                    tv_status6.setText("");
                                     putCheckDetailFLag = false;
                                 }
                             }
                         } else if (checkdetail == 0 && CheckPlanDeatilDelCount > 0) {
                             //如果本地盘点明细无数据 但是删除有数据
-                            pb7.setMax(CheckPlanDeatilDelCount);
-                            pb7.setProgress(checkdetaildel);
-                            tv_status7.setText("正在写入数据库");
-                            tv_status7.setTextColor(Color.RED);
+                            pb6.setMax(CheckPlanDeatilDelCount);
+                            pb6.setProgress(checkdetaildel);
+                            tv_status6.setText("正在写入数据库");
+                            tv_status6.setTextColor(Color.RED);
                             if (checkdetaildel == CheckPlanDeatilDelCount) {
-                                tv_oleNsize7.setText("更新完成");
-                                tv_oleNsize7.setTextColor(Color.GREEN);
-                                tv_status7.setText("");
+                                tv_oleNsize6.setText("更新完成");
+                                tv_oleNsize6.setTextColor(Color.GREEN);
+                                tv_status6.setText("");
                                 putCheckDetailFLag = false;
+                                putCheckErrorFLag = false;
                             }
+                        } else {
+                            tv_oleNsize6.setText("更新完成");
+                            tv_oleNsize6.setTextColor(Color.GREEN);
+                            tv_status6.setText("");
+                            putCheckDetailFLag = false;
+                            putCheckErrorFLag = false;
                         }
 
                         break;
@@ -447,6 +464,7 @@ public class SyncbakActivity extends BaseActivity {
                                 putCheckErrorFLag = false;
                                 //主数据提交后在提交明细
                                 putCheckDetailFLag = false;
+                                tv_status6.setText("准备提交明细记录");
                                 mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
                             }
                             //                            tv_oleNsize6.setText("更新完成");
@@ -630,12 +648,12 @@ public class SyncbakActivity extends BaseActivity {
         tv_name4.setText("档案");
         tv_name5.setText("盘点计划");
         tv_name6.setText("盘点记录");
-        tv_name7.setText("盘点纠错");
+        //        tv_name7.setText("盘点纠错");
         tv_name8.setText("档号对照表");
         tv_name9.setText("日志记录");
     }
 
-    @OnClick({R.id.bt_action1, R.id.bt_action2, R.id.bt_action3, R.id.bt_action4, R.id.bt_action5, R.id.bt_action6, R.id.bt_action7, R.id.bt_action8, R.id.bt_action9})
+    @OnClick({R.id.bt_action1, R.id.bt_action2, R.id.bt_action3, R.id.bt_action4, R.id.bt_action5, R.id.bt_action6, R.id.bt_action8, R.id.bt_action9})
     public void click(Button button) {
         switch (button.getId()) {
             case R.id.bt_action1:
@@ -662,11 +680,11 @@ public class SyncbakActivity extends BaseActivity {
                 button.setEnabled(false);
                 action(BackThread_PUTCHECKERRORPLAN);
                 break;
-            case R.id.bt_action7:
-                button.setEnabled(false);
-                //按钮7的整个视图打算取消
-                //                action(BackThread_PUTCHECKDETAILPLAN);
-                break;
+            //按钮7的整个视图打算取消
+            //            case bt_action7:
+            //     button.setEnabled(false);
+            //                action(BackThread_PUTCHECKDETAILPLAN);
+            //                break;
             case R.id.bt_action8:
                 bt_action8.setEnabled(false);
                 action(BackThread_GETEPC);
@@ -854,16 +872,17 @@ public class SyncbakActivity extends BaseActivity {
                 tv_oleNsize5.setText("无更新内容");
             }
 
-            if (mCheckErrorCount > 0) {
-                tv_oleNsize6.setText("本地有" + mCheckErrorCount + "条数据需要提交");
+            if (mCheckErrorDetailCount > 0) {
+                tv_oleNsize6.setText("本地有" + mCheckErrorDetailCount + "条数据需要提交");
             } else {
                 tv_oleNsize6.setText("无更新内容");
             }
+            /*
             if (mCheckDetailCount > 0) {
                 tv_oleNsize7.setText("本地有" + mCheckDetailCount + "条数据需要提交");
             } else {
                 tv_oleNsize7.setText("无更新内容");
-            }
+            }*/
             //                        if (Long.valueOf(countJsons.get(0).checkErrorNum) > 0) {
             //                            serverCheckErrorAnchor = Long.valueOf(countJsons.get(0).checkErrorNum);
             //                        }
@@ -1191,11 +1210,17 @@ public class SyncbakActivity extends BaseActivity {
                     FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, null, logDetailList);
                 } else {
                     List<LogMain> logMainList = (List<LogMain>) DBDataUtils.getInfosHasOp(LogMain.class, "status", "=", "0");//传全部记录
-                    for (LogMain logMain : logMainList) {
-                        int count = LogDbHelper.countDetail(logMain.getLid());
-                        logMain.setSl(count);
+
+                    if (logMainList != null && logMainList.size() > 0) {
+                        for (LogMain logMain : logMainList) {
+                            int count = LogDbHelper.countDetail(logMain.getLid());
+                            logMain.setSl(count);
+                        }
+                        FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, logMainList, null);
+                    } else {
+                        putLogFLag = false;
                     }
-                    FilesBusines.putLog(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTLOG, logMainList, null);
+
                 }
             }
 
@@ -1216,7 +1241,13 @@ public class SyncbakActivity extends BaseActivity {
                 putCheckDetailFLag = true;
                 List<CheckPlanDeatil> checkDetailList = (List<CheckPlanDeatil>) CheckDetailSearchDb.getInfosHasOp(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">", "0", limit);
                 List<CheckPlanDeatilDel> checkDetailDelList = (List<CheckPlanDeatilDel>) DBDataUtils.getInfosHasOp(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
-                FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKDETAILPLAN, checkDetailList, null, checkDetailDelList);
+                if ((checkDetailList != null && checkDetailList.size() > 0) || (checkDetailDelList != null && checkDetailDelList.size() > 0)) {
+                    FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKDETAILPLAN, checkDetailList, null, checkDetailDelList);
+                } else {
+                    uiMsg = mHandler.obtainMessage();
+                    uiMsg.what = BackThread_PUT_CHECKDETAIL_SUCCESS_PB;
+                    mHandler.sendMessage(uiMsg);
+                }
             }
 
             private void backThread_Put_CheckError_Plan() {
@@ -1225,11 +1256,22 @@ public class SyncbakActivity extends BaseActivity {
                 }
                 isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                 putCheckErrorFLag = true;
-                //                        List<CheckError> checkErrorList = (List<CheckError>) DBDataUtils.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0");
-                //              打算把版本号为0的提交服务器，让服务器删除对应的明细数据
-                //  List<CheckError> checkErrorList = (List<CheckError>) CheckDetailSearchDb.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0", limit);
-                List<CheckError> checkErrorList = (List<CheckError>) CheckDetailSearchDb.getInfosHasOp(CheckError.class, "status", "=", "0", limit);
-                FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKERRORPLAN, null, checkErrorList, null);
+                if (mCheckDetailCount > 0 && mCheckErrorCount == 0) {
+                    List<CheckPlanDeatil> checkDetailList = (List<CheckPlanDeatil>) CheckDetailSearchDb.getInfosHasOp(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">", "0", limit);
+                    List<CheckPlanDeatilDel> checkDetailDelList = (List<CheckPlanDeatilDel>) DBDataUtils.getInfosHasOp(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
+                    FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKDETAILPLAN, checkDetailList, null, checkDetailDelList);
+
+                } else {
+                    //                        List<CheckError> checkErrorList = (List<CheckError>) DBDataUtils.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0");
+                    //              打算把版本号为0的提交服务器，让服务器删除对应的明细数据
+                    //  List<CheckError> checkErrorList = (List<CheckError>) CheckDetailSearchDb.getInfosHasOp(CheckError.class, "status", "=", "0", "anchor", ">", "0", limit);
+                    List<CheckError> checkErrorList = (List<CheckError>) CheckDetailSearchDb.getInfosHasOpOr(CheckError.class, "status", "=", "0", "anchor", "=", "0", limit);
+                    if (checkErrorList != null && checkErrorList.size() > 0) {
+                        FilesBusines.putCheckPlan(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, BackThread_PUTCHECKERRORPLAN, null, checkErrorList, null);
+                    } else {
+                        putCheckErrorFLag = false;
+                    }
+                }
             }
 
             private void backThread_Get_CheckPlan() {
@@ -1401,13 +1443,18 @@ public class SyncbakActivity extends BaseActivity {
                 } else {
                     checkPlanAnchor = Long.valueOf(mCheckPlan.getAnchor());
                 }
-                //盘点日志表
+                //盘点日志明细表 盘点纠错表
                 try {
-                    int temp1 = (int) DBDataUtils.count(CheckError.class, "status", "=", "0", "anchor", ">=", "0");
+                    int temp1 = (int) DBDataUtils.countOr(CheckError.class, "status", "=", "0", "anchor", "=", "0");
                     mCheckErrorCount = Long.valueOf(temp1);
+                    CheckPlanDeatilCount = (int) DBDataUtils.count(CheckPlanDeatil.class, "status", "=", "0");
+                    CheckPlanDeatilDelCount = (int) DBDataUtils.count(CheckPlanDeatilDel.class, "status", "=", "9", "anchor", ">", "0");
+                    mCheckDetailCount = Long.valueOf(CheckPlanDeatilCount + CheckPlanDeatilDelCount);
+                    mCheckErrorDetailCount = mCheckDetailCount + mCheckErrorCount;
                 } catch (DbException e) {
                     e.printStackTrace();
                 }
+                /*
                 //盘点纠错表
                 try {
                     CheckPlanDeatilCount = (int) DBDataUtils.count(CheckPlanDeatil.class, "status", "=", "0", "anchor", ">=", "0");
@@ -1415,7 +1462,7 @@ public class SyncbakActivity extends BaseActivity {
                     mCheckDetailCount = Long.valueOf(CheckPlanDeatilCount + CheckPlanDeatilDelCount);
                 } catch (DbException e) {
                     e.printStackTrace();
-                }
+                }*/
                 //先将本地的版本号发送给服务器，服务器对比后返回大于这个版本号的数据进行更新本地库房表
                 Epc epcInfo = (Epc) DBDataUtils.getInfoHasOp(Epc.class, "anchor", ">=", "0");
                 if (epcInfo == null) {
@@ -1607,8 +1654,8 @@ public class SyncbakActivity extends BaseActivity {
                     mCheckMsgHandler.obtainMessage(BackThread_GETCHECKPLAN).sendToTarget();
                     bt_action6.setEnabled(false);
                     mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKERRORPLAN).sendToTarget();
-                    bt_action7.setEnabled(false);
-                    mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
+                    //                    bt_action7.setEnabled(false);
+                    //                    mCheckMsgHandler.obtainMessage(BackThread_PUTCHECKDETAILPLAN).sendToTarget();
                     bt_action8.setEnabled(false);
                     mCheckMsgHandler.obtainMessage(BackThread_GETEPC).sendToTarget();
                     bt_action9.setEnabled(false);

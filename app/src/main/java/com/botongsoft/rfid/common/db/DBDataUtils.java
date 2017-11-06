@@ -235,7 +235,7 @@ public class DBDataUtils {
     public static long countOr(Class<?> entityType, String key, String op, String value,
                                String key2, String op2, String value2) throws DbException {
         DbUtils db = DataBaseCreator.create();
-        return db.count(Selector.from(entityType).where(key, op, value).and(key2, op2, value2));
+        return db.count(Selector.from(entityType).where(key, op, value).or(key2, op2, value2));
     }
 
     /**
