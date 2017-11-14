@@ -10,7 +10,6 @@ import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.listener.OnSingleClickListener;
 import com.botongsoft.rfid.ui.entity.HotelUtils;
 import com.botongsoft.rfid.ui.entity.MjjgEntity;
-import com.lidroid.xutils.util.LogUtils;
 
 import java.util.ArrayList;
 
@@ -111,7 +110,7 @@ public class MjjgEntityAdapter extends SectionedRecyclerViewAdapter<HeaderHolder
         holder.descView.setOnClickListener(new OnSingleClickListener() {
             @Override
             protected void onSingleClick(View view) {
-                LogUtils.d(tt.getTagName());
+                // LogUtils.d(tt.getTagName());
             }
         });
     }
