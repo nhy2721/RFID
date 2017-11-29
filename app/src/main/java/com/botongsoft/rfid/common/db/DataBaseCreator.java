@@ -9,7 +9,7 @@ public class DataBaseCreator {
 	private static String PATH = Environment
 			.getExternalStorageDirectory().getAbsolutePath()+"/com.botongsoft.rfid/";
 	public static DbUtils create() {
-//		com_yt_payee_bean_classity_PayOrderInfo
+
 		DbUtils db = DbUtils.create(BaseApplication.context,PATH,
 				BaseApplication.DBNAMESTRING, BaseApplication.DBVERSION, null);
 //		 DbUtils db = DbUtils.create(ApplicationApp.context);

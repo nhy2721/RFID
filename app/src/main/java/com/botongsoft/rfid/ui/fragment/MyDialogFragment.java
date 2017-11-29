@@ -8,7 +8,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,6 +71,7 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
             dialog.getWindow().setLayout((int) (dm.widthPixels * 0.95), ViewGroup.LayoutParams.WRAP_CONTENT);
         }
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -79,7 +79,7 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
         if (dialog != null) {//有些场景下是获取不到的
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);//设置Dialog没有标题。需在setContentView之前设置，在之后设置会报错
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);//设置Dialog背景透明效果
-//            dialog.getWindow().setDimAmount(0);//去掉遮罩层
+            //            dialog.getWindow().setDimAmount(0);//去掉遮罩层
         }
         mRootView = inflater.inflate(getArguments().getInt("layoutId"), null);
         ButterKnife.bind(this, mRootView);
@@ -126,10 +126,10 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
     }
 
     class MyThread implements Runnable {
-        int i;
+        int lOrR;
 
         public MyThread(int i) {
-            this.i = i;
+            this.lOrR = i;
         }
 
         @Override
@@ -137,60 +137,34 @@ public class MyDialogFragment extends DialogFragment implements View.OnClickList
             entity.allTagsList = new ArrayList<>();
             MjjgEntity.TagsEntity te = entity.new TagsEntity();
             te.tagInfoList = new ArrayList<>();
-            if (i == Constant.VALUE_LEFT) {
-                Log.e("i = VALUE_LEFT --->", String.valueOf(i));
-                Log.e("i = 1 Threads--->", String.valueOf(Thread.currentThread().getName()));
+            if (lOrR == Constant.VALUE_LEFT) {
                 te.tagsName = mjj.getMc() + " 左面";
-                //根据密集架左右 id 查询出密集格显示到页面
-                int csLen = mjj.getCs() - 1;
-                int zsLen = mjj.getZs();
-                for (int i2 = csLen; i2 >= 0; i2--) {
-                    for (int j = 0; j < zsLen; j++) {
-                        tg = te.new TagInfo();
-                        // tg.setTagName("第" + (i2 + 1) + "层第" + (j + 1) + "组");
-                        Mjjg mjjg = searchDBByMjjg(mjj.getId(), Constant.VALUE_LEFT, i2 + 1, j + 1);
-                        if (mjjg != null) {
-                            tg.setTagName(mjjg.getMc());
-                            tg.setTagId(mjjg.getId());
-                            //这里需要查询已经扫描过checkerror的记录表来改变格子的颜色
-                            CheckError ce = searchDBByCheckError(mjjg.getId(), pdid, mjj.getKfid(), mjj.getId(), Constant.VALUE_LEFT);
-                            if (ce != null) {
-                                tg.setUpdateColor("old");
-                            }
-                        }
-                        te.tagInfoList.add(tg);
-                    }
-
-                }
-                entity.allTagsList.add(te);
             } else {
-                Log.e("i = 2 --->", String.valueOf(i));
-                Log.e("i = 2 BThreads--->", String.valueOf(Thread.currentThread().getName()));
                 te.tagsName = mjj.getMc() + " 右面";
-
-                //根据密集架左右 id 查询出密集格显示到页面
-                int csLen = mjj.getCs() - 1;
-                int zsLen = mjj.getZs();
-                for (int i2 = csLen; i2 >= 0; i2--) {
-                    for (int j = 0; j < zsLen; j++) {
-                        tg = te.new TagInfo();
-                        // tg.setTagName("第" + (i2 + 1) + "层第" + (j + 1) + "组");
-                        Mjjg mjjg = searchDBByMjjg(mjj.getId(), Constant.VALUE_RIGHT, i2 + 1, j + 1);
-                        if (mjjg != null) {
-                            tg.setTagName(mjjg.getMc());
-                            tg.setTagId(mjjg.getId());
-                            //这里需要查询已经扫描过checkerror的记录表来改变格子的颜色
-                            CheckError ce = searchDBByCheckError(mjjg.getId(), pdid, mjj.getKfid(), mjj.getId(), Constant.VALUE_RIGHT);
-                            if (ce != null) {
-                                tg.setUpdateColor("old");
-                            }
-                        }
-                        te.tagInfoList.add(tg);
-                    }
-
-                }
-                entity.allTagsList.add(te);
             }
+            //根据密集架左右 id 查询出密集格显示到页面
+            int csLen = mjj.getCs();
+            int zsLen = mjj.getZs();
+            for (int i2 = 0; i2 < csLen; i2++) {
+                for (int j = 0; j < zsLen; j++) {
+                    tg = te.new TagInfo();
+                    // tg.setTagName("第" + (i2 + 1) + "层第" + (j + 1) + "组");
+                    Mjjg mjjg = searchDBByMjjg(mjj.getId(), lOrR, i2 + 1, j + 1);
+                    if (mjjg != null) {
+                        tg.setTagName(mjjg.getMc());
+                        tg.setTagId(mjjg.getId());
+                        //这里需要查询已经扫描过checkerror的记录表来改变格子的颜色
+                        CheckError ce = searchDBByCheckError(mjjg.getId(), pdid, mjj.getKfid(), mjj.getId(), lOrR);
+                        if (ce != null) {
+                            tg.setUpdateColor("old");
+                        }
+                    }
+                    te.tagInfoList.add(tg);
+                }
+
+            }
+            entity.allTagsList.add(te);
+
             Message msg = myHandler.obtainMessage();
             msg.what = MSG_SUBMIT;//发送消息保存界面数据
             myHandler.sendMessage(msg);
