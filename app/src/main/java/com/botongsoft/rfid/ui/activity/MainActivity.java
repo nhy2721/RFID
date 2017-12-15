@@ -1,9 +1,12 @@
 package com.botongsoft.rfid.ui.activity;
 
+import android.Manifest;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.design.widget.FloatingActionButton;
@@ -142,6 +145,21 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
             public void run() {
                 LogUtils.e("initEvents new Thread" + Thread.currentThread().getName() + "");
                 Log.e("initEvents new Thread", String.valueOf(Thread.currentThread().getName()));
+                /**
+                 * 动态获取权限，Android 6.0 新特性，一些保护权限，除了要在AndroidManifest中声明权限，还要使用如下代码动态获取
+                 */
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    int REQUEST_CODE_CONTACT = 101;
+                    String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                    //验证是否许可权限
+                    for (String str : permissions) {
+                        if (checkSelfPermission(str) != PackageManager.PERMISSION_GRANTED) {
+                            //申请权限
+                            requestPermissions(permissions, REQUEST_CODE_CONTACT);
+                            return;
+                        }
+                    }
+                }
                 DbUtils db = DataBaseCreator.create();
                 for (Class table : Constant.tables) {
                     try {
