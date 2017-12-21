@@ -241,7 +241,7 @@ public class SyncbakActivity extends BaseActivity {
     private Long mjjgAnchor;
     private Long mjjgdaAnchor;
     private Long checkPlanAnchor;
-    private Long epcAnchor;
+    private volatile Long epcAnchor;
     private Long serverCheckDetailAnchor = 0L;
     private Long serverCheckErrorAnchor = 0L;
     private long mCheckDetailCount;//盘点错误记录本地提交服务器总数量=提交数据量+删除数量 mCheckDetailCount = CheckPlanDeatilCount+CheckPlanDeatilDelCount
@@ -498,7 +498,10 @@ public class SyncbakActivity extends BaseActivity {
                         if (da == getMjjgdaJsonList.size()) {
 
                             //第一批次的写进数据库后 再次取得最新的版本号提交服务器取得新一批的数据
-                            mCheckMsgHandler.obtainMessage(HAS_NEW_DA).sendToTarget();
+                            //                            mCheckMsgHandler.obtainMessage(HAS_NEW_DA).sendToTarget();
+                            backThreadmsg = mCheckMsgHandler.obtainMessage();
+                            backThreadmsg.what = HAS_NEW_DA;
+                            mCheckMsgHandler.sendMessageDelayed(backThreadmsg, 500);
                             //                            tv_oleNsize4.setText("更新完成");
                             //                            tv_oleNsize4.setTextColor(Color.GREEN);
                             //                            tv_status4.setText("");
@@ -566,8 +569,10 @@ public class SyncbakActivity extends BaseActivity {
                         tv_status8.setTextColor(Color.RED);
                         if (epc == epcJsonList.size()) {
                             //第一批次的写进数据库后 再次取得最新的版本号提交服务器取得新一批的数据
-                            mCheckMsgHandler.obtainMessage(HAS_NEW_EPC).sendToTarget();
-
+                            //                            mCheckMsgHandler.obtainMessage(HAS_NEW_EPC).sendToTarget();
+                            backThreadmsg = mCheckMsgHandler.obtainMessage();
+                            backThreadmsg.what = HAS_NEW_EPC;
+                            mCheckMsgHandler.sendMessageDelayed(backThreadmsg, 500);
 
                             //                            tv_oleNsize3.setText("更新完成");
                             //                            tv_oleNsize3.setTextColor(Color.GREEN);
@@ -584,8 +589,11 @@ public class SyncbakActivity extends BaseActivity {
                         tv_status3.setTextColor(Color.RED);
                         if (mjjg == mjjgJsonList.size()) {
                             //第一批次的写进数据库后 再次取得最新的版本号提交服务器取得新一批的数据
-                            mCheckMsgHandler.obtainMessage(HAS_NEW_MJJG).sendToTarget();
+                            //                            mCheckMsgHandler.obtainMessage(HAS_NEW_MJJG).sendToTarget();
 
+                            backThreadmsg = mCheckMsgHandler.obtainMessage();
+                            backThreadmsg.what = HAS_NEW_MJJG;
+                            mCheckMsgHandler.sendMessageDelayed(backThreadmsg, 500);
 
                             //                            tv_oleNsize3.setText("更新完成");
                             //                            tv_oleNsize3.setTextColor(Color.GREEN);
@@ -1033,8 +1041,13 @@ public class SyncbakActivity extends BaseActivity {
 
     private void backThread_GetEpc(BaseResponse response) {
         try {
+            if (epcJsonList != null && epcJsonList.size() > 0) {
+                epcJsonList.clear();
+            }
             epcJsonList = JSON.parseArray(response.res.rows, Epc.class);
             if (epcJsonList != null && !epcJsonList.isEmpty()) {
+                com.botongsoft.rfid.common.utils.LogUtils.w("epcanchor__backThread_GetEpc 我从服务器接收过来的第一条版本号", epcJsonList.get(0).getAnchor() + "" + " 线程名：" + String.valueOf(Thread.currentThread().getName()));
+                com.botongsoft.rfid.common.utils.LogUtils.w("epcanchor__backThread_GetEpc 我从服务器接收过来的最后一条版本号", epcJsonList.get(epcJsonList.size() - 1).getAnchor() + "" + " 线程名：" + String.valueOf(Thread.currentThread().getName()));
                 wrEpcDbThread = new WriteEpcDBThread(mHandler, uiMsg);
                 wrEpcDbThread.setList(epcJsonList);
                 wrEpcDbThread.start();
@@ -1230,6 +1243,7 @@ public class SyncbakActivity extends BaseActivity {
                 }
                 isPause = false; // 防止多次点击下载,造成多个下载 flag = true;
                 getEpcFlag = true;
+                com.botongsoft.rfid.common.utils.LogUtils.w("epcanchor__getepc  我根据这个版本号去请求服务器比我大的数据", epcAnchor + "" + "线程名：" + String.valueOf(Thread.currentThread().getName()));
                 FilesBusines.getState(mContext, (BusinessResolver.BusinessCallback<BaseResponse>) mContext, epcAnchor, BackThread_GETEPC);
             }
 
@@ -1383,11 +1397,13 @@ public class SyncbakActivity extends BaseActivity {
             }
 
             private void backThread_Has_New_Epc() {
-                epcInfo = (Epc) DBDataUtils.getInfoHasOp(Epc.class, "anchor", ">=", "0");
+                com.botongsoft.rfid.common.utils.LogUtils.w("epcanchor__hasnew 当前内存里面的版本号", epcAnchor + "" + " 线程名：" + String.valueOf(Thread.currentThread().getName()));
+                Epc epcInfo = (Epc) DBDataUtils.getInfoHasOp(Epc.class, "anchor", ">=", "0");
                 if (epcInfo == null) {
                     epcAnchor = 0L;
                 } else {
                     epcAnchor = Long.valueOf(epcInfo.getAnchor());
+                    com.botongsoft.rfid.common.utils.LogUtils.w("epcanchor__hasnew 我要去取当前库里最大的版本号给服务器去查数据", epcAnchor + "" + " 线程名：" + String.valueOf(Thread.currentThread().getName()));
                     getEpcFlag = false;
                     mCheckMsgHandler.obtainMessage(BackThread_GETEPC).sendToTarget();
                 }
@@ -1470,6 +1486,7 @@ public class SyncbakActivity extends BaseActivity {
                 } else {
                     epcAnchor = Long.valueOf(epcInfo.getAnchor());
                 }
+                com.botongsoft.rfid.common.utils.LogUtils.w("epcanchor__999 我只做第一次", epcAnchor + "" + " 线程名：" + String.valueOf(Thread.currentThread().getName()));
                 //日志数量
                 try {
                     logMainCount = (int) DBDataUtils.count(LogMain.class, "status", "=", "0");
