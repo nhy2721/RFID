@@ -20,7 +20,7 @@ import butterknife.ButterKnife;
 import static com.botongsoft.rfid.R.id.toolbar;
 
 
-/**
+/**UHFL手持机功率管理
  * @author Administrator
  */
 public class SettingActivity extends BaseActivity implements OnClickListener {
