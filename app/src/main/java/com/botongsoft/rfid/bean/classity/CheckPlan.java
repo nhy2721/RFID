@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.lidroid.xutils.db.annotation.Column;
 import com.lidroid.xutils.db.annotation.Id;
 import com.lidroid.xutils.db.annotation.Table;
+import com.lidroid.xutils.db.annotation.Transient;
 
 /**
  * Created by pc on 2017/6/14.
@@ -33,6 +34,17 @@ public class CheckPlan implements java.io.Serializable {
     private int status;
     @Column
     private long anchor;
+
+    @Transient
+    private String fwCN;
+
+    public String getFwCN() {
+        return fwCN;
+    }
+
+    public void setFwCN(String fwCN) {
+        this.fwCN = fwCN;
+    }
 
     public int getLid() {
         return lid;

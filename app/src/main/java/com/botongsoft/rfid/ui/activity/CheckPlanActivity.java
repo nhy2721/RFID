@@ -22,6 +22,8 @@ import android.widget.Toast;
 
 import com.botongsoft.rfid.R;
 import com.botongsoft.rfid.bean.classity.CheckPlan;
+import com.botongsoft.rfid.bean.classity.Kf;
+import com.botongsoft.rfid.bean.classity.Mjj;
 import com.botongsoft.rfid.bean.http.BaseResponse;
 import com.botongsoft.rfid.common.db.DBDataUtils;
 import com.botongsoft.rfid.common.service.http.BusinessException;
@@ -36,7 +38,9 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuCreator;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -81,6 +85,7 @@ public class CheckPlanActivity extends BaseActivity {
     Message mHandlerMessage;
     Bundle mBundle;
     Intent intent = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_checkplan);
@@ -203,7 +208,38 @@ public class CheckPlanActivity extends BaseActivity {
 
     private void searchDB() {
         Log.e("Handler searchDB--->", String.valueOf(Thread.currentThread().getName()));
-        List list = (List) DBDataUtils.getInfos(CheckPlan.class);
+        List<CheckPlan> list = (List) DBDataUtils.getInfos(CheckPlan.class);
+        Map map = new HashMap();
+        Kf kf = null;
+        Mjj mjj = null;
+        StringBuffer fws = null;
+        for (CheckPlan checkPlan : list) {
+            String[] srrArray = checkPlan.getFw().split(",");
+            Integer kfid = Integer.valueOf(srrArray[0]);
+            fws = new StringBuffer("");
+            if (kfid == 0) {
+                fws.append("所有库房");
+            } else if (kfid != 0) {
+                kf = (Kf) DBDataUtils.getInfo(Kf.class, "id", kfid + "");
+                fws.append(kf.getMc()).append("-");
+                Integer mjjid = Integer.valueOf(srrArray[1]);
+                if (mjjid == 0) {
+                    fws.append("所有密集架");
+                } else if (mjjid != 0) {
+                    mjj = (Mjj) DBDataUtils.getInfo(Mjj.class, "id", mjjid + "");
+                    fws.append(mjj.getMc()).append("密集架");
+                    Integer m = Integer.valueOf(srrArray[2]);
+                    if (m == 0) {
+                        fws.append("所有面");
+                    } else if (m == 1) {
+                        fws.append("左面");
+                    } else if (m == 2) {
+                        fws.append("右面");
+                    }
+                }
+            }
+            checkPlan.setFwCN(fws.toString());
+        }
         mDataList.addAll(list);
     }
 
@@ -367,7 +403,7 @@ public class CheckPlanActivity extends BaseActivity {
                 //这里要把pdid和盘点范围传过去
                 intent.putExtra("pdid", mDataList.get(position).getPdid());
                 intent.putExtra("fw", mDataList.get(position).getFw());
-            }else{
+            } else {
                 intent = new Intent(UIUtils.getContext(), CheckPlanErrorActivity.class);
                 intent.putExtra("index", position);
                 intent.putExtra("title", "盘点纠错");

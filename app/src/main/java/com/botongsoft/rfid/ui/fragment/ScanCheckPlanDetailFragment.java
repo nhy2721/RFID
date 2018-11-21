@@ -50,7 +50,9 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuCreator;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import butterknife.BindView;
 
@@ -89,12 +91,12 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
     //    private static String scanInfoNow = "";//扫描的格子位置
     private String editString;
     private List<Mjjgda> mDataLists = new ArrayList<Mjjgda>();
-    private List<String> ajztList = new ArrayList<String>();
+    private Set<String> ajztList = new HashSet<String>();
     private List<Mjj> mjjLists = new ArrayList<>();
     private List mjjgList = new ArrayList();
     private List<CheckPlanDeatilDel> delTempList = new ArrayList<>();
     private String[] srrArray;
-    private List<String> stringList = new ArrayList<>();//用来存放扫描过的密集格档案 防止重复扫描
+    private Set<String> stringList = new HashSet<String>();//用来存放扫描过的密集格档案 防止重复扫描
     private ScanCheckPlanDetailAdapter scanCheckPlanDetailAdapter;
     private ScanCheckPlanDetailFragment mContext;
     private HandlerThread mCheckMsgThread;//Handler线程池
@@ -165,7 +167,9 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
             if (value == 0) {
                 value = 30;
             }
-            manager.setOutPower((short) value);
+            if (manager != null) {
+                manager.setOutPower((short) value);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -627,7 +631,16 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                     tempStr = true;
                     ajztList.add(editString);
                 } else {
-                    for (String s : ajztList) {
+                    if (ajztList.contains(editString)) {
+                        if (ajztTempFlag) {
+                            ajztList.add(editString);
+                        }
+                        tempStr = true;
+                    } else {
+                        tempStr = false;
+                        ajztTempFlag = false;
+                    }
+                   /* for (String s : ajztList) {
                         if (s.equals(editString)) {
                             ajztTempFlag = false;
                             tempStr = false;
@@ -638,7 +651,7 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
                     }
                     if (ajztTempFlag) {
                         ajztList.add(editString);
-                    }
+                    }*/
                 }
             }
         } else {
@@ -652,12 +665,15 @@ public class ScanCheckPlanDetailFragment extends BaseFragment implements SwipeRe
 
     private boolean oldfcf(String editString, boolean tempStr) {
         if (stringList.size() > 0) {
-            for (String s : stringList) {
+            if (stringList.contains(editString)) {
+                tempStr = false;
+            }
+            /*for (String s : stringList) {
                 if (s.equals(editString)) {
                     tempStr = false;
                     break;
                 }
-            }
+            }*/
         }
         return tempStr;
     }

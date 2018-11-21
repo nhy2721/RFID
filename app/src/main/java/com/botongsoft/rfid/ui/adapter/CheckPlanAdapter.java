@@ -113,29 +113,7 @@ public class CheckPlanAdapter extends SwipeMenuAdapter<CheckPlanAdapter.DefaultV
             this.checkplan_bz.setText("备注");
             this.checkplan_bz_tv.setText(String.valueOf(mCheckPlan.getBz())==null?"":mCheckPlan.getBz());
             this.checkplan_fw.setText("盘点范围");
-            String[] srrArray = mCheckPlan.getFw().split(",");
-            String fws = "";
-            Integer kfid = Integer.valueOf(srrArray[0]);
-            if (kfid == 0) {
-                fws += "所有库房";
-            } else if (kfid != 0) {
-                fws += kfid + "库房";
-                Integer mjjid = Integer.valueOf(srrArray[1]);
-                if (mjjid == 0) {
-                    fws += "所有密集架";
-                } else if (mjjid != 0) {
-                    fws += mjjid + "密集架";
-                    Integer m = Integer.valueOf(srrArray[2]);
-                    if (m == 0) {
-                        fws += "所有面";
-                    } else if (m == 1) {
-                        fws += "左面";
-                    } else if (m == 2) {
-                        fws += "右面";
-                    }
-                }
-            }
-            this.checkplan_fw_tv.setText(String.valueOf(fws));
+            this.checkplan_fw_tv.setText(mCheckPlan.getFwCN());
         }
 
         @Override
