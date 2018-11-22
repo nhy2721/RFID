@@ -158,6 +158,7 @@ public class UpFLoorActivity extends BaseActivity {
             if (manager != null) {
                 manager.setOutPower((short) value);
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
